@@ -19,6 +19,9 @@ if(!CheckAuth()){
     <script type="text/javascript" src="images/jqueryui/js/jquery-ui-1.8.16.custom.min.js"></script>
 
 <script type="text/javascript">
+var searchText = ''; // เมนูที่จะค้นหา
+var searchTextSend = ''; // ค่าที่จะส่งไปหาเมนู
+
 var wnd = new Array();
 function popU(U,N,T){
     wnd[N] = window.open(U, N, T);
@@ -59,12 +62,47 @@ function menulog(name){
 		}
 	)
 }
+
 $(function(){
-    $('#div_user_menu').load('list_admin_menu.php');
+    $('#div_admin_menu').load('list_admin_menu.php');
+	 $('#div_user_menu').load('list_user_menu.php');
 });
+
+// alert admin menu ที่จะ refresh ทุก 30 วินาที
 var refreshId2 = setInterval(function(){
-    $('#div_user_menu').load('list_admin_menu.php');
+    $('#div_admin_menu').load('list_admin_menu.php?searchText='+searchTextSend);
 }, 30000);
+
+// alert admin menu ที่จะ refresh ทุก 10 นาที
+var refreshId3 = setInterval(function(){
+    $('#div_user_menu').load('list_user_menu.php?searchText='+searchTextSend);
+}, 600000);
+
+$(document).ready(function(){
+	$("#searchText").autocomplete({
+		source: "list_menu_search.php",
+		minLength:1
+	});
+});
+
+function searchLoad() // ค้นหาเมนู
+{
+	searchText = document.getElementById("searchText").value;
+	
+	searchTextSend = searchText.replace(" ","TspaceT","g");
+	
+	$('#div_admin_menu').load('list_admin_menu.php?searchText='+searchTextSend);
+	$('#div_user_menu').load('list_user_menu.php?searchText='+searchTextSend);
+	
+	if(searchText != '')
+	{
+		document.getElementById("searchSpan").innerHTML = 'ค้นหาเมนูด้วยคำว่า "'+searchText+'"';
+	}
+	else
+	{
+		document.getElementById("searchSpan").innerHTML = '';
+	}
+}
 </script>
 
 </head>
@@ -80,52 +118,30 @@ var refreshId2 = setInterval(function(){
 <table cellpadding="0" cellspacing="0" border="0" width="100%" align="center">
 <tr>
 	<td colspan="4">
-		<div id="div_user_menu"></div>	<!-- ที่แสดง admin menu -->
+		<div>
+			<br>
+			ค้นหาเมนู : 
+			<input type="textbox" id="searchText" size="60">
+			<input type="button" value="ค้นหาเมนู" onClick="searchLoad();">
+			<input type="button" value="แสดงเมนูทั้งหมดของฉัน" onClick="document.getElementById('searchText').value = ''; searchLoad();">
+		</div>
+
+		<div>
+			<br><font size="3"><span id="searchSpan"></span></font>
+		</div>
+		<br/>
+		<div id="div_admin_menu"></div>	<!-- ที่แสดง admin menu -->
 	</td>	
 </tr>
 <tr><td colspan="4"><br></td></tr>
-<tr>
-<?php
-$admin_array = $_session['menu_admin'];
-$j = 0;
-$result=pg_query("SELECT A.*,B.* FROM f_usermenu A INNER JOIN f_menu B on A.id_menu=B.id_menu WHERE (A.id_user='$_SESSION[ss_iduser]') AND (B.status_menu='1') AND (A.status=true) ORDER BY A.id_menu ASC");
-while($arr_menu = pg_fetch_array($result)){
-    $menu_id = $arr_menu["id_menu"];
-    $menu_name = $arr_menu["name_menu"];
-    $menu_path = $arr_menu["path_menu"];
-	
-	if(!in_array($menu_id,$admin_array)){
-            $arr['user'][$menu_id]['name'] = "$menu_name";
-            $arr['user'][$menu_id]['path'] = "$menu_path";
-			$arr['user'][$menu_id]['idmenu_log'] = "$menu_id";
-        }
-    
-   
-}
-if( count($arr['user']) > 0 ){ 
+</table>
 
-	foreach($arr['user'] as $k => $v){
-		$j++;	
-?>
-			<td width="24%" align="center" style="font-weight:bold; height:80px">
-				<a href="javascript:popU('<?php echo $v['path']; ?>?ss_iduser=<?php echo $_SESSION["ss_iduser"]; ?>','<?php echo $v['idmenu_log']; ?>','toolbar=no,menubar=no,resizable=yes,scrollbars=yes,status=no,location=no,width=950,height=670'),menulog('<?php echo $v['idmenu_log']; ?>')">
-					<img src="images/menu/<?php echo strtolower($v['idmenu_log']); ?>.gif" border="0" width="80" height="80"><br /><?php echo $v['name']; ?>
-				</a>
-			</td>
-<?php
-
-		if($j == 4){
-			$j = 0;
-			echo "</tr><tr>";
-		}
-	}
-
-}
-
-//echo "<script>alert('$_SESSION[ss_iduser] bbb');</script>";
-?>
-
-</tr>
+<table cellpadding="0" cellspacing="0" border="0" width="100%" align="center">
+	<tr>
+		<td colspan="4">
+			<div id="div_user_menu"></div>	<!-- ที่แสดง user menu -->
+		</td>
+	</tr>
 </table>
 
 </div>

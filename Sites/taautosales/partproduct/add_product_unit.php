@@ -8,7 +8,7 @@ include_once ("../include/function.php");
  }
  */
 $page_title = "เพิ่มหน่วย";
-$page = $_GET["page"];
+$page = pg_escape_string($_GET["page"]);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -41,7 +41,7 @@ include_once ("../include/header_popup.php");
 	  		?>add_product.php<?php
 	  	}
 		elseif($page == "edit"){
-			?>edit_product.php?pid=<?php echo $_GET["pid"];
+			?>edit_product.php?pid=<?php echo pg_escape_string($_GET["pid"]);
 		}
   	?>'">กลับไปยัง รายการเพิ่ม ของหน้า เพิ่มรายการอะไหล่/อุปกรณ์</button> -->
   </div><br />

@@ -24,7 +24,7 @@ $page_title = "แก้ไขรายการอะไหล่/อุปก�
 <?php
 include_once("../include/header_popup.php");
 
-$pid=$_GET["pid"];
+$pid = pg_escape_string($_GET["pid"]);
 $sqlStr_parts = "
 	SELECT * 
 	FROM \"parts\" 
@@ -54,7 +54,7 @@ $res_p=pg_fetch_array($qry_p);
   </tr>
   <tr >
     <td colspan="4" style="text-align:right;">ราคาขายของสินค้า</td>
-    <td width="456"><input type="text" name="p_priceperunit" id="p_priceperunit" style="width:300px;" value="<?php echo $res_p["priceperunit"]; ?>"/></td>
+    <td width="456"><input type="text" name="p_priceperunit" id="p_priceperunit" style="width:300px;" maxlength="15" value="<?php echo $res_p["priceperunit"]; ?>"/></td>
   </tr>
   <tr >
     <td colspan="4" style="text-align:right;">หน่วย</td>
@@ -158,6 +158,25 @@ $res_p=pg_fetch_array($qry_p);
 ?>
 	// For Test parts_code can be added From the Query
 	// console.log(parts_code);
+	
+	
+	$(function() {
+		$("#p_priceperunit").live("keydown", function(e){
+			// Allow: backspace, delete, tab, escape, enter and .
+		    if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
+		         // Allow: Ctrl+A
+		        (e.keyCode == 65 && e.ctrlKey === true) || 
+		         // Allow: home, end, left, right
+		        (e.keyCode >= 35 && e.keyCode <= 39)) {
+		             // let it happen, don't do anything
+		             return;
+		    }
+		    // Ensure that it is a number and stop the keypress
+		    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+		        e.preventDefault();
+		    }
+		});
+	});
 	
 	
 	$('#btnSave').click(function() {

@@ -5,12 +5,12 @@
 	//Load Initial HTTP Post Variables
 	$id_user = $_POST['id_user'];
 	$type = $_POST['type'];
-	$date = $_POST['date'];
+	$date = date("m-d-Y", strtotime($_POST['date']));
 	// $parts_pocode = $_POST['parts_pocode'];
 	$copypo_id = $_POST['copypo_id'];
-	$app_sentpartdate = $_POST['app_sentpartdate'];
+	$app_sentpartdate = date("m-d-Y", strtotime($_POST['app_sentpartdate']));
 	$credit_terms = $_POST['credit_terms'];
-	$esm_paydate = $_POST['esm_paydate'];
+	$esm_paydate = date("m-d-Y", strtotime($_POST['esm_paydate']));
 	$vender_id = $_POST['vender_id'];
 	$vat_status = $_POST['vat_status'];
 	$purchase_order_parts_details_array = json_decode(stripcslashes($_POST['purchase_order_parts_details_array']));
@@ -24,11 +24,11 @@
 	$PartsApproved_appr_note = $_POST['PartsApproved_appr_note'];
 	
 	if($type == 1){
-		$type_X = "n";
+		$type_X = "N";
 		$kny = 0;
 	}
 	elseif($type == 2){
-		$type_X = "u";
+		$type_X = "U";
 		$kny = 1;
 	}
 	
@@ -55,6 +55,8 @@
 		$office_id = $B_result["office_id"];
 	}
 	
+	
+	
 	$nowdate = date('m-d-Y');
 	$generate_id_StrQuery = "
 		select gen_parts_no(
@@ -68,17 +70,22 @@
 	$gen_parts_no = @pg_fetch_result($generate_id, 0);
 	if(empty($gen_parts_no)){
 	    $txt_error[] = "สร้าง gen_rec_no ไม่สำเร็จ $generate_id_StrQuery";
+		$status++;
 	}
 	else{
 		
 	}
 	
+	// ######### For Test checking the Variables #########
 	
-	// $data["test"] = $generate_id_StrQuery;
+	// $data["test"] = date("m-d-Y", strtotime($date));
 	// $data["success"] = false;
 	// $data["message"] = "";
 	// echo json_encode($data);
 	// exit;
+	
+	// ###################################################
+	
 	
 	//Query PurchaseOrderPart
 	$strQuery_PurchaseOrderPart = "
@@ -88,7 +95,7 @@
 			\"credit_terms\",\"app_sentpartdate\",\"esm_paydate\",\"vender_id\",
 			\"subtotal\",\"pcdiscount\",\"discount\",\"bfv_total\",
 			\"pcvat\",\"vat\",\"nettotal\",\"status\",\"paid\"
-		) 
+		)
 		VALUES 
     	(
 	    	'$gen_parts_no','$date','$type','$copypo_id',
@@ -99,16 +106,16 @@
 	";
 	
 	if(!$result=@pg_query($strQuery_PurchaseOrderPart)){
-        $txt_error[] = "INSERT PurchaseOrderPart ไม่สำเร็จ $strQuery";
+        $txt_error[] = "INSERT PurchaseOrderPart ไม่สำเร็จ $strQuery_PurchaseOrderPart";
         $status++;
     }
 	
 	
-	$data["test"] = $dsubtotal;
-	$data["success"] = false;
-	$data["message"] = "";
-	echo json_encode($data);
-	exit;
+	// $data["test"] = $strQuery_PurchaseOrderPart;
+	// $data["success"] = false;
+	// $data["message"] = "";
+	// echo json_encode($data);
+	// exit;
 	
     
     //Query PurchaseOrderPartsDetails
@@ -136,7 +143,7 @@
 				\"costperunit\",
 				\"total\"
 			)
-			VALUE
+			VALUES
 			(
 				'$gen_parts_no',
 				'$idno',
@@ -172,9 +179,9 @@
 	    	'$id_user',
 	    	'$PartsApproved_appr_note',
 	    	CURRENT_TIMESTAMP,
-	    	'',
-	    	'',
-	    	'',
+	    	null,
+	    	null,
+	    	null
 		)
 	";
 	
@@ -189,7 +196,7 @@
         //pg_query("ROLLBACK");
         pg_query("COMMIT");
         $data['success'] = true;
-        $data['po_id'] = $gen_parts_no;
+        $data['parts_pocode'] = $gen_parts_no;
     }else{
         pg_query("ROLLBACK");
         $data['success'] = false;

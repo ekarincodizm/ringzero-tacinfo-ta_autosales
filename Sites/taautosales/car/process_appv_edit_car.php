@@ -2,7 +2,7 @@
 include_once("../include/config.php");
 include_once("../include/function.php");
 
-$cmd = $_POST['cmd'];
+$cmd = pg_escape_string($_POST['cmd']);
 $iduser = $_SESSION["ss_iduser"];
 $editCarID = pg_escape_string($_POST['editCarID']);
 $remark = pg_escape_string($_POST['remark']);
@@ -49,6 +49,16 @@ if($cmd == "appv")
 							
 	if(!$res=@pg_query($in_qry)){
 		$Error .= "Update ไม่สำเร็จ  $in_qry \n";
+		$status++;
+	}
+	
+	// ถ้ามีการขอแก้ไขสีรถด้วย จะ update ในตาราง CarMove ด้วย โดยจะ update เฉพาะรายการล่าสุดเท่านั้น
+	$qry_upColorCar = "UPDATE \"CarMove\"
+			SET \"color\" = '$color', \"car_owner\" = 'มีการขอแก้ไขสีรถ'
+			WHERE \"auto_id\" = (select max(\"auto_id\") from \"CarMove\" where \"car_id\" = '$car_id')
+			AND \"color\" <> '$color' ";
+	if(!$res=@pg_query($qry_upColorCar)){
+		$Error .= "Update สีรถ ไม่สำเร็จ  $qry_upColorCar \n";
 		$status++;
 	}
 	

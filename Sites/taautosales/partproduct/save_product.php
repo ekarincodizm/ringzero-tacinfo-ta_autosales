@@ -11,6 +11,12 @@ $p_svcharge = pg_escape_string($_POST['p_svcharge']);
 $p_Type = pg_escape_string($_POST['p_Type']);
 $kny = 0;
 
+
+pg_query("BEGIN WORK");
+$status = 0;
+$txt_error = array();
+
+
 //Generate Parts Code ID
 $generate_id_StrQuery = "
 	select gen_parts_product_type_no(
@@ -22,6 +28,7 @@ $generate_id = @pg_query($generate_id_StrQuery);
 $gen_parts_code_no = @pg_fetch_result($generate_id,0);
 if(empty($gen_parts_code_no)){
     $txt_error[] = "สร้าง gen_rec_no ไม่สำเร็จ";
+	$status++;
 }
 else{
 	
@@ -37,10 +44,6 @@ exit;
 */
 //#########
 
-pg_query("BEGIN WORK");
-$status = 0;
-$txt_error = array();
-
 
 $in_qry="
 	INSERT INTO \"parts\" 
@@ -50,7 +53,7 @@ $in_qry="
 "; //Record Parts Tables
 if(!$res=@pg_query($in_qry)){
     $txt_error[] = "บันทึก Products ไม่สำเร็จ $in_qry";
-    $status++;
+	$status++;
 }
 
 if($status == 0){

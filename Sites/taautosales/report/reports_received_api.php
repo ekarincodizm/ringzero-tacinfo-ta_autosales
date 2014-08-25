@@ -10,6 +10,7 @@ if($cmd == "cash"){
     if(empty($date)){
         $date = $nowdate;
     }
+	
 ?>
 
 <div id="div_cash_show">
@@ -112,7 +113,7 @@ while($res = pg_fetch_array($qry)){
 	    
 ?>
     <td><?php echo $o_receipt; ?></td>
-    <td><?php echo $res_id; ?></td>
+    <td><a href="javascript:ShowDetail('<?php echo $res_id; ?>')"><u><?php echo $res_id; ?></a></td>
     <td><?php echo $inv_no; ?></td>
     <td><?php echo "$pre_name $cus_name $surname"; ?></td>
     <td><?php echo $service_name; ?></td>
@@ -151,7 +152,24 @@ $(document).ready(function(){
         $('#div_cash_show').load('reports_received_api.php?cmd=cash&date='+d);
     });
 });
+
+
+function ShowDetail(id){
+    $('body').append('<div id="divdetail"></div>');
+    $('#divdetail').load('report_reserve_api.php?cmd=showdetail&id='+id);
+    $('#divdetail').dialog({
+        title: 'รายละเอียดการจอง : '+id,
+        resizable: false,
+        modal: true,  
+        width: 800,
+        height: 450,
+        close: function(ev, ui){
+            $('#divdetail').remove();
+        }
+    });
+}
 </script>
+
 <?php
 }
 
@@ -479,7 +497,7 @@ while($res = pg_fetch_array($qry)){
     <td><?php echo $o_receipt; ?></td>
     <td><?php echo $o_date; ?></td>
 	<?php if($s_showDetail == "3"){echo "<td>$c_date</td>";} ?>
-    <td><?php echo $res_id; ?></td>
+    <td><a href="javascript:ShowDetail('<?php echo $res_id; ?>')"><u><?php echo $res_id; ?></a></td>
     <td><?php echo $idno; ?></td>
     <td><?php echo "$pre_name $cus_name $surname"; ?></td>
     <td><?php echo $service_name; ?></td>
@@ -608,7 +626,7 @@ while($res = pg_fetch_array($qry)){
 	<td><?php echo $cheque_no; ?></td>
     <td><?php echo $o_date; ?></td>
 	<?php if($s_showDetail == "3"){echo "<td>$c_date</td>";} ?>
-    <td><?php echo $res_id; ?></td>
+    <td><a href="javascript:ShowDetail('<?php echo $res_id; ?>')"><u><?php echo $res_id; ?></a></td> 
     <td><?php echo $idno; ?></td>
     <td><?php echo "$pre_name $cus_name $surname"; ?></td>
     <td><?php echo $service_name; ?></td>
@@ -702,7 +720,7 @@ while($res = pg_fetch_array($qry)){
     <td><?php echo $o_receipt; ?></td>
     <td><?php echo $o_date; ?></td>
 	<?php if($s_showDetail == "3"){echo "<td>$c_date</td>";} ?>
-    <td><?php echo $res_id; ?></td>
+    <td><a href="javascript:ShowDetail('<?php echo $res_id; ?>')"><u><?php echo $res_id; ?></a></td>
     <td><?php echo $idno; ?></td>
     <td><?php echo "$pre_name $cus_name $surname"; ?></td>
     <!-- <td><?php echo $service_name; ?></td>  -->
@@ -851,7 +869,7 @@ while($res = pg_fetch_array($qry)){
     <td><?php echo "$bank_name"; ?></td>
 	<td><?php echo "$bank_branch"; ?></td>
     <td><?php echo $date_on_cheque; ?></td>
-    <td><?php echo $res_id; ?></td>
+    <td><a href="javascript:ShowDetail('<?php echo $res_id; ?>')"><u><?php echo $res_id; ?></a> </td>  
     <td><?php echo "$full_name"; ?></td>
     <td align="right"><?php echo number_format($amt_on_cheque,2); ?></td>
 </tr>

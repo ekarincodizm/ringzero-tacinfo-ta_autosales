@@ -7,8 +7,8 @@ if(!CheckAuth()){
     exit();
 }
 
-$cmd = $_REQUEST['cmd'];
-$date = $_REQUEST['date'];
+$cmd = pg_escape_string($_REQUEST['cmd']);
+$date = pg_escape_string($_REQUEST['date']);
 
 if(empty($cmd) OR $cmd == "" OR empty($date) OR $date == ""){
     echo "invalid param.";
@@ -24,7 +24,7 @@ $save_data .= '<div style="margin:10px 0 0 0; font-weight:bold">รายงา�
 $save_data .= '
 <table cellpadding="3" cellspacing="0" border="1" width="100%">
 <tr style="font-weight:bold; text-align:center" bgcolor="#F0F0F0">
-     <td width="50%">สถานที่</td>
+     <td width="50%">มาจาก</td>
     <td width="30%">สีรถ</td>
     <td width="20%">จำนวนคัน</td>
 </tr>';
@@ -35,24 +35,29 @@ $sum = 0;
 $nub = 0;
 $unit = 0;
 
-$qry = pg_query("SELECT wh_id,wh_name,color,target_go,COUNT(color) AS unit FROM \"VCarMovement\" WHERE date_in='$date' GROUP BY wh_id,wh_name,color,target_go ORDER BY wh_id,color ASC ");
+$qry = pg_query("SELECT \"from_id\", \"from_name\", \"color\", count(*) as \"unit\"
+				FROM \"VCarMovement\"
+				WHERE (\"date_in\" = '$date' and \"wh_id\" = '1') or (\"date_out\" = '$date' and \"target_go\" = '1')
+				GROUP BY \"from_id\", \"from_name\", \"color\" ORDER BY \"from_name\", \"color\" ");
 while($res = pg_fetch_array($qry)){
     $j++;
     $k++;
-    $wh_id = $res['wh_id'];
-    $wh_name = $res['wh_name'];
+    $from_id = $res['from_id'];
+    $from_name = $res['from_name'];
     $color = $res['color'];
     $unit = $res['unit'];
 	
+	if($from_name == ""){$from_name = "รับรถเข้าสต๊อก";}
+	
     if($j == 1){
-		$tmp_wh_id = $wh_id;
+		$tmp_from_id = $from_id;
     }
 
-    if($wh_id != $tmp_wh_id){
+    if($from_id != $tmp_from_id){
 	
 	$save_data .= '
     <tr style="font-weight:bold">
-        <td colspan="3" align="right">'.$tmp_wh_name.' | ยอดรวม '.$nub.' รายการ</td>
+        <td colspan="3" align="right">'.$tmp_from_name.' | ยอดรวม '.$nub.' รายการ</td>
     </tr>';
     
         $nub = 0;
@@ -60,14 +65,14 @@ while($res = pg_fetch_array($qry)){
     }
 $save_data .= '
 <tr>
-    <td>'.$wh_name.'</td>
+    <td>'.$from_name.'</td>
     <td>'.getCarColor($color).'</td>
     <td align="right">'.$unit.'</td>
 </tr>
 ';
     $nub+=$unit;
-    $tmp_wh_id = $wh_id;
-    $tmp_wh_name = $wh_name;
+    $tmp_from_id = $from_id;
+    $tmp_from_name = $from_name;
 }
 
 if($j == 0){
@@ -75,7 +80,7 @@ if($j == 0){
 }else{
 $save_data .= '
     <tr style="font-weight:bold">
-        <td colspan="3" align="right">'.$tmp_wh_name.' | ยอดรวม '.$nub.' รายการ</td>
+        <td colspan="3" align="right">'.$tmp_from_name.' | ยอดรวม '.$nub.' รายการ</td>
     </tr>';
 
 }
@@ -89,7 +94,7 @@ $save_data .= '
 <table cellpadding="3" cellspacing="0" border="1" width="100%">
 <tr style="font-weight:bold; text-align:center" bgcolor="#F0F0F0">
       <td width="35%">สถานที่</td>
-	<td width="35%">ไปที่</td>
+	<td width="35%">ย้ายไปที่</td>
     <td width="15%">สีรถ</td>
     <td width="15%">จำนวนคัน</td>
 </tr>';
@@ -100,7 +105,7 @@ $sum = 0;
 $nub = 0;
 $unit = 0;
 
-$qry = pg_query("SELECT wh_id,wh_name,color,target_go,COUNT(color) AS unit FROM \"VCarMovement\" WHERE date_out='$date' GROUP BY wh_id,wh_name,color,target_go ORDER BY wh_id,color ASC ");
+$qry = pg_query("SELECT wh_id,wh_name,color,target_go,COUNT(color) AS unit FROM \"VCarMovement\" WHERE date_out='$date' and target_go <> '1'  GROUP BY wh_id,wh_name,target_go,color ORDER BY wh_name,target_go,color ASC ");
 while($res = pg_fetch_array($qry)){
     $j++;
     $k++;
@@ -117,7 +122,7 @@ while($res = pg_fetch_array($qry)){
     if($wh_id != $tmp_wh_id){
 	$save_data .= '
     <tr style="font-weight:bold">
-        <td colspan="3" align="right">'.$tmp_wh_name.' | ยอดรวม '.$nub.' รายการ</td>
+        <td colspan="4" align="right">'.$tmp_wh_name.' | ยอดรวม '.$nub.' รายการ</td>
     </tr>';
 
         $nub = 0;
@@ -138,11 +143,11 @@ $save_data .= '
 }
 
 if($j == 0){
-    $save_data .= "<tr><td colspan=3 align=center>- ไม่พบข้อมูล -</td></tr>";
+    $save_data .= "<tr><td colspan=4 align=center>- ไม่พบข้อมูล -</td></tr>";
 }else{
 $save_data .= '
     <tr style="font-weight:bold">
-        <td colspan="3" align="right">'.$tmp_wh_name.' | ยอดรวม '.$nub.' รายการ</td>
+        <td colspan="4" align="right">'.$tmp_wh_name.' | ยอดรวม '.$nub.' รายการ</td>
     </tr>';
 }
 
@@ -157,7 +162,7 @@ $save_data .= '<div style="margin:10px 0 0 0; font-weight:bold">รายงา�
 $save_data .= '
 <table cellpadding="3" cellspacing="0" border="1" width="100%">
 <tr style="font-weight:bold; text-align:center" bgcolor="#F0F0F0">
-    <td width="35%">สถานที่</td>
+    <td width="35%">มาจาก</td>
     <td width="15%">ทะเบียน</td>
     <td width="35%">รุ่นรถ</td>
     <td width="15%">สีรถ</td>
@@ -167,20 +172,25 @@ $j = 0;
 $k = 0;
 $sum = 0;
 $nub = 0;
-$qry = pg_query("SELECT * FROM \"VCarMovement\" WHERE date_in='$date' ORDER BY wh_id,license_plate ASC ");
+$qry = pg_query("SELECT *
+				FROM \"VCarMovement\"
+				WHERE (\"date_in\" = '$date' and \"wh_id\" = '1') or (\"date_out\" = '$date' and \"target_go\" = '1')
+				ORDER BY \"from_name\", \"license_plate\" ");
 while($res = pg_fetch_array($qry)){
     $j++;
     $k++;
-    $wh_id = $res['wh_id']; if($j == 1){ $tmp_wh_id = $wh_id; }
-    $wh_name = $res['wh_name'];
+    $from_id = $res['from_id']; if($j == 1){ $tmp_from_id = $from_id; }
+    $from_name = $res['from_name'];
     $license_plate = $res['license_plate'];
     $name = $res['name'];
     $color = $res['color'];
 	
-    if($wh_id != $tmp_wh_id){
+	if($from_name == ""){$from_name = "รับรถเข้าสต๊อก";}
+	
+    if($from_id != $tmp_from_id){
 $save_data .= '
     <tr style="font-weight:bold">
-        <td colspan="4" align="right">'.$tmp_wh_name.' | รวม '.$nub.' รายการ</td>
+        <td colspan="4" align="right">'.$tmp_from_name.' | รวม '.$nub.' รายการ</td>
     </tr>';
 
         $nub = 0;
@@ -189,15 +199,15 @@ $save_data .= '
 
 $save_data .= '
 <tr>
-    <td>'.$wh_name.'</td>
+    <td>'.$from_name.'</td>
     <td>'.$license_plate.'</td>
     <td>'.$name.'</td>
     <td>'.getCarColor($color).'</td>
 </tr>';
 
     $nub++;
-    $tmp_wh_id = $wh_id;
-    $tmp_wh_name = $wh_name;
+    $tmp_from_id = $from_id;
+    $tmp_from_name = $from_name;
 }
 
 if($j == 0){
@@ -205,7 +215,7 @@ if($j == 0){
 }else{
 $save_data .= '
     <tr style="font-weight:bold">
-        <td colspan="4" align="right">'.$tmp_wh_name.' | รวม '.$nub.' รายการ</td>
+        <td colspan="4" align="right">'.$tmp_from_name.' | รวม '.$nub.' รายการ</td>
     </tr>';
 }
 
@@ -217,7 +227,7 @@ $save_data .= '
 <table cellpadding="3" cellspacing="0" border="1" width="100%">
 <tr style="font-weight:bold; text-align:center" bgcolor="#F0F0F0">
     <td width="25%">สถานที่</td>
-	<td width="25%">ไปที่</td>
+	<td width="25%">ย้ายไปที่</td>
     <td width="10%">ทะเบียน</td>
     <td width="25%">รุ่นรถ</td>
     <td width="15%">สีรถ</td>
@@ -227,7 +237,7 @@ $j = 0;
 $k = 0;
 $sum = 0;
 $nub = 0;
-$qry = pg_query("SELECT * FROM \"VCarMovement\" WHERE date_out='$date' ORDER BY wh_id,license_plate ASC ");
+$qry = pg_query("SELECT * FROM \"VCarMovement\" WHERE date_out='$date' and target_go <> '1' ORDER BY wh_name, target_name, license_plate ASC ");
 while($res = pg_fetch_array($qry)){
     $j++;
     $k++;
@@ -241,7 +251,7 @@ while($res = pg_fetch_array($qry)){
     if($wh_id != $tmp_wh_id){
 $save_data .= '
     <tr  style="font-weight:bold">
-        <td colspan="4" align="right">'.$tmp_wh_name.' | รวม '.$nub.' รายการ</td>
+        <td colspan="5" align="right">'.$tmp_wh_name.' | รวม '.$nub.' รายการ</td>
     </tr>';
 
         $nub = 0;
@@ -263,11 +273,11 @@ $save_data .= '
 }
 
 if($j == 0){
-    $save_data .= "<tr><td colspan=4 align=center>- ไม่พบข้อมูล -</td></tr>";
+    $save_data .= "<tr><td colspan=5 align=center>- ไม่พบข้อมูล -</td></tr>";
 }else{
 $save_data .= '
     <tr style="font-weight:bold">
-        <td colspan="4" align="right">'.$tmp_wh_name.' | รวม '.$nub.' รายการ</td>
+        <td colspan="5" align="right">'.$tmp_wh_name.' | รวม '.$nub.' รายการ</td>
     </tr>';
 }
 

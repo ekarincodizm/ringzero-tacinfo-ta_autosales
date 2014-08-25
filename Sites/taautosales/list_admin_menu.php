@@ -7,6 +7,11 @@ $min_old = $_SESSION['min_old'];
 
 $_SESSION['min_old']=$minute; //เก็บค่าเก่าไว้ตรวจสอบ;
 
+// เมนูที่จะค้นหา
+$searchText = pg_escape_string($_GET["searchText"]);
+$searchText = str_replace("TspaceT"," ",$searchText);
+if($searchText != ""){$searchText = "and b.\"name_menu\" like '%$searchText%'";}
+
 // หากลุ่มของผู้ใช้งานในขณะนั้น
 $query_group = pg_query(" select * from \"fuser\" where \"id_user\" = '$iduser' ");
 while($result_group = pg_fetch_array($query_group))
@@ -25,7 +30,7 @@ $admin_array = $_session['menu_admin']; //menu ของ admin
 
 $result=pg_query(" SELECT A.*,B.* FROM f_usermenu A 
 INNER JOIN f_menu B on A.id_menu=B.id_menu 
-WHERE (A.id_user='$_SESSION[ss_iduser]') AND (B.status_menu='1') AND (A.status=true) ORDER BY A.id_menu ASC ");
+WHERE (A.id_user='$_SESSION[ss_iduser]') AND (B.status_menu='1') AND (A.status=true) $searchText ORDER BY A.id_menu ASC ");
 
 while($arr_menu = pg_fetch_array($result)){
     $menu_id = $arr_menu["id_menu"];                                                                                                      

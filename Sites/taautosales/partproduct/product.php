@@ -37,15 +37,15 @@ include_once("../include/header_popup.php");
 
 <div style="margin-top:5px; font-weight: bold">รายการสินค้า</div>
 <div> 
-<table width="750" border="0" cellspacing="0" cellpadding="4">
+<table width="850" border="0" cellspacing="0" cellpadding="4">
 <tr style="background-color:#C0DCDC;">
-    <td width="50" ><b>รหัสสินค้า</b></td>
+    <td width="70" ><b>รหัสสินค้า</b></td>
     <td width="100"><b>ชื่อสินค้า</b></td>
     <td width="250"><b>รายละเอียดสินค้า</b></td>
-    <td width="50"><b>ราคาขายสินค้า</b></td>
+    <td width="85"><b>ราคาขายสินค้า</b></td>
     <td width="50"><b>หน่วย</b></td>
-    <td width="50"><b>คิดค่าบริการ</b></td>
-    <td width="50"><b>ประเภทสินค้า</b></td>
+    <td width="70"><b>คิดค่าบริการ</b></td>
+    <td width="80"><b>ประเภทสินค้า</b></td>
     <td width="50" style="text-align:center;">แก้ไข</td>
 </tr>
 <?php 
@@ -96,7 +96,7 @@ while($res_ps=@pg_fetch_array($qry_ps)){ //Query the parts' products
     	// echo $res_ps["type"]; 
     ?></td>
     
-    <td style="text-align:center;"><a href="edit_product.php?pid=<?php echo $res_ps["code"]; ?>"><img src="icon-edit.png" border="0" /></a></td>
+    <td style="text-align:center;"><a href="edit_product.php?pid=<?php echo $res_ps["code"]; ?>"><img src="../images/icon-edit.png" border="0" /></a></td>
 </tr>
 <?php
 }

@@ -108,7 +108,7 @@ foreach($arr['admin'] as $k => $v){
 		<div style=\"clear : both;\"></div>";
 	}else{
 	   echo "<td width=\"24%\" align=\"center\" style=\"background-color:#FFFFFF; padding: 3px 3px 3px 3px; border-style: dashed; border-width: 1px; border-color:#969696; margin-bottom:3px\">
-		<div style=\"margin-top:0px;width:170px;float:right;\">
+		<div style=\"margin-top:0px;width:170px;\">
 		<A HREF=\"javascript:popU('$v[path]','$k','toolbar=no,menubar=no,resizable=yes,scrollbars=yes,status=no,location=no,width=1150,height=768');javascript:menulog('$v[idmenu_log]');\"><IMG SRC=\"images/menu/$pic.gif\" WIDTH=\"80\" HEIGHT=\"80\" BORDER=\"0\"><br>$v[name]</A>
 		</div>
 		<div style=\"clear : both;\"></div>";

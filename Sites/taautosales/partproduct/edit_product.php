@@ -228,6 +228,11 @@ $res_p=pg_fetch_array($qry_p);
 			alert(msg);
 			return false;
 		} else {
+			
+			if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
+				return false;
+			} 
+			
 			//Send AJAX Request: HTTP POST: For Record Parts 's Products
 			$.post('update_product.php', {
 				p_code : "<?php echo $pid; ?>",

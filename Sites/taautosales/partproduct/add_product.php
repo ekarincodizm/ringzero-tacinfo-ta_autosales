@@ -232,6 +232,11 @@ include_once ("../include/header_popup.php");
 			alert(msg);
 			return false;
 		} else {
+			
+			if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
+				return false;
+			} 
+			
 			//Send AJAX Request: HTTP POST: For Record Parts 's Products
 			$.post('save_product.php', {
 				p_code_type : $("#p_code_type").val(),

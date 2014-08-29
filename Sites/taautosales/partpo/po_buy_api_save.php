@@ -56,6 +56,10 @@
 	}
 	
 	
+	pg_query("BEGIN WORK");
+	$status = 0;
+	$txt_error = array();
+		
 	
 	$nowdate = date('m-d-Y');
 	$generate_id_StrQuery = "
@@ -94,14 +98,14 @@
 			\"parts_pocode\",\"date\",\"type\",\"copypo_id\",
 			\"credit_terms\",\"app_sentpartdate\",\"esm_paydate\",\"vender_id\",
 			\"subtotal\",\"pcdiscount\",\"discount\",\"bfv_total\",
-			\"pcvat\",\"vat\",\"nettotal\",\"status\",\"paid\"
+			\"pcvat\",\"vat\",\"nettotal\", \"vat_status\", \"status\",\"paid\"
 		)
 		VALUES 
     	(
 	    	'$gen_parts_no','$date','$type','$copypo_id',
 	    	'$credit_terms','$app_sentpartdate','$esm_paydate','$vender_id',
 	    	'$dsubtotal','$pcdiscount','$discount','$vsubtotal',
-	    	'$pcvat','$vat','$nettotal','$vat_status','0'
+	    	'$pcvat','$vat','$nettotal','$vat_status', '1','0'
 		)
 	";
 	
@@ -202,8 +206,6 @@
         $data['success'] = false;
         $data['message'] = "ไม่สามารถบันทึกได้! $txt_error[0]";
     }
-	
-	// $data["test"] = $B_query;
 	
 	echo json_encode($data);
 ?>

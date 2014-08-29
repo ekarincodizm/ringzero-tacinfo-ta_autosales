@@ -927,6 +927,21 @@
 		$('#esm_paydate').datepicker('setDate', date2);
 		console.log("esm_paydate = " + $('#esm_paydate').datepicker('getDate'));
     }
+    
+    $(function() {
+    	$("#vat_status").live("change", function(){
+    		var vat_status_value = $(this).val();
+    		console.log("vat_status" + vat_status_value);
+    		if(vat_status_value == "1"){
+    			$("#pcvat").val("7");
+    			$("#pcvat").prop("disabled", false);
+    		}
+    		else if(vat_status_value == "0"){
+    			$("#pcvat").val("0");
+    			$("#pcvat").prop("disabled", true);
+    		}
+    	});
+	});
 	
 	
 	//######################## Calculate Mode ############################
@@ -1036,7 +1051,7 @@
 			console.log("dsubtotal = " + dsubtotal_value);
 		}
 		
-		$("#dsubtotal").html(dsubtotal_value);
+		$("#dsubtotal").html(numberWithCommas(dsubtotal_value));
 		dsubtotal = dsubtotal_value;
 		
 		console.log("################$$$$$$$$$$$$$$$$");
@@ -1046,7 +1061,7 @@
 		//pcdiscount
 		//%ส่วนลด
 		//dsubtotal * pcdiscount = discount
-		discount = dsubtotal * pcdiscount; 
+		discount = parseFloat(dsubtotal * pcdiscount).toFixed(2); 
 		console.log("discount = " + discount);
 		$("#discount").val(discount);
 		
@@ -1056,20 +1071,24 @@
 		//vsubtotal = dsubtotal - discount
 		vsubtotal = dsubtotal - discount;
 		console.log("vsubtotal = " + vsubtotal);
-		$("#vsubtotal").html(vsubtotal);
+		$("#vsubtotal").html(numberWithCommas(vsubtotal));
 		
 		vat = parseFloat(vsubtotal * (pcvat / 100.0)).toFixed(2);
 		
 		//vat
 		//จำนวนภาษี
 		console.log("vat = " + vat);
-		$("#vat").html(vat);
+		$("#vat").html(numberWithCommas(vat));
 		
 		//nettotal
 		//จำนวนรวมสุทธิ
-		nettotal = (vsubtotal * 1.0) + (vat * 1.0);
-		console.log("nettotal = " + nettotal);
-		$("#nettotal").html(nettotal);
+		nettotal = parseFloat((vsubtotal * 1.0) + (vat * 1.0)).toFixed(2);
+		console.log("nettotal = " + numberWithCommas(nettotal));
+		$("#nettotal").html(numberWithCommas(nettotal));
+	}
+	
+	function numberWithCommas(x) {
+	    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
 	
 	//########## Submit ###########
@@ -1127,7 +1146,7 @@
 		
 		
 		//### Middle ###
-		var arradd = [];
+		var arradd = new Array();
 		for( i=1; i<=counter; i++ ){
 			
 			// var _idno = $('#idno'+i).val();

@@ -30,6 +30,21 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 
 <?php
 	// include_once ("../include/header_popup.php");
+	
+	function read_Parts_Unit($unitid){ //Return UnitName
+		$parts_unit_strQuery = "
+			SELECT 
+				\"unitname\"
+			FROM 
+				\"parts_unit\"
+			WHERE
+				\"unitid\" = '".$unitid."'
+		";
+		$parts_unit_query = pg_query($parts_unit_strQuery);
+		while($parts_unit_result = pg_fetch_array($parts_unit_query)){
+			echo $parts_unit_result["unitname"];
+		}
+	}
 ?>
 	<br/>
 	<table cellpadding="3" cellspacing="1" border="0" width="100%" bgcolor="#F0F0F0">
@@ -43,6 +58,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 		    <td>จำนวนเงิน</td>
 		</tr>
 		<?php
+		
 		$purchaseOrderPartsDetails_strQuery = "
 			SELECT 
 				* 
@@ -69,7 +85,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 		    <td><?php echo $purchaseOrderPartsDetails_result['name']; ?></td>
 		    <td><?php echo $purchaseOrderPartsDetails_result['details']; ?></td>
 		    <td><?php echo $purchaseOrderPartsDetails_result['quantity']; ?></td>
-		    <td><?php echo $purchaseOrderPartsDetails_result['unit']; ?></td>
+		    <td><?php echo read_Parts_Unit($purchaseOrderPartsDetails_result['unit']); ?></td>
 		    <td><?php echo number_format($purchaseOrderPartsDetails_result['costperunit'], 2); ?></td>
 		    <td><?php echo number_format($purchaseOrderPartsDetails_result['total'], 2); ?></td>
 		    
@@ -212,10 +228,10 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 		<div style="margin-top:10px" align="center"><b>บันทึกการอนุมัติ:</b><br /><textarea name="appr_note" id="appr_note" cols="70" rows="3"></textarea></div>
 		<div style="width:300px; margin: 0 auto; padding: 15px 0 0 0">
 		    <div style="float:left">
-		<input type="button" name="btnApprove" id="btnApprove" value="อนุมัติ">
+		<input type="button" name="btnApprove" id="btnApprove" value="อนุมัติ" alt="อนุมัติ" title="อนุมัติ" />
 		    </div>
 		    <div style="float:right">
-		<input type="button" name="btnApproveCancel" id="btnApproveCancel" value="ไม่อนุมัติ">
+		<input type="button" name="btnApproveCancel" id="btnApproveCancel" value="ไม่อนุมัติ" alt="ไม่อนุมัติ" title="ไม่อนุมัติ" />
 		    </div>
 		</div>
 	
@@ -265,6 +281,20 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 			alert(msg);
 			return false;
 		} else {
+			
+			//Make Confirm Alert
+			if(ApproveStatus == 0){
+				if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
+					return false;
+				} 
+			}
+			else if(ApproveStatus == 2){
+				if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
+					return false;
+				} 
+			}
+			
+			
 			//Send AJAX Request: HTTP POST: For Record PartsApprove 's Products
 			$.post('po_approve_save.php', {
 				parts_pocode : "<?php echo $parts_pocode; ?>",

@@ -29,7 +29,7 @@
 				$a=0;	
 				$parts_pocode_strQuery = "
 					SELECT 
-						*
+						*	
 					FROM 
 						\"PurchaseOrderPart\"
 					WHERE
@@ -40,22 +40,29 @@
 				while($parts_pocode_query_result = @pg_fetch_array($parts_pocode_query)){ //Query the parts' products
 				    $a++; //For count how many products' records
 ?>
-					<tr style="background-color:<?php echo $bg; ?>">
+					<tr class="<?php
+						if($a % 2 == 0){
+							?>odd<?php
+						}
+						else{
+							?>even<?php
+						}
+					?>"><!-- style="background-color:<?php echo $bg; ?>" -->
 					    <td><?php echo $parts_pocode_query_result["parts_pocode"]; ?></td>
 					    <td><?php echo $parts_pocode_query_result["date"]; ?></td>
 					    <td><?php echo $parts_pocode_query_result["credit_terms"]; ?></td>
 					    <td><?php echo $parts_pocode_query_result["app_sentpartdate"]; ?></td>
 					    <td><?php echo $parts_pocode_query_result["esm_paydate"]; ?></td>
-					    <td><?php echo $parts_pocode_query_result["subtotal"]; ?></td>
-					    <td><?php echo $parts_pocode_query_result["discount"]; ?></td>
-					    <td><?php echo $parts_pocode_query_result["bfv_total"]; ?></td>
-					    <td><?php echo $parts_pocode_query_result["vat"]; ?></td>
+					    <td><?php echo number_format($parts_pocode_query_result["subtotal"], 2); ?></td>
+					    <td><?php echo number_format($parts_pocode_query_result["discount"], 2); ?></td>
+					    <td><?php echo number_format($parts_pocode_query_result["bfv_total"], 2); ?></td>
+					    <td><?php echo number_format($parts_pocode_query_result["vat"], 2); ?></td>
 					    <td><?php echo number_format($parts_pocode_query_result["nettotal"], 2); ?></td>
 					    <td style="text-align:center;">
-					    	<a href="../partpo/po_buy_mat_pdf.php?po_id=<?php echo $parts_pocode_query_result["parts_pocode"]; ?>" target="_blank" ><img src="../images/zoom.png" border="0" width="16" /></a>
-					    	<span style="margin-left: 25px;"></span>
+					    	<a href="../partpo/po_buy_mat_pdf.php?po_id=<?php echo $parts_pocode_query_result["parts_pocode"]; ?>" target="_blank" ><img src="../images/zoom.png" border="0" width="16" alt="อ่านรายละเอียด" title="อ่านรายละเอียด" /></a>
+					    	<span style="margin-left: 10px;"></span>
 					    	<!-- <a href="" onclick="javascript:popU('po_approve_edit.php','','toolbar=no,menubar=no,resizable=no,scrollbars=yes,status=no,location=no,width=750,height=300')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" /></a> -->
-					    	<a href="#" onclick="javascript:ShowDetail('po_approve_edit.php', '<?php echo $parts_pocode_query_result["parts_pocode"]; ?>')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" /></a>
+					    	<a href="#" onclick="javascript:ShowDetail('po_approve_edit.php', '<?php echo $parts_pocode_query_result["parts_pocode"]; ?>')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" alt="แก้ไขรายละเอียด" title="แก้ไขรายละเอียด" /></a>
 					    </td>
 					</tr>
 <?php
@@ -68,9 +75,7 @@
 <script>
 	function ShowDetail(url, id){
 	    $('body').append('<div id=\"divdialogadd\"></div>');
-	    // $('#divdialogadd').load('po_approve_edit.php?cmd=divapprove&id='+id+'&condition='+cond+'&keyword='+key);
-	    $('#divdialogadd').load('po_approve_edit.php?parts_pocode=' + id);
-	    
+	    $('#divdialogadd').load(url + '?parts_pocode=' + id);
 	    $('#divdialogadd').dialog({
 	        title: 'แก้ไขรายการ Part PO : '+id,
 	        resizable: false,

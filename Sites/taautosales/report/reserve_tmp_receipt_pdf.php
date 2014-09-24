@@ -47,6 +47,11 @@ $qry_product = pg_query(" SELECT
 		$car_name = $res['car_name'];
 	}
 	
+	//Check that Are there ป้ายแดง ??? If yes, change it to มือสองตามสภาพ
+	if(!(strpos($car_type_name, "ป้ายแดง") !== false)){
+		$car_type_name = "มือสองตามสภาพ";
+	}
+	
 $qry_finance_name = pg_query("SELECT  cus_id,finance_name 
 								 FROM v_finances
 								WHERE cus_id = '$finance_cus_id' ");
@@ -71,11 +76,11 @@ $save_data[$m] .= '
 		</td>
 	</tr>
 </table>
-<hr color= "red" size="10"/>
-<br>';
+';
 
 $save_data[$m] .='
-	<span style="font-weight:bold; font-size:larger; text-align:right"><b>'.$page_name.'ใบเสร็จรับเงินชั่วคราว  </b></span>';
+	<span style="font-weight:bold; font-size:larger; text-align:right"><b>'.$page_name.'ใบเสร็จรับเงินชั่วคราว  </b></span>
+	<hr color= "red" size="10"/>';
 
 $save_data[$m] .='
 <br><br>
@@ -95,7 +100,7 @@ $save_data[$m] .='
 </table>';
 
 $save_data[$m] .='
-<table cellpadding="3" cellspacing="0" border="1" width="100%" style="font-size:smaller;" >
+<table cellpadding="3" cellspacing="0" border="1" width="100%" style="font-size:16;" >
 	<tr>
 		<td width="15%">ชื่อลูกค้า 
 		<br>ชื่อผู้จดทะเบียน</td>
@@ -141,7 +146,7 @@ $save_data[$m] .='
 </table>';
 	
 	$save_data[$m] .='
-<table cellpadding="3" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
+<table cellpadding="3" cellspacing="0" border="1" width="100%" style="font-size:16;">
 	<tr  bgcolor="#CCCCCC">
 		<td width="10%" align="center"><b>ลำดับที่</b></td>
 		<td width="20%" align="center"><b>เลขที่ใบแจ้งหนี้</b></td>
@@ -297,15 +302,26 @@ $qry_sum_discount = pg_query(" SELECT sum(a.amount)as discount_amount FROM \"VDi
 	
 $save_data[$m] .= '	
 </table>
+<br/>
+<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:14;"><tr><td>
+<b>เงื่อนไข: </b>ใบเสร็จรับเงินฉบับนี้จะสมบูรณ์ต่อเมื่อปรากฏลายเซ็นของผู้รับเงินและเช็คของท่านผ่านบัญชีเรียบร้อยแล้ว
+</td></tr></table>
+<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:14;"><tr><td>
+<b>หมายเหตุ: </b>'.$receipt_memo.'
+</td></tr></table>
+<br>
 <table cellpadding="1" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
 	<tr>
 		<td align="center"><br><br>
-			<table cellpadding="4" cellspacing="0" border="0" width="100%" style="font-size:smaller;" align="center">
+			<table cellpadding="4" cellspacing="0" border="0" width="100%" style="font-size:14;" align="center">
 				<tr align="center">
 					<td width="100%" colspan="2">ลงชื่อ ____________________________________ ชื่อผู้จอง(ลูกค้า)</td>
 				</tr>
 				<tr align="center">
 					<td width="100%" colspan="2">(_________'.$res['cus_name'].'_________)</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">วันที่ ____________________________________________</td>
 				</tr>
 			</table>
 		</td>';
@@ -313,24 +329,22 @@ $save_data[$m] .= '
 	$save_data[$m] .='
 			
 		<td align="center"><br><br>
-			<table cellpadding="4" cellspacing="0" border="0" width="100%" style="font-size:smaller;" align="center">
+			<table cellpadding="4" cellspacing="0" border="0" width="100%" style="font-size:14;" align="center">
 				<tr align="center">
 					<td width="100%" colspan="2">ลงชื่อ _____________________________________ ผู้รับเงิน</td>
 				</tr>
 				<tr align="center">
 					<td width="100%" colspan="2">(________'.$_SESSION['ss_username'].'_________)</td>
 				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">วันที่ ____________________________________________</td>
+				</tr>
 			</table>
 		</td>
 	</tr>
 </table><br>
-<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:smaller;"><tr><td>
-<b>หมายเหตุ: </b>'.$receipt_memo.'
-</td></tr></table><br><br>
 
-<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:smaller;"><tr><td>
-<b>เงื่อนไข: </b>ใบเสร็จรับเงินฉบับนี้จะสมบูรณ์ต่อเมื่อปรากฏลายเซ็นของผู้รับเงินและเช็คของท่านผ่านบัญชีเรียบร้อยแล้ว
-</td></tr></table><br><br>';
+';
 
 
 $qry_temp_receipt_renew = pg_query(" SELECT * FROM v_temp_receipt_renew_logs WHERE new_receipt_no = '$receipt_no' ");

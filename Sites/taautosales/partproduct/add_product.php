@@ -31,14 +31,14 @@ include_once ("../include/header_popup.php");
 <div>
   <div style="float:right; "><button style="width:75px;" onclick="window.location='product.php'">กลับ</button></div><br />
   <div>
-    <table width="578" border="0" cellpadding="2">
+    <table width="860" border="0" cellpadding="2">
 	  <!-- <tr>
-	    <td colspan="4" style="text-align:right;">รหัสสินค้า</td>
+	    <td style="text-align:right;">รหัสสินค้า</td>
 	    <td width="456"><input type="text" name="p_code" id="p_code" style="width:300px;" /></td>
 	  </tr> -->
 	  <tr>
-	  	<td colspan="4" style="text-align:right;">ประเภทกลุ่มอะไหล่</td>
-	  	<td width="456">
+	  	<td width="100" style="text-align:right;">ประเภทกลุ่มอะไหล่</td>
+	  	<td width="300">
 			<select name="p_code_type" id="p_code_type" style="width:304px;" >
 				<option value="">โปรดเลือก ประเภทกลุ่มอะไหล่</option>
 <?php
@@ -60,24 +60,44 @@ include_once ("../include/header_popup.php");
 ?>
 			</select>
 	  	</td>
+	  	<td width="100" style="text-align: right; ">
+	  		ประเภทรหัสบาร์โค้ด
+	  	</td>
+	  	<td width="300">
+	  		<!-- <input type="radio" name="has_barcode" value="no_checked" style="visibility: hidden; " /> -->
+	  		<label style="margin-left: 15px; margin-right: 15px;">
+	  			<input type="radio" name="has_barcode" id="has_barcode_yes" value="yes" >มีรหัสบาร์โค้ด
+	  		</label>
+	  		<label>
+	  			<input type="radio" name="has_barcode" id="has_barcode_no" value="no" >ไม่มีรหัสบาร์โค้ด
+	  		</label>
+	  	</td>
+	  </tr>
+	  
+		
+	  <tr class="barcode_type">
+	  </tr>
+	  
+	  <tr>
+	    <td style="text-align:right;">ชื่อสินค้า</td>
+	    <td ><input type="text" name="p_name" id="p_name" style="width:300px;"  /></td>
+	    <td>
+	    	
+	    </td>
 	  </tr>
 	  <tr>
-	    <td colspan="4" style="text-align:right;">ชื่อสินค้า</td>
-	    <td width="456"><input type="text" name="p_name" id="p_name" style="width:300px;"  /></td>
-	  </tr>
-	  <tr>
-	    <td colspan="4" style="text-align:right;">รายละเอียดสินค้า</td>
-	    <td width="456">
+	    <td style="text-align:right;">รายละเอียดสินค้า</td>
+	    <td >
 	    	<input type="text" name="p_detail" id="p_detail" style="width:300px;" />
 	    </td>
 	  </tr>
 	  <tr>
-	    <td colspan="4" style="text-align:right;">ราคาขายของสินค้า</td>
-	    <td width="456"><input type="text" name="p_priceperunit" id="p_priceperunit" style="width:300px;" maxlength="15" /></td>
+	    <td style="text-align:right;">ราคาขายของสินค้า</td>
+	    <td ><input type="text" name="p_priceperunit" id="p_priceperunit" style="width:300px;" maxlength="15" /></td>
 	  </tr>
 	  <tr>
-	    <td colspan="4" style="text-align:right;">หน่วย</td>
-	    <td width="456">
+	    <td style="text-align:right;">หน่วย</td>
+	    <td >
 	    	<select name="p_unitid" id="p_unitid" style="width:150px;">
 	    		<option value="">กรุณาระบุหน่วย</option>
 	<?php
@@ -106,8 +126,8 @@ include_once ("../include/header_popup.php");
 	    </td>
 	  </tr>
 	  <tr>
-	    <td colspan="4" style="text-align:right;">คิดค่าบริการ</td>
-	    <td width="456">
+	    <td style="text-align:right;">คิดค่าบริการ</td>
+	    <td >
 	    	<select name="p_svcharge" id="p_svcharge" style="width:150px;">
 				<option value="1" selected="selected">คิดค่าบริการ</option>
 				<option value="0">ไม่คิดค่าบริการ</option>
@@ -115,8 +135,8 @@ include_once ("../include/header_popup.php");
 	    </td>
 	  </tr>
 	  <tr>
-	    <td colspan="4" style="text-align:right;">ประเภท</td>
-	    <td width="456">
+	    <td style="text-align:right;">ประเภท</td>
+	    <td >
 	    	<select name="p_Type" id="p_Type" style="width:150px;">
 				<option value="0">ไม่แยกรหัสย่อย</option>
 				<option value="1">แยกรหัสย่อย</option>
@@ -125,7 +145,7 @@ include_once ("../include/header_popup.php");
 	  </tr>
 	  
 	  <tr>
-	    <td colspan="4">&nbsp;</td>
+	    <td>&nbsp;</td>
 	    <td><input type="submit" name="btnSave" id="btnSave" value="บันทึก" /></td>
 	  </tr>
   
@@ -174,6 +194,27 @@ include_once ("../include/header_popup.php");
 		});
 	});
 	
+	//For Check ว่่า มีรหัสบาร์โค้ด หรือไม่
+	$("input[name=has_barcode]").change(function(){
+		var has_barcode = $(this).val();
+		console.log(has_barcode);
+		if(has_barcode == "yes"){
+			
+			var str_barcode_dom = ""
+				+"		<td style=\"text-align: right; \">"
+				+"			รหัสบาร์โค้ด"
+				+"		</td>"
+				+"		<td>"
+				+"			<input type=\"text\" name=\"barcode\" value=\"\" style=\"width:300px;\" />"
+				+"		</td>"
+			;
+			$(".barcode_type").html(str_barcode_dom);
+		}
+		else if(has_barcode == "no"){
+			$(".barcode_type").html("");
+		}
+	});
+	
 	
 	$('#btnSave').click(function() {
 		var chk = 0;
@@ -186,6 +227,18 @@ include_once ("../include/header_popup.php");
 			msg += "กรุณาระบุ ประเภทกลุ่มอะไหล่ \n";
 			chk++;
 		}
+		
+		if ($("input[name=has_barcode]:checked").val() == "" || $("input[name=has_barcode]:checked").val() == null ) {
+			msg += "กรุณาระบุ ประเภทรหัสบาร์โค้ด \n";
+			chk++;
+		}
+		else if($("input[name=has_barcode]:checked").val() == "yes"){
+			if($("input[name=barcode]").val() == ""){
+				msg += "กรุณาระบุ รหัสบาร์โค้ด \n";
+				chk++;
+			}
+		}
+		
 		if ($('#p_name').val() == "") {
 			msg += "กรุณาระบุ ชื่อสินค้า \n";
 			chk++;
@@ -237,8 +290,18 @@ include_once ("../include/header_popup.php");
 				return false;
 			} 
 			
+			if($("input[name=has_barcode]:checked").val() == "yes"){
+				var _barcode = $("input[name=barcode]").val();
+			}
+			else if($("input[name=has_barcode]:checked").val() == "no"){
+				var _barcode = "";
+			}
+			
 			//Send AJAX Request: HTTP POST: For Record Parts 's Products
 			$.post('save_product.php', {
+				p_has_barcode: $("input[name=has_barcode]:checked").val(),
+				p_barcode: _barcode,
+				
 				p_code_type : $("#p_code_type").val(),
 				p_name : $('#p_name').val(),
 				p_detail : $('#p_detail').val(),

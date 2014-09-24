@@ -44,8 +44,12 @@ $qry_product = pg_query(" SELECT
 		$car_type_name = $res['car_type_name'];
 		$car_name = $res['car_name'];
 	}
+	
+	//Check that Are there ป้ายแดง ??? If yes, change it to มือสองตามสภาพ
+	if(!(strpos($car_type_name, "ป้ายแดง") !== false)){
+		$car_type_name = "มือสองตามสภาพ";
+	}
 		
-
 $qry_finance_name = pg_query("SELECT  cus_id,finance_name 
 								 FROM v_finances
 								WHERE cus_id = '$finance_cus_id' ");
@@ -111,19 +115,27 @@ for($m=0;$m<=2;$m++){
 	} else {
 		$pageName = "ต้นฉบับ(สำหรับลูกค้า)";
 	}
-
+	
 $save_data[$m] .= '
 <table cellpadding="1" cellspacing="0" border="0" width="100%">
 	<tr>
 		<td width="10%"><img src="../images/logo.jpg" border="0" width="50" height="50" ></td>
-		<td width="60%" style="font-size:smaller; text-align:left">บริษัท ที.เอ.โอโตเซลส์  จำกัด <br>
-			T.A. AUTOSALES CO.,LTD. </td>
-			<td width="20%" style="font-size:smaller; text-align:right"><b>'.$pageName.'</b></td><br>
-	</tr>
-	<tr>
-		<td width="100%" style="font-size:smaller; text-align:left">
-			สำนักงานใหญ่ 555 ถนนนวมินทร์ แขวงคลองกุ่ม เขตบึงกุ่ม กรุงเทพมหานคร 10240 โทรศัพท์ 0-2744-2222 โทรสาร 0-2379-1111 <br>
-			เลขประจำตัวผู้เสียภาษี 0105546153597
+		<td width="90%" style="font-size:smaller; text-align:left">
+			บริษัท ที.เอ.โอโตเซลส์  จำกัด 
+			<br/>
+			<table >
+				<tr>
+					<td width="50%">
+						T.A. AUTOSALES CO.,LTD.
+					</td>
+					<td width="50%" valign="top" style="font-size:smaller; text-align:right">
+					
+						<b>'.$pageName.'</b>
+						
+					</td>
+				</tr>
+			</table>
+			สำนักงานใหญ่ 555 ถนนนวมินทร์ แขวงคลองกุ่ม เขตบึงกุ่ม กรุงเทพมหานคร 10240 โทรศัพท์ 0-2744-2222 โทรสาร 0-2379-1111 <br />เลขประจำตัวผู้เสียภาษี 0105546153597
 		</td>
 	</tr>
 </table>
@@ -329,7 +341,7 @@ $save_data[$m] .= '
 	
 	if($num_rows != 0){	
 		$save_data[$m] .='
-		<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
+		<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:30px;">
 			<tr bgcolor="#CCCCCC">
 				<td width="10%" align="center"><b>#</b></td>
 				<td width="15%" align="center"><b>เลขที่เช็ค</b></td>
@@ -338,7 +350,6 @@ $save_data[$m] .= '
 				<td width="25%" align="center"><b>สาขา</b></td>
 				<td width="10%" align="center"><b>จำนวนเงิน</b></td>
 			</tr>';
-
 		
 		while($res_chq = pg_fetch_array($qry_chq)){
 			$rows_chq++;
@@ -392,115 +403,153 @@ $qry_gif_detail = pg_query("SELECT
 			$save_data[$m] .='
 		</table>';
 	}
-$save_data[$m] .='
-<br><br><br>
-<table width="100%" style="font-size:smaller;">
-	<tr>
-		<td><b>หมายเหตุ </b>&nbsp;&nbsp;'.$res['remark'].'</td>
-	</tr>
-</table>
-
-<table cellpadding="1" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
-	<tr>
-		<td align="center">
-			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
-				<tr align="center">
-					<td width="120px" colspan="2">ลงชื่อ _____________________ ผู้จอง</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">(___'.$res['cus_name'].'___)</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">วันที่_____________________</td>
-				</tr>
-			</table>
-		</td>
-		<td>';
-		$qry_sale = pg_query("SELECT  fullname FROM v_users WHERE id_user = '$sale' ");
-		if($res_sale = pg_fetch_array($qry_sale)){}
-		
-		$save_data[$m] .='
-			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
-				<tr align="center">
-					<td width="120px" colspan="2">ลงชื่อ _________________ พนง.ขาย</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">(___'.$res_sale['fullname'].'___)</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">วันที่_____________________</td>
-				</tr>
-			</table>
-		</td>
-		<td>';
-		
-		$qry_witness = pg_query("SELECT  fullname FROM v_users WHERE id_user = '$witness' ");
-		if($res_witness = pg_fetch_array($qry_witness)){}
-
-	$save_data[$m] .='
-			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
-				<tr align="center">
-					<td width="120px" colspan="2">ลงชื่อ _____________________ พยาน</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">(____'.$res_witness['fullname'].'____)</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">วันที่_____________________</td>
-				</tr>
-			</table>
-		</td>
-		<td>
-			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
-				<tr align="center">
-					<td width="120px" colspan="2">ลงชื่อ ___________________ ผู้รับเงิน</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">(__'.$_SESSION["ss_username"].'__)</td>
-				</tr>
-				<tr align="center">
-					<td width="120px" colspan="2">วันที่_____________________</td>
-				</tr>
-			</table>
-		</td>
-	</tr>
-</table>';
-
-
 
 $save_data[$m] .='
 <table style="font-size:22px"  width="100%" boder="1" >
-	<tr>
-		<td width="100%"></td>
-	</tr>';
-	if($res['reserve_color'] == "เขียวเหลือง"){
-$save_data[$m] .='
-	<tr>
-		<td width="100%"><br>อนึ่งหากผู้จะซื้อต้องการจดทะเบียนเป็นแท็กซี่่ส่วนบุคคล (เขียวเหลือง) ผู้จะซื้อมีหน้าที่นำใบประกอบการเพื่อขอจดทะเบียนแท็กซี่มิเตอร์มามอบให้กับผู้จะขาย <br>
-			เพื่อผู้จะขายจะได้นำใบประกอบการไปจดทะเบียนแท็กซี่มิเตอร์ส่วนบุคคลต่อไป
-		</td>
-	</tr>';
-	} 
-	if($res['use_radio'] == "t"){	
-$save_data[$m] .= '	
-	<tr>
-		<td width="100%"><br>ผู้เช่าซื้อมีหน้าที่ชำระค่าวิทยุสื่อสาร เดือนละ 342.40 บาท ทุกๆ เดือน เริ่มชำระวันออกรถ และผู้จะซื้อมีหน้าที่ชำระพร้อมนำรถยนต์ไปตรวจมิเตอร์ทุกๆ 6 เดือนพร้อมต่อภาษีประจำปี 
-		</td>
-	</tr>';
-	}
-	
-$save_data[$m] .='
 	<tr>
 		<td width="100%"><b>เงื่อนไขและการสงวนสิทธิ์ของการขาย </b><br>
 			&nbsp;&nbsp;1.) การซื้อรถยนต์ จะมีผลต่อเมื่อผู้ขายได้รับการชำระเงินเรียบร้อยแล้ว 
 			&nbsp;&nbsp;2.) ราคารถยนต์อาจมีการเปลี่ยนแปลงได้  โดยทางผู้ขายจะแจ้งให้ทราบก่อนวันออกรถ 
 			&nbsp;&nbsp;3.) ถ้าผู้จองมีความประสงค์ยกเลิกการสั่งซื้อ  ผู้จองไม่สามารถเรียกร้องเงินคืนได้ <br>
-			&nbsp;&nbsp;4.) ถ้าผู้จองรถยนต์ไม่มารับรถภายในกำหนด  หลังจากได้รับใบแจ้งทางผู้ขาย  ถือว่าผู้จองสละสิทธิ์ไม่รับรถ  และจะเรียกร้องเงินจองที่ชำระไว้คืนมิได้
-			&nbsp;&nbsp;5.) ในกรณีที่ผู้ขายไม่สามารถจัดหารถเพื่อส่งมอบให้ลูกค้าได้ ทางผู้ขาย ยินดีคืนเงินจองให้แก่ลูกค้า 
+			&nbsp;&nbsp;4.) ถ้าผู้จองรถยนต์ไม่มารับรถภายในกำหนด  หลังจากได้รับใบแจ้งทางผู้ขาย  ถือว่าผู้จองสละสิทธิ์ไม่รับรถ  และจะเรียกร้องเงินจองที่ชำระไว้คืนมิได้ และให้ผู้จะขายสามารถขายรถยนต์ดังกล่าวต่อบุคคลภายนอกได้ทันที
+			<br />&nbsp;&nbsp;5.) ในกรณีที่ผู้ขายไม่สามารถจัดหารถเพื่อส่งมอบให้ลูกค้าได้ ทางผู้ขาย ยินดีคืนเงินจองให้แก่ลูกค้า 
 		</td>
 	</tr>
+	';
+	if($res['reserve_color'] == "เขียวเหลือง"){
+$save_data[$m] .='
+	<tr>
+		<td width="100%"><br>* อนึ่งหากผู้จะซื้อต้องการจดทะเบียนเป็นแท็กซี่่ส่วนบุคคล (เขียวเหลือง) ผู้จะซื้อมีหน้าที่นำใบประกอบการเพื่อขอจดทะเบียนแท็กซี่มิเตอร์มามอบให้กับผู้จะขาย
+			เพื่อผู้จะขายจะได้นำใบประกอบการไปจดทะเบียนแท็กซี่มิเตอร์ส่วนบุคคลต่อไป
+		</td>
+	</tr>';
+	} 
+	if($res['use_radio'] == "t"){
+		if(strpos($car_type_name, "ป้ายแดง") !== false){
+			$save_data[$m] .= '	
+				<tr>
+					<td width="100%"><br>* โดยผู้จะซื้อจะได้รับสิทธิพิเศษฟรีค่าบริการวิทยุตลอดอายุสัญญาผ่อนชำระ เว้นแต่ผู้จะซื้อทำการโอนสิทธิ์ ให้ถือสิทธิพิเศษด้งกล่าวถือเป็นสิ้นสุด 
+					</td>
+				</tr>';
+		}
+		else{
+			$save_data[$m] .= '	
+				<tr>
+					<td width="100%"><br>* ผู้เช่าซื้อมีหน้าที่ชำระค่าวิทยุสื่อสาร เดือนละ 342.40 บาท ทุกๆ เดือน เริ่มชำระวันออกรถ และผู้จะซื้อมีหน้าที่ชำระพร้อมนำรถยนต์ไปตรวจมิเตอร์ทุกๆ 6 เดือนพร้อมต่อภาษีประจำปี 
+					</td>
+				</tr>';
+		}	
+	}
+	
+$save_data[$m] .='
+	
 </table>';
+
+$save_data[$m] .='
+<br><br><br>
+<table width="100%" style="font-size:smaller; margin-top: 50px;">
+	<tr>
+		<td><b>หมายเหตุ </b>&nbsp;&nbsp;'.$res['remark'].'</td>
+	</tr>
+</table>
+<span style="font-size:smaller;" >เพื่อเป็นหลักฐานจึงได้ทำเป็นหนังสือสัญญาไว้ต่อหน้าพยาน</span>
+<br />
+<table cellpadding="1" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
+	<tr>
+		<td width="25%" align="center">
+			<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:smaller;" align="center">
+				<tr align="center">
+					<td width="100%" colspan="2">ลงชื่อ _________________________ ผู้จอง</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">('.$res['cus_name'].')</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">วันที่___________________________</td>
+				</tr>
+			</table>
+		</td>
+		<td width="25%">';
+		$qry_sale = pg_query("SELECT  fullname FROM v_users WHERE id_user = '$sale' ");
+		if($res_sale = pg_fetch_array($qry_sale)){}
+		
+		$save_data[$m] .='
+			<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:smaller;" align="center">
+				<tr align="center">
+					<td width="100%" colspan="2">ลงชื่อ _____________________ พนง.ขาย</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">('.$res_sale['fullname'].')</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">วันที่___________________________</td>
+				</tr>
+			</table>
+		</td>
+		<td width="25%">';
+		
+		$qry_witness = pg_query("SELECT  fullname FROM v_users WHERE id_user = '$witness' ");
+		if($res_witness = pg_fetch_array($qry_witness)){}
+
+	$save_data[$m] .='
+			<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:smaller;" align="center">
+				<tr align="center">
+					<td width="100%" colspan="2">ลงชื่อ _________________________ พยาน</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">(_________________'.$res_witness['fullname'].'________________)</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">วันที่___________________________</td>
+				</tr>
+			</table>
+		</td>
+		<td width="25%">
+			<table cellpadding="1" cellspacing="0" border="0" width="100%" style="font-size:smaller;" align="center">
+				<tr align="center">
+					<td width="100%" colspan="2">ลงชื่อ _______________________ ผู้อนุมัติ</td>
+				</tr>
+				<tr align="center">
+					<!-- <td width="120px" colspan="2">('.$_SESSION["ss_username"].')</td> -->
+					<td width="100%" colspan="2">(_________________________________)</td>
+				</tr>
+				<tr align="center">
+					<td width="100%" colspan="2">วันที่___________________________</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+
+
+';
 }
+
+
+$header_text = '
+<table>
+	<tr>
+		<td width="60px">
+			
+		</td>
+		<td width="320px" border="1">
+			*** เอกสารฉบับนี้ไม่ใช่ใบเสร็จรับเงิน กรุณาเรียกใบรับเงินชั่วคราวจากพนักงานทุกครั้ง ***
+		</td>
+	</tr>
+</table>
+';
+
+
+$footer_text = '
+	<table style="font-size:13" border="1">
+		<tr>
+			<td width="323">
+				*** เอกสารฉบับนี้ไม่ใช่ใบเสร็จรับเงิน กรุณาเรียกใบรับเงินชั่วคราวจากพนักงานทุกครั้ง *** 
+			</td>
+		</tr>
+	</table>
+';
+
 	$print_count = print_count('$res_id','1');
 	
 	//บันทึกประวัติการพิมพ์
@@ -549,12 +598,14 @@ class MYPDF extends TCPDF {
 		
         $this->Line(10, 286, 200, 286);
         $this->MultiCell(55, 0,'ครั้งที่พิมพ์ : '.$_SESSION['ss_print_count'].'         วันที่พิมพ์ : '.date('Y-m-d'), 0, 'L', 0, 0, '', '', true);
+
+        // $this->MultiCell(55, 0,'ครั้งที่พิมพ์ : '.$_SESSION['ss_print_count'].'         วันที่พิมพ์ : '.date('Y-m-d'), 0, 'L', 0, 0, '', '', true);
 		$this->MultiCell(55, 0, 'ชื่อผู้พิมพ์ : '.$_SESSION["ss_username"], 0, 'R', 0, 0, '', '', true);
 		$this->MultiCell(80, 0, 'หน้าที่'.$this->getAliasNumPage().'/'.$this->getAliasNbPages(), 0, 'R', 0, 0, '', '', true);
-	
 		
 		$res_id = $_REQUEST['res_id'];
 		$this->write2DBarcode($res_id, 'QRCODE,H', 190, 275, 10, 10, $style, 'N');
+		
 		
     }
 }
@@ -577,8 +628,15 @@ $pdf->SetAutoPageBreak(TRUE, 20); //default 10
 $pdf->SetFont('AngsanaUPC', '', 16); //AngsanaUPC  CordiaUPC
 
 for($k=0;$k<=2;$k++){
-$pdf->AddPage();
-$pdf->writeHTML($save_data[$k], true, false, true, false, '');
+	
+	$pdf->AddPage();
+	$pdf->writeHTML($save_data[$k], true, false, true, false, '');
+	
+	$pdf->writeHTMLCell(0, 0, 75, 10, $footer_text);
+	
+	// For make the Footer.
+	$pdf->writeHTMLCell(0, 0, 50, 270, $footer_text);
+	
 }
 
 $pdf->Output('reserve_car_'.$res_id.'.pdf', 'I');

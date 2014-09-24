@@ -2,6 +2,7 @@
 include_once("../include/config.php");
 include_once("../include/function.php");
 
+$p_has_barcode = pg_escape_string($_POST["p_has_barcode"]);
 $p_code_type = pg_escape_string($_POST['p_code_type']);
 $p_name = pg_escape_string($_POST['p_name']);
 $p_detail = pg_escape_string($_POST['p_detail']);
@@ -17,39 +18,46 @@ $status = 0;
 $txt_error = array();
 
 
-//Generate Parts Code ID
-$generate_id_StrQuery = "
-	select gen_parts_product_type_no(
-		'".$p_code_type."', 
-		'".$kny."'
-	);
-";
-$generate_id = @pg_query($generate_id_StrQuery);
-$gen_parts_code_no = @pg_fetch_result($generate_id,0);
-if(empty($gen_parts_code_no)){
-    $txt_error[] = "สร้าง gen_rec_no ไม่สำเร็จ";
-	$status++;
+if($p_has_barcode == "yes"){
+	$gen_parts_code_no = pg_escape_string($_POST["p_barcode"]);
 }
 else{
 	
+	//Generate Parts Code ID
+	$generate_id_StrQuery = "
+		select gen_parts_product_type_no(
+			'".$p_code_type."', 
+			'".$kny."'
+		);
+	";
+	$generate_id = @pg_query($generate_id_StrQuery);
+	$gen_parts_code_no = @pg_fetch_result($generate_id,0);
+	if(empty($gen_parts_code_no)){
+	    $txt_error[] = "สร้าง gen_rec_no ไม่สำเร็จ";
+		$status++;
+	}
+	else{
+		
+	}
+	
 }
-
-//For Test $gen_parts_code_no
-/*
-$data["success"] = true;
-$data["message"] = "test";
-$data["test"] = $generate_id_StrQuery;
-echo json_encode($data);
-exit;
-*/
-//#########
-
-
+	
+	//For Test $gen_parts_code_no
+	/*
+	$data["success"] = true;
+	$data["message"] = "test";
+	$data["test"] = $generate_id_StrQuery;
+	echo json_encode($data);
+	exit;
+	*/
+	//#########
+	
+	
 $in_qry="
 	INSERT INTO \"parts\" 
-	(code, name, details, priceperunit, unitid, svcharge, type) 
+	(code, name, details, priceperunit, unitid, svcharge, type, barcode) 
 	values 
-	('$gen_parts_code_no', '$p_name', '$p_detail', '$p_priceperunit', '$p_unitid', '$p_svcharge', '$p_Type');
+	('$gen_parts_code_no', '$p_name', '$p_detail', '$p_priceperunit', '$p_unitid', '$p_svcharge', '$p_Type', '$gen_parts_code_no');
 "; //Record Parts Tables
 if(!$res=@pg_query($in_qry)){
     $txt_error[] = "บันทึก Products ไม่สำเร็จ $in_qry";
@@ -57,7 +65,7 @@ if(!$res=@pg_query($in_qry)){
 }
 
 if($status == 0){
-    //pg_query("ROLLBACK");
+    // pg_query("ROLLBACK");
     pg_query("COMMIT");
     $data['success'] = true;
     $data['message'] = "บันทึกเรียบร้อยแล้ว \nรหัสสินค้าคือ {$gen_parts_code_no}";

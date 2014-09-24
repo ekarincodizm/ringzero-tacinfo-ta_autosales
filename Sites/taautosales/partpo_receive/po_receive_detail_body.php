@@ -147,12 +147,16 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 				$qry = pg_query("SELECT * FROM \"VVenders\" WHERE type_ven = 'M' or type_ven='B' ORDER BY pre_name,cus_name ASC");
 				while( $res = pg_fetch_array($qry) ){
 				    $vender_id = $res['vender_id'];
-				    $pre_name = trim($res['pre_name']);
-				    $cus_name = trim($res['cus_name']);
-				    $surname = trim($res['surname']);
-					$branch_id = trim($res['branch_id']);
-					echo "$pre_name $cus_name $surname";
+					if($vender_id == $purchaseOrderPart_result["vender_id"]){
+					    $pre_name = trim($res['pre_name']);
+					    $cus_name = trim($res['cus_name']);
+					    $surname = trim($res['surname']);
+						$branch_id = trim($res['branch_id']);
+						echo "$pre_name $cus_name $surname";
+					}
 				}
+				
+				
 ?>
 			</div>
 			<div style="clear: both;"></div>
@@ -278,6 +282,16 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 					$locate_query = pg_query($locate_strQuery);
 					$locate_result = pg_fetch_all($locate_query);
 					
+					
+					//initial value
+					$dsubtotal = 0.0;
+					$pcdiscount = $purchaseOrderPart_result["pcdiscount"];
+					$discount = 0.0;
+					$vsubtotal = 0.0;
+					$pcvat = $purchaseOrderPart_result["pcvat"];
+					$vat = 0.0;
+					$nettotal = 0.0;
+					
 										
 					$purchaseOrderPartsDetails_strQuery = "
 						SELECT
@@ -353,8 +367,11 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 								<input type="text" name="rcv_quantity<?php echo $idno; ?>" id="rcv_quantity<?php echo $idno; ?>" data-rcv_quantity_id="<?php echo $idno; ?>" class="rcv_quantity" value="<?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?>" style="width:40px; text-align:right; " />
 							</td>
 							<td align="right">
-								<span id="total<?php echo $idno; ?>" class="total" style="font-weight:bold"><?php echo number_format($purchaseOrderPartsDetails_result["total"], 2); ?></span>
-								<input type="hidden" name="total<?php echo $idno; ?>" class="total" value="<?php echo $purchaseOrderPartsDetails_result["total"]; ?>" />
+								<span id="total<?php echo $idno; ?>" class="total" style="font-weight:bold"><?php 
+									echo number_format(($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count), 2);
+									//echo number_format($purchaseOrderPartsDetails_result["total"], 2); 
+								?></span>
+								<input type="hidden" name="total<?php echo $idno; ?>" class="total" value="<?php echo ($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count); ?>" />
 							</td>
 							<td>
 								<select name="wh_id<?php echo $idno; ?>" id="wh_id<?php echo $idno; ?>" class="wh_id">
@@ -378,6 +395,8 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 							</td>
 						</tr>
 <?php
+						$dsubtotal += ($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count);
+						
 					}
 ?>
 				</table>
@@ -386,7 +405,10 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 			
 				<!-- ############## footer ############## -->
 <?php
-				
+				$discount = $dsubtotal*$pcdiscount;
+				$vsubtotal = $dsubtotal - $discount;
+				$vat = $vsubtotal * $pcvat;
+				$nettotal = $vsubtotal + $vat;
 ?>
 				<div style="width: 50%; float: left; margin-left: 50%; height: 30px;">
 					<!-- PO type -->
@@ -394,7 +416,7 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 						<b>เงินรวมก่อนหักส่วนลด : </b>
 					</div>
 					<div style="width: 48%; float: left; margin-top: 1.2%;">
-						<span id="dsubtotal"><?php echo number_format($purchaseOrderPart_result["subtotal"], 2); ?></span>
+						<span id="dsubtotal"><?php echo number_format($dsubtotal, 2); ?></span>
 					</div>
 					<div style="clear: both;"></div>
 				</div>
@@ -406,7 +428,7 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 						<b>%ส่วนลด : </b>
 					</div>
 					<div style="width: 48%; float: left;">
-						<input type="text" name="pcdiscount" id="pcdiscount" value="<?php echo $purchaseOrderPart_result["pcdiscount"]; ?>" />
+						<input type="text" name="pcdiscount" id="pcdiscount" value="<?php echo number_format(($purchaseOrderPart_result["pcdiscount"]*100.0), 2); ?>" />
 					</div>
 					<div style="clear: both;"></div>
 				</div>
@@ -416,7 +438,7 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 						<b>จำนวนเงินส่วนลด :</b>
 					</div>
 					<div style="width: 48%; float: left;">
-						<input type="text" name="discount" id="discount" class="" value="<?php echo $purchaseOrderPart_result["discount"]; ?>" />
+						<input type="text" name="discount" id="discount" class="" value="<?php echo number_format($discount, 2); ?>" />
 					</div>
 					<div style="clear: both;"></div>
 				</div>
@@ -428,7 +450,7 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 						<b>จำนวนเงินรวมก่อนภาษีมูลค่าเพิ่ม :</b>
 					</div>
 					<div style="width: 48%; float: left; margin-top: 1.2%;">
-						<span id="vsubtotal"><?php echo number_format($purchaseOrderPart_result["bfv_total"], 2); ?></span>
+						<span id="vsubtotal"><?php echo number_format($vsubtotal, 2); ?></span>
 					</div>
 					<div style="clear: both;"></div>
 				</div>
@@ -440,7 +462,7 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 						<b>%ภาษีมูลค่าเพิ่ม :</b>
 					</div>
 					<div style="width: 48%; float: left;">
-						<input type="text" name="pcvat" id="pcvat" class="" value="<?php echo $purchaseOrderPart_result["pcvat"]; ?>" />
+						<input type="text" name="pcvat" id="pcvat" class="" value="<?php echo number_format(($purchaseOrderPart_result["pcvat"]*100.0), 2); ?>" />
 					</div>
 					<div style="clear: both;"></div>
 				</div>
@@ -450,7 +472,7 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 						<b>จำนวนภาษี :</b>
 					</div>
 					<div style="width: 48%; float: left; margin-top: 1.2%;">
-						<span id="vat"><?php echo number_format($purchaseOrderPart_result["vat"], 2); ?></span>
+						<span id="vat"><?php echo number_format($vat, 2); ?></span>
 					</div>
 					<div style="clear: both;"></div>
 				</div>
@@ -462,7 +484,7 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 						<b>จำนวนรวมสุทธิ :</b>
 					</div>
 					<div style="width: 48%; float: left; margin-top: 1.2%;">
-						<span id="nettotal"><?php echo number_format($purchaseOrderPart_result["nettotal"], 2); ?></span>
+						<span id="nettotal"><?php echo number_format($nettotal, 2); ?></span>
 					</div>
 					<div style="clear: both;"></div>
 				</div>
@@ -539,17 +561,65 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 	var pcdiscount = 0;
 	var discount = 0;
 	var vsubtotal = 0;
-	var pcvat = 7;
+	var pcvat = 0.07;
 	var vat = 0;
 	var nettotal = 0;
 	
-	dsubtotal = <?php echo $dsubtotal; ?>*1.0;
-	pcdiscount = <?php echo $pcdiscount; ?>*0.01;
-	discount = <?php echo $discount; ?>*1.0;
-	vsubtotal = <?php echo $vsubtotal; ?>*1.0;
-	pcvat = <?php echo $pcvat; ?>*0.01;
-	vat = <?php echo $vat; ?>*1.0;
-	nettotal = <?php echo $nettotal; ?>*1.0;
+	dsubtotal = <?php 
+		if($dsubtotal != ""){
+			echo $dsubtotal; 
+		}
+		else{
+			echo 0.0;
+		} 
+		?>*1.0;
+	pcdiscount = <?php 
+		if($pcdiscount != ""){
+			echo $pcdiscount; 
+		}
+		else{
+			echo 0.0;
+		} ?>*1.0;
+	discount = <?php
+		if($discount != ""){
+			echo $discount; 
+		}
+		else{
+			echo 0.0;
+		}
+		?>*1.0;
+	vsubtotal = <?php 
+		if($vsubtotal != ""){
+			echo $vsubtotal; 
+		}
+		else{
+			echo 0.0;
+		}
+		?>*1.0;
+	pcvat = <?php 
+		if($pcvat != ""){
+			echo $pcvat; 
+		}
+		else{
+			echo 0.0;
+		}
+		?>*1.0;
+	vat = <?php 
+		if($vat != ""){
+			echo $vat; 
+		}
+		else{
+			echo 0.0;
+		}
+		?>*1.0;
+	nettotal = <?php 
+		if($nettotal != ""){
+			echo $nettotal;
+		}
+		else{
+			echo 0.0;
+		}
+		?>*1.0;
 	
 	console.log("dsubtotal = " + dsubtotal);
 	console.log("pcdiscount = " + pcdiscount);
@@ -645,23 +715,23 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 		console.log("esm_paydate = " + $('#esm_paydate').datepicker('getDate'));
     }
     
-    $(function() {
-    	$("#vat_status").live("change", function(){
-    		var vat_status_value = $(this).val();
-    		console.log("vat_status" + vat_status_value);
-    		if(vat_status_value == "1"){
-    			$("#pcvat").prop("disabled", false);
-    			$("#pcvat").val("7");
-    			pcvat = 0.07;
-    			vat_status_change();
-    		}
-    		else if(vat_status_value == "0"){
-    			$("#pcvat").prop("disabled", true);
-    			$("#pcvat").val("0");
-    			pcvat = 0.0;
-    			vat_status_change();
-    		}
-    	});
+	$(function() {
+		$("#vat_status").live("change", function(){
+			var vat_status_value = $(this).val();
+			console.log("vat_status" + vat_status_value);
+			if(vat_status_value == "1"){
+				$("#pcvat").prop("disabled", false);
+				$("#pcvat").val("7.0");
+				pcvat = 0.07;
+				vat_status_change();
+			}
+			else if(vat_status_value == "0"){
+				$("#pcvat").prop("disabled", true);
+				$("#pcvat").val("0.0");
+				pcvat = 0.0;
+				vat_status_change();
+			}
+		});
 	});
 	
 	// parseFloat(vat).toFixed(2)
@@ -750,9 +820,9 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 	//% ภาษีมูลค่าเพิ่ม
 	//vat = vsubtotal * pcvat
 	$("#pcvat").live("keyup", function(){
-		pcvat = $(this).val();
+		pcvat = ($(this).val()/100.0);
 		console.log("pcvat = " + pcvat);
-		vat = vsubtotal * (pcvat / 100.0);
+		vat = vsubtotal * (pcvat);
 		
 		calculate_total();
 	});
@@ -802,8 +872,9 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 		vsubtotal = dsubtotal - discount;
 		console.log("vsubtotal = " + vsubtotal);
 		$("#vsubtotal").html(numberWithCommas(vsubtotal));
+		console.log("pcvat = " + pcvat);
 		
-		vat = parseFloat(vsubtotal * (pcvat / 100.0)).toFixed(2);
+		vat = parseFloat(vsubtotal * (pcvat)).toFixed(2);
 		
 		//vat
 		//จำนวนภาษี
@@ -832,31 +903,36 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 		var _inv_no = $('#inv_no').val();
 		var _receipt_no = $('#receipt_no').val();
 		
-		
-		var check_validate = 1;
+		var check_validate = 0;
 		
 		if(_app_sentpartdate == ""){
 			alert('กรุณากรอก วันที่นัดส่งของ');
+			check_validate++;
 			return false;
 		}
 		if(_credit_terms == ""){
 			alert('กรุณากรอก กำหนดชำระเงิน (วัน)');
+			check_validate++;
 			return false;
 		}
 		if(_esm_paydate == ""){
 			alert('กรุณากรอก ประมาณการวันที่ชำระเงิน');
+			check_validate++;
 			return false;
 		}
 		if(_vat_status == ""){
 			alert('กรุณาเลือก ใบสั่งซื้อ มี VAT');
+			check_validate++;
 			return false;
 		}
 		if(_inv_no == ""){
 			alert('กรุณากรอก เลขที่ใบส่งของ / ใบแจ้งหนี้');
+			check_validate++;
 			return false;
 		}
 		if(_receipt_no == ""){
 			alert('กรุณากรอก เลขที่ใบเสร็จ / ใบกำกับ');
+			check_validate++;
 			return false;
 		}
 		
@@ -879,17 +955,25 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 				// alert('กรุณากรอกจำนวน _parts_code (รายการที่ '+i+')');
 				// return false;
 			// }
-			if(_rcv_quantity == "" || _rcv_quantity == 0){
+			if(_rcv_quantity == "" || parseInt(_rcv_quantity) == 0){
 				alert('กรุณากรอกจำนวน (รายการที่ '+i+')');
+				check_validate++;
 				return false;
 			}
-			else if(_quantity > _rcv_quantity){
+			else if(parseInt(_rcv_quantity) == 0){
+				alert('กรุณากรอกจำนวนที่ต้องการ โดยที่ไม่ใช่เลข 0 (รายการที่ '+i+')');
+				check_validate++;
+				return false;
+			}
+			else if(parseInt(_quantity) < parseInt(_rcv_quantity)){
 				alert('กรุณากรอกจำนวนที่ต้องการ โดยที่จะไม่เกิน จำนวนที่มีอยู่ (รายการที่ '+i+')');
+				check_validate++;
 				return false;
 			}
 			
 			if(_costperunit == "" || _costperunit == 0){
 				alert('กรุณากรอก ราคา/หน่วย (รายการที่ '+i+')');
+				check_validate++;
 				return false;
 			}
 			if(_total == "" || _total == 0){
@@ -898,10 +982,12 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 			
 			if(_wh_id == "" || _wh_id == 0){
 				alert('กรุณาเลือก คลัง (รายการที่ '+i+')');
+				check_validate++;
 				return false;
 			}
 			if(_locate_id == "" || _locate_id == 0){
 				alert('กรุณาเลือก ชั้นวาง (รายการที่ '+i+')');
+				check_validate++;
 				return false;
 			}
 			
@@ -925,64 +1011,75 @@ while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
 		
 		if(_pcdiscount == ""){
 			alert('กรุณากรอก %ส่วนลด');
+			check_validate++;
 			return false;
 		}
 		if(_discount == ""){
 			alert('กรุณากรอก จำนวนเงินส่วนลด');
+			check_validate++;
 			return false;
 		}
 		if(_pcvat == ""){
 			alert('กรุณากรอก %ภาษีมูลค่าเพิ่ม');
+			check_validate++;
 			return false;
 		}
 		if(_recv_remark == ""){
 			alert('กรุณากรอก หมายเหตุ');
+			check_validate++;
 			return false;
 		}
 		
-		$.post('po_receive_detail_save.php',{
-			type : "<?php echo $purchaseOrderPart_type; ?>",
-			parts_pocode: "<?php echo $parts_pocode; ?>",
-			app_sentpartdate: _app_sentpartdate,
-			credit_terms: _credit_terms,
-			esm_paydate: _esm_paydate,
-			vat_status: _vat_status,
-			inv_no: _inv_no,
-			receipt_no: _receipt_no,
-			
-			parts_received_details_array: JSON.stringify(arradd),
-			
-			dsubtotal: dsubtotal,
-			pcdiscount: _pcdiscount,
-			discount: _discount,
-			vsubtotal: vsubtotal,
-			pcvat: _pcvat,
-			vat: vat,
-			nettotal: nettotal,
-			recv_remark: _recv_remark,
-			
-		},
-		function(data){
-			if(data.success){
-				ShowPrint(data.parts_pocode);
-				console.log("data.success = " + data.success);
-				console.log("data.message = " + data.message);
-				console.log("data.test = " + data.test);
-				//location.reload();
-			}else{
-				// alert(data.message);
-				console.log("data.success = " + data.success);
-				console.log("data.message = " + data.message);
-				console.log("data.test = " + data.test);
+		if(check_validate == 0){
+			if(!confirm('ต้องการยืนยันการรับสินค้าเข้าสต๊อก ใช่หรือไม่')){
+				return false;
 			}
-		},'json');
+			
+			$.post('po_receive_detail_save.php',{
+				type : "<?php echo $purchaseOrderPart_type; ?>",
+				parts_pocode: "<?php echo $parts_pocode; ?>",
+				app_sentpartdate: _app_sentpartdate,
+				credit_terms: _credit_terms,
+				esm_paydate: _esm_paydate,
+				vat_status: _vat_status,
+				inv_no: _inv_no,
+				receipt_no: _receipt_no,
+				
+				parts_received_details_array: JSON.stringify(arradd),
+				
+				dsubtotal: dsubtotal,
+				pcdiscount: pcdiscount,
+				discount: discount,
+				vsubtotal: vsubtotal,
+				pcvat: pcvat,
+				vat: vat,
+				nettotal: nettotal,
+				recv_remark: _recv_remark,
+				
+			},
+			function(data){
+				if(data.success){
+					ShowPrint(data.parts_pocode);
+					console.log("data.success = " + data.success);
+					console.log("data.message = " + data.message);
+					console.log("data.test = " + data.test);
+					//location.reload();
+				}else{
+					// alert(data.message);
+					console.log("data.success = " + data.success);
+					console.log("data.message = " + data.message);
+					console.log("data.test = " + data.test);
+				}
+			},'json');
+		}
 	});
 	
 	//##############################################################################
 	
 	function ShowPrint(id){
 		$('body').append('<div id="divdialogprint"></div>');
-		$('#divdialogprint').html("<div style=\"text-align:center\">บันทึกเรียบร้อยแล้ว<br /><br /><input type=\"button\" name=\"btnPrint\" id=\"btnPrint\" value=\"พิมพ์เอกสาร\" onclick=\"javascript:window.open('./po_buy_mat_pdf.php?po_id="+ id +"','po_id4343423','toolbar=no,menubar=no,resizable=yes,scrollbars=yes,status=no,location=no,width=800,height=600'); javascript:location.reload();\"></div>");
+		$('#divdialogprint').html("<div style=\"text-align:center\">บันทึกเรียบร้อยแล้ว<br /><br /><input type=\"button\" name=\"btnPrint\" id=\"btnPrint\" value=\"พิมพ์เอกสาร\" onclick=\"javascript:window.open('./po_receive_mat_pdf.php?receive_id="+ id +"','po_id4343423','toolbar=no,menubar=no,resizable=yes,scrollbars=yes,status=no,location=no,width=800,height=600'); javascript:location.reload();\"></div>");
+		// $('#divdialogprint').html("<div style=\"text-align:center\">บันทึกเรียบร้อยแล้ว<br /><br /><input type=\"button\" name=\"btnPrint\" id=\"btnPrint\" value=\"ตกลง\" onclick=\"javascript:location.reload();\"></div>");
 		$('#divdialogprint').dialog({
 			title: 'พิมพ์รายงาน : '+id,
 			resizable: false,

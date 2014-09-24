@@ -55,11 +55,29 @@ $j = 0;
 $k = 0;
 $sum = 0;
 $nub = 0;
-$qry = pg_query("SELECT *
-				FROM \"VCarMovement\"
-				WHERE (\"date_in\" = '$date' and \"wh_id\" = '1') or (\"date_out\" = '$date' and \"target_go\" = '1')
-				ORDER BY \"from_name\", \"license_plate\" ");
-
+$qry = pg_query("SELECT
+					CASE
+						WHEN \"target_go\" = '1' THEN \"wh_id\"
+						ELSE (select \"target_go\" from \"CarMove\" where \"auto_id\" = (select max(\"auto_id\") from \"CarMove\" where \"car_id\" = \"VCarMovement\".\"car_id\" and \"auto_id\" < \"VCarMovement\".\"auto_id\"))
+					END AS \"from_id\",
+					CASE
+						WHEN \"target_go\" = '1' THEN \"wh_name\"
+						ELSE (select \"target_name\" from \"VCarMovement\" where \"auto_id\" = (select max(\"auto_id\") from \"CarMove\" where \"car_id\" = \"VCarMovement\".\"car_id\" and \"auto_id\" < \"VCarMovement\".\"auto_id\"))
+					END AS \"from_name\",
+					\"license_plate\",
+					\"name\",
+					\"color\",
+					\"car_idno\",
+					\"auto_id\"
+				FROM
+					\"VCarMovement\"
+				WHERE
+					((\"date_in\" = '$date' and \"wh_id\" = '1') OR (\"date_out\" = '$date' and \"target_go\" = '1')) AND
+					\"auto_id\" NOT IN(select \"auto_id\"
+							from \"CarMove\" a
+							where a.\"wh_id\" = '1' and
+							(select \"target_go\" from \"CarMove\" where \"auto_id\" = (select max(\"auto_id\") from \"CarMove\" where \"car_id\" = a.\"car_id\" and \"auto_id\" < a.\"auto_id\")) = '1')
+				ORDER BY 2,3 ");
 while($res = pg_fetch_array($qry)){
     $j++;
     $k++;
@@ -217,11 +235,27 @@ $sum = 0;
 $nub = 0;
 $unit = 0;
 
-$qry = pg_query("SELECT \"from_id\", \"from_name\", \"color\", count(*) as \"unit\"
-				FROM \"VCarMovement\"
-				WHERE (\"date_in\" = '$date' and \"wh_id\" = '1') or (\"date_out\" = '$date' and \"target_go\" = '1')
-				GROUP BY \"from_id\", \"from_name\", \"color\" ORDER BY \"from_name\", \"color\" ");
-
+$qry = pg_query("SELECT
+					CASE
+						WHEN \"target_go\" = '1' THEN \"wh_id\"
+						ELSE (select \"target_go\" from \"CarMove\" where \"auto_id\" = (select max(\"auto_id\") from \"CarMove\" where \"car_id\" = \"VCarMovement\".\"car_id\" and \"auto_id\" < \"VCarMovement\".\"auto_id\"))
+					END AS \"from_id\",
+					CASE
+						WHEN \"target_go\" = '1' THEN \"wh_name\"
+						ELSE (select \"target_name\" from \"VCarMovement\" where \"auto_id\" = (select max(\"auto_id\") from \"CarMove\" where \"car_id\" = \"VCarMovement\".\"car_id\" and \"auto_id\" < \"VCarMovement\".\"auto_id\"))
+					END AS \"from_name\",
+					\"color\",
+					count(*) AS \"unit\"
+				FROM
+					\"VCarMovement\"
+				WHERE
+					((\"date_in\" = '$date' and \"wh_id\" = '1') OR (\"date_out\" = '$date' and \"target_go\" = '1')) AND
+					\"auto_id\" NOT IN(select \"auto_id\"
+									from \"CarMove\" a
+									where a.\"wh_id\" = '1' and
+									(select \"target_go\" from \"CarMove\" where \"auto_id\" = (select max(\"auto_id\") from \"CarMove\" where \"car_id\" = a.\"car_id\" and \"auto_id\" < a.\"auto_id\")) = '1')
+				GROUP BY 1, 2, 3
+				ORDER BY 2,3 ");
 while($res = pg_fetch_array($qry))
 {
     $j++;

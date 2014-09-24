@@ -55,7 +55,13 @@ $qry_product = pg_query(" SELECT
 		$car_name = $res_product['name'];
 	}else{
 		$car_type_name = $res['car_type_name'];
+		// $car_type_name = "มือสองตามสภาพ";
 		$car_name = $res['car_name'];
+	}
+	
+	//Check that Are there ป้ายแดง ??? If yes, change it to มือสองตามสภาพ
+	if(!(strpos($car_type_name, "ป้ายแดง") !== false)){
+		$car_type_name = "มือสองตามสภาพ";
 	}
 		
 
@@ -92,39 +98,46 @@ $save_data[$m] .='
 		</td>
 	</tr>
 </table>
-
-<span style="font-weight:bold; font-size:larger; text-align:left"><b>'.$str_title.' - '.$pageName.'</b></span>
-<span style="font-weight:bold; font-size:larger; text-align:right"><b><font color="white">........................................</font>เลขที่สัญญา&nbsp;&nbsp;'.$res['idno'].'</b></span>
+<table>
+	<tr border="1">
+		<td width="60%" style="font-weight:bold; font-size:larger; text-align:left; ">
+			<b>'.$str_title.' - '.$pageName.'</b>
+		</td>
+		<td width="40%" style="font-weight:bold; font-size:larger; text-align:right; ">
+			<b>เลขที่สัญญา&nbsp;&nbsp;'.$res['idno'].'</b>
+		</td>
+	</tr>
+</table>
 <hr color= "red" size="10">
 <span style="font-weight:normal; font-size:small; text-align:left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-ข้าพเจ้า.........'.$res['cus_name'].'..........('.$wording_type_buy.') ได้ตกลงทำสัญญาซื้อขายรถยนต์ไว้กับ บริษัท ที.เอ.โอโตเซลส์ จำกัด ('.$wording_type_sale.') โดยมีรายละเอียดดังต่อไปนี้
+ข้าพเจ้า...'.$res['cus_name'].'...('.$wording_type_buy.') ได้ตกลงทำสัญญาซื้อขายรถยนต์ไว้กับ บริษัท ที.เอ.โอโตเซลส์ จำกัด ('.$wording_type_sale.') โดยมีรายละเอียดดังต่อไปนี้
 </span>
 <br>
-<table  cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:smaller;" >
+<table  cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:12.5;" >
 	<tr bgcolor="#CCCCCC">
-		<td width="15%">วันที่จอง &nbsp;&nbsp;'.$res['reserve_date'].'</td>
-		<td width="35%">เลขที่จอง'.'&nbsp;'.$res['res_id'].'</td>
-		<td width="17%">วันที่ส่งมอบ&nbsp;&nbsp; '.$res['receive_date'].'</td>
-		<td width="33%">เลขที่สัญญา&nbsp;&nbsp;'.$res['idno'].'</td>
+		<td width="18%">วันที่จอง &nbsp;&nbsp;'.$res['reserve_date'].'</td>
+		<td width="32%">เลขที่จอง'.'&nbsp;'.$res['res_id'].'</td>
+		<td width="22%">วันที่ส่งมอบ&nbsp;&nbsp; '.$res['receive_date'].'</td>
+		<td width="28%">เลขที่สัญญา&nbsp;&nbsp;'.$res['idno'].'</td>
 	</tr>
 	<tr>
-		<td>สถานที่ส่งมอบ  </td>
-		<td>บริษัท ที.เอ. โอโตเซลส์ จำกัด</td>
-		<td>ชื่อ'.$wording_type_buy.'</td>
-		<td>'.$res['cus_name'].'</td>
+		<td width="13%">สถานที่ส่งมอบ  </td>
+		<td width="37%">บริษัท ที.เอ. โอโตเซลส์ จำกัด</td>
+		<td width="12%">ชื่อ'.$wording_type_buy.'</td>
+		<td width="38%">'.$res['cus_name'].'</td>
 	</tr>
 	<tr>
 		<td>ชื่อจดทะเบียน </td>
 		<td colspan ="3">'.$res['reg_customer'].'</td>
 	</tr>
 	<tr>
-		<td>ที่อยู่จดทะเบียน</td>
-		<td>'.$res['reg_address'].'<br>'.$res['reg_post'].'</td>
-		<td>ที่อยู่ที่ติดต่อได้</td>
-		<td>'.$res['contract_add'].'<br>'.$res['contract_post'].' <br>โทรศัพท์ '.$res['telephone'].'</td>
+		<td width="13%">ที่อยู่จดทะเบียน</td>
+		<td width="37%">'.$res['reg_address'].' '.$res['reg_post'].'</td>
+		<td width="12%">ที่อยู่ที่ติดต่อได้</td>
+		<td width="38%">'.$res['contract_add'].' '.$res['contract_post'].' โทรศัพท์ '.$res['telephone'].'</td>
 	</tr>
 </table>
-<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:smaller;" >
+<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:12.5;" >
 	<tr bgcolor="#CCCCCC">
 		<td width="15%">ประเภทบัตร</td>';
 		if($res['card_type'] == 'บัตรผู้เสียภาษีอากร'){$card_type = 'บัตรประจำตัวผู้เสียภาษีอากร';}else{$card_type = $res['card_type'];}
@@ -164,8 +177,8 @@ $save_data[$m] .='
 		<td>'.$str_use_radio.'</td>
 	</tr>
 	<tr>
-		<td width="25%">วันที่ไฟแนนซ์อนุมัติ </td>
-		<td width="25%">'.$res['finance_date'].'</td>
+		<td width="30%">วันที่ไฟแนนซ์อนุมัติ </td>
+		<td width="20%">'.$res['finance_date'].'</td>
 		<td width="17%"><b>ราคาขายรถ </b></td>
 		<td width="33%">'.number_format($res['car_price'],2).'</td>
 	</tr>
@@ -186,18 +199,18 @@ $save_data[$m] .='
 		<td><b>ค่าผ่อนต่องวด  </b>'.number_format($res['installment'],2).'</td>
 	</tr>
 	<tr>
-		<td width="18%">นัดชำระค่างวดทุกวันที่</td>
-		<td width="17%" align="right">'.$res['due_date'].'</td>
+		<td width="23%">นัดชำระค่างวดทุกวันที่</td>
+		<td width="12%" align="right">'.$res['due_date'].'</td>
 		<td width="25%">นัดชำระค่างวด งวดแรกวันที่&nbsp;&nbsp;</td>
 		<td width="40%" style="font-weight:bold;font-color:red;" >'.$res['rpay_date'].'</td>
   </tr>
 	<tr>
-		<td width="18%"><b>นัดชำระเงินคงค้างภายในวันที่</b></td>
-		<td width="17%" align="right">'.$res['fpay_date'].'</td>
-		<td colspan="2" style="font-weight:bold;font-color:red;" width="65%"><b>หาก'.$wording_type_buy.'ไม่ชำระเงินส่วนที่ค้างตามกำหนดเวลาทางบริษัทฯ จะไม่ดำเนินการจดทะเบียนใดๆ ทั้งสิ้น </b></td>
+		<td width="23%"><b>นัดชำระเงินคงค้างภายในวันที่</b></td>
+		<td width="12%" align="right">'.$res['fpay_date'].'</td>
+		<td colspan="2" style="font-weight:bold;font-color:red; font-size:11" width="65%" ><b>หาก'.$wording_type_buy.'ไม่ชำระเงินส่วนที่ค้างตามกำหนดเวลาทางบริษัทฯ จะไม่ดำเนินการจดทะเบียนใดๆ ทั้งสิ้น </b></td>
   </tr>
 </table>
-<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
+<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:12.5;">
 	<tr bgcolor="#CCCCCC">
 		<td colspan="6" align="left">รายละเอียดการรับชำระเงิน</td>
 	</tr>
@@ -258,7 +271,7 @@ union
 	</table>';
 
 $save_data[$m] .='
-<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
+<table cellpadding="2" cellspacing="0" border="1" width="100%" style="font-size:12.5;">
 <tr  bgcolor="#CCCCCC">
 		<td width="5%" align="center">#</td>
 		<td width="13%" align="center"><b>เลขที่เช็ค</b></td>
@@ -292,10 +305,9 @@ $save_data[$m] .='
 	}
 	
 $save_data[$m] .= '	
-</table>
-<br>';
+</table>';
 $save_data[$m] .='
-<table style="font-size:smaller"  width="100%" boder="1" >
+<table style="font-size:11.5; "  width="100%" boder="1" >
 	<tr>
 		<td width="100%"><b>ทั้งนี้ '.$wording_type_buy.'รถ ได้รับรถยนต์ตามสภาพที่พอใจเรียบร้อยแล้ว ในวันนี้ </b></td>
 	</tr>';
@@ -303,29 +315,73 @@ $save_data[$m] .='
 	if($res['reserve_color'] == "เขียวเหลือง"){
 $save_data[$m] .='
 	<tr>
-		<td width="100%"><br>&nbsp;&nbsp;&nbsp;&nbsp;อนึ่งหาก'.$wording_type_buy.'ต้องการจดทะเบียนเป็นแท็กซี่่ส่วนบุคคล (เขียวเหลือง) '.$wording_type_buy.'มีหน้าที่นำใบประกอบการเพื่อขอจดทะเบียนแท็กซี่มิเตอร์มามอบให้กับ'.$wording_type_buy.' <br>
-			เพื่อ'.$wording_type_buy.'จะได้นำใบประกอบการไปจดทะเบียนแท็กซี่มิเตอร์ส่วนบุคคลต่อไป
-		</td>
-	</tr>';
-	} 
-	if($res['use_radio'] == "t" AND $res['car_type_name'] == "รถป้ายแดง" ){	
-$save_data[$m] .= '	
-	<tr><td width="100%"></td></tr>
-	<tr>
-		<td width="100%"><br>&nbsp;&nbsp;&nbsp;&nbsp;ผู้เช่าซื้อมีหน้าที่ชำระค่าวิทยุสื่อสาร เดือนละ 342.40 บาท ทุกๆ เดือน เริ่มชำระวันออกรถ และ'.$wording_type_buy.'มีหน้าที่ชำระพร้อมนำรถยนต์ไปตรวจมิเตอร์ทุกๆ 6 เดือนพร้อมต่อภาษีประจำปี 
+		<td width="100%">&nbsp;&nbsp;&nbsp;&nbsp;อนึ่งหาก'.$wording_type_buy.'ต้องการจดทะเบียนเป็นแท็กซี่่ส่วนบุคคล (เขียวเหลือง) '.$wording_type_buy.'มีหน้าที่ นำใบประกอบการ เพื่อขอจดทะเบียน แท็กซี่มิเตอร์มามอบให้กับ'.$wording_type_buy.' เพื่อ'.$wording_type_buy.'จะได้นำใบประกอบการไปจดทะเบียนแท็กซี่มิเตอร์ส่วนบุคคลต่อไป
 		</td>
 	</tr>';
 	}
 	
+	//(strpos($res['car_type_name'], "ป้ายแดง") !== false)
+	
+	if($res['use_radio'] == "t"){
+		
+		if((strpos($res['car_type_name'], "ป้ายแดง") !== false)){
+			
+		
+			$save_data[$m] .= '	
+				<tr>
+					<td width="100%"><br>&nbsp;&nbsp;&nbsp;&nbsp; ';
+			if($str_sale_type == "สด"){
+				$save_data[$m] .= 'โดยผู้ซื้อจะได้รับสิทธิพิเศษฟรีค่าบริการวิทยุตลอดอายุสัญญาผ่อนชำระ เว้นแต่ผู้ซื้อทำการโอนสิทธิ์ ให้ถือสิทธิพิเศษดังกล่าวถือเป็นสิ้นสุด';
+			}
+			elseif($str_sale_type == "จัดผ่อน"){
+				$save_data[$m] .= 'โดยผู้จะซื้อจะได้รับสิทธิพิเศษฟรีค่าบริการวิทยุตลอดอายุสัญญาผ่อนชำระ เว้นแต่ผู้จะซื้อทำการโอนสิทธิ์ ให้ถือสิทธิพิเศษดังกล่าวถือเป็นสิ้นสุด';
+			}
+			$save_data[$m] .= '	
+					</td>
+				</tr>';
+		}
+		else{
+			$save_data[$m] .= '	
+				<tr>
+					<td width="100%">
+			';
+			
+			if($str_sale_type == "สด"){
+				$save_data[$m] .= '<br>&nbsp;&nbsp;&nbsp;&nbsp;ผู้ซื้อมีหน้าที่ชำระค่าวิทยุสื่อสาร เดือนละ 342.40 บาท ทุกๆ เดือน เริ่มชำระวันออกรถ และผู้ซื้อมีหน้าที่ชำระพร้อมนำรถยนต์ไป
+ตรวจมิเตอร์ทุกๆ 6 เดือนพร้อมต่อภาษีประจำปี';
+			}
+			elseif($str_sale_type == "จัดผ่อน"){
+				$save_data[$m] .= '<br>&nbsp;&nbsp;&nbsp;&nbsp;ผู้จะซื้อมีหน้าที่ชำระค่าวิทยุสื่อสาร เดือนละ 342.40 บาท ทุกๆ เดือน เริ่มชำระวันออกรถ และผู้จะซื้อมีหน้าที่ชำระพร้อมนำรถยนต์ไป
+ตรวจมิเตอร์ทุกๆ 6 เดือนพร้อมต่อภาษีประจำปี';
+			}
+			$save_data[$m] .= '	
+					</td>
+				</tr>';
+		}
+		
+	}
+	
 $save_data[$m] .='
-	<tr><td width="100%"></td></tr>
+	
 </table>';
+
+$save_data[$m] .= '
+<table width="100%" style="font-size:11.5; " >
+	<tr>
+		<td><b>หมายเหตุ </b>&nbsp;&nbsp;'.$res['remark'].'</td>
+	</tr>
+	<tr>
+		<td>เพื่อเป็นหลักฐานจึงได้ทำเป็นหนังสือสัญญาไว้ต่อหน้าพยาน</td>
+	</tr>
+</table>
+';
 
 $save_data[$m] .= '
 <table cellpadding="1" cellspacing="0" border="1" width="100%" style="font-size:smaller;">
 	<tr>
 		<td align="center" width="22%">
 			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
+				<tr><td></td></tr>
 				<tr align="center">
 					<td width="120px" colspan="2">ลงชื่อ _____________________ '.$wording_type_buy.'</td>
 				</tr>
@@ -343,6 +399,7 @@ $save_data[$m] .= '
 		
 		$save_data[$m] .='
 			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
+				<tr><td></td></tr>
 				<tr align="center">
 					<td width="120px" colspan="2">ลงชื่อ _________________ พนง.ขาย</td>
 				</tr>
@@ -358,6 +415,7 @@ $save_data[$m] .= '
 		
 			$save_data[$m] .='
 			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
+				<tr><td></td></tr>
 				<tr align="center">
 					<td width="120px" colspan="2">ลงชื่อ _________________ ผู้รับเงิน</td>
 				</tr>
@@ -376,6 +434,7 @@ $save_data[$m] .= '
 
 	$save_data[$m] .='
 			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
+				<tr><td></td></tr>
 				<tr align="center">
 					<td width="120px" colspan="2">ลงชื่อ _____________________ พยาน</td>
 				</tr>
@@ -389,6 +448,7 @@ $save_data[$m] .= '
 		</td>
 		<td align="center" width="20%">
 			<table cellpadding="1" cellspacing="0" border="0" width="250px" style="font-size:smaller;" align="center">
+				<tr><td></td></tr>
 				<tr align="center">
 					<td width="120px" colspan="2">ลงชื่อ ___________________ ผู้อนุมัติ</td>
 				</tr>
@@ -402,16 +462,18 @@ $save_data[$m] .= '
 		</td>
 	</tr>
 </table>';
-
-$save_data[$m] .= '
-<br><br>
-<table width="100%">
-	<tr>
-		<td><b>หมายเหตุ </b>&nbsp;&nbsp;'.$res['remark'].'</td>
-	</tr>
-</table>';
-
 }
+
+$footer_text = '
+	<table style="font-size:13" border="1">
+		<tr>
+			<td width="323">
+				*** เอกสารฉบับนี้ไม่ใช่ใบเสร็จรับเงิน กรุณาเรียกใบรับเงินชั่วคราวจากพนักงานทุกครั้ง *** 
+			</td>
+		</tr>
+	</table>
+';
+
 //START PDF
 include_once('../tcpdf/config/lang/eng.php');
 include_once('../tcpdf/tcpdf.php');
@@ -469,15 +531,21 @@ $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 $pdf->SetAutoPageBreak(TRUE, 10);
 
 // set font
-$pdf->SetFont('AngsanaUPC', '', 14); //AngsanaUPC  CordiaUPC
+$pdf->SetFont('CordiaUPC', '', 14); //AngsanaUPC  CordiaUPC
 
 
 /*$pdf->AddPage();
 $pdf->writeHTML($save_data, true, false, true, false, '');*/
 
 for($k=0;$k<=3;$k++){
-$pdf->AddPage();
-$pdf->writeHTML($save_data[$k], true, false, true, false, '');
+	$pdf->AddPage();
+	$pdf->writeHTML($save_data[$k], true, false, true, false, '');
+	
+	// For make the header.
+	$pdf->writeHTMLCell(0, 0, 80, 10, $footer_text);
+	
+	// For make the Footer.
+	// $pdf->writeHTMLCell(0, 0, 40, 278, $footer_text);
 }
 
 $pdf->Output('car_takeout_'.$res_id.'.pdf', 'I');

@@ -221,7 +221,7 @@ elseif($cmd == "save"){
     }
 	
 	$in_qry="UPDATE \"Cars\" SET license_plate='$cb_carplate'
-    WHERE car_idno = '$cb_stockcars' AND license_plate IS NULL";
+    WHERE car_idno = '$cb_stockcars' AND (license_plate IS NULL OR license_plate = '')";
     if(!$res=@pg_query($in_qry)){
         $txt_error[] = "UPDATE Cars ไม่สำเร็จ $in_qry";
         $status++;

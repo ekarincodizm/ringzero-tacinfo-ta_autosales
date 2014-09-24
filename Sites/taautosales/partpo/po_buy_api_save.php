@@ -32,7 +32,6 @@
 		$kny = 1;
 	}
 	
-	
 	// parts_pocode
 	// "POPXB-YYMMDDNNN"
 	// "POP" follow by "XB" then follow by "-YYMMDDNNN"
@@ -59,12 +58,11 @@
 	pg_query("BEGIN WORK");
 	$status = 0;
 	$txt_error = array();
-		
 	
-	$nowdate = date('m-d-Y');
+	
 	$generate_id_StrQuery = "
 		select gen_parts_no(
-			'".$nowdate."', 
+			'".$date."', 
 			'".$type_X."', 
 			'".$office_id."', 
 			'".$kny."'

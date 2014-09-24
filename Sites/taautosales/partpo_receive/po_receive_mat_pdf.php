@@ -7,41 +7,50 @@ if(!CheckAuth()){
     exit();
 }
 
-$po_id = pg_escape_string($_REQUEST['po_id']);
+$po_id = pg_escape_string($_REQUEST['receive_id']);
 
 if(empty($po_id) OR $po_id == ""){
     echo "invalid param.";
     exit;
 }
 
-$purchaseOrderPart_qry = pg_query("
+$partsReceived_strQuery = pg_query("
 	SELECT 
-		\"date\",
-		\"vender_id\",
-		\"vat_status\",
-		\"subtotal\",
-		\"pcdiscount\",
-		\"discount\",
-		\"bfv_total\",
-		\"pcvat\",
-		\"vat\",
-		\"nettotal\"
+		parts_rcvcode, 
+		parts_pocode, 
+		rcv_date, 
+		inv_no, 
+		receipt_no, 
+		due_date, 
+		user_id, 
+		user_timestamp, 
+		appr_status, 
+		rcv_dsubtotal, 
+		rcv_pcdiscount, 
+		rcv_discount, 
+		rcv_vsubtotal, 
+		rcv_pcvat, 
+		rcv_vat, 
+		rcv_nettotal, 
+		recv_remark
 	FROM 
-		\"PurchaseOrderPart\" 
+		\"PartsReceived\" 
 	WHERE 
-		\"parts_pocode\" = '$po_id' 
+		\"parts_rcvcode\" = '$po_id' 
 ");
-if($res = pg_fetch_array($purchaseOrderPart_qry)){
-    $po_date = $res['date'];
-    $vender_id = $res['vender_id'];
-	$vat_status = $res['vat_status'];
-	$subtotal = $res['subtotal'];
-	$pcdiscount = $res['pcdiscount']*100.0;
-	$discount = $res['discount'];
-	$bfv_total = $res['bfv_total'];
-	$pcvat = $res['pcvat']*100.0;
-	$vat = $res['vat'];
-	$nettotal = $res['nettotal'];
+if($res = pg_fetch_array($partsReceived_strQuery)){
+    $po_date = $res['rcv_date'];
+    $vender_id = $res['user_id'];
+	
+	$subtotal = $res['rcv_dsubtotal'];
+	$pcdiscount = $res['rcv_pcdiscount']*100.0;
+	$discount = $res['rcv_discount'];
+	$bfv_total = $res['rcv_vsubtotal'];
+	$pcvat = $res['rcv_pcvat']*100.0;
+	$vat = $res['rcv_vat'];
+	$nettotal = $res['rcv_nettotal'];
+	
+	$po_remark = $res['recv_remark'];
 }
 
 $venders_qry = pg_query("
@@ -91,7 +100,6 @@ $fuser_query = pg_query($fuser_strQuery);
 $user_fullname = pg_fetch_result($fuser_query, 0);
 
 
-
 for($m=0;$m<=1;$m++){
 
 	if($m == 0){
@@ -107,18 +115,18 @@ $save_data[$m] .= '
 <table cellpadding="1" cellspacing="0" border="0" width="100%" style="margin-bottom: 0">
 	<tr>
 		<td width="10%"><img src="../images/logo.jpg" border="0" width="50" height="50" ></td>
-		<td width="90%" style="font-size:13; text-align:left">บริษัท ที.เอ.โอโตเซลส์  จำกัด <br>
+		<td width="90%" style="font-size:14; text-align:left">บริษัท ที.เอ.โอโตเซลส์  จำกัด <br>
 			T.A. AUTOSALES CO.,LTD.
 			<hr/><br>
-			สำนักงานใหญ่ 555 ถนนนวมินทร์ แขวงคลองกุ่ม เขตบึงกุ่ม กรุงเทพมหานคร 10240 โทรศัพท์ 0-2744-2222 โทรสาร 0-2379-1111 
+			สำนักงานใหญ่ 555 ถนนนวมินทร์ แขวงคลองกุ่ม เขตบึงกุ่ม กรุงเทพมหานคร 10240 โทรศัพท์ 0-2744-2222 โทรสาร 0-2379-1111 <br>
 			เลขประจำตัวผู้เสียภาษี 0105546153597
 		</td>
 	</tr>
 </table>
 <span style="text-align: right; margin-top:-20px; font-size: 40px;">'.$pageName.'</span><br />
-<span style="font-weight:bold; font-size:larger; text-align:center"><b>ใบสั่งซื้อ </b></span>
+<span style="font-weight:bold; font-size:larger; text-align:center"><b>ใบรับสินค้า </b></span>
 <br>
-<table cellpadding="3" cellspacing="0" border="0" width="100%" style="font-size:larger;">
+<table cellpadding="3" cellspacing="0" border="0" width="100%" style="font-size:larger; ">
 	<tr>
 		<td width="75%" align="left"><b>ผู้ขาย:</b>'.$cus_name.'</td>
 		<td width="25%"><b>เลขที่:</b> '.$po_id.'</td>
@@ -132,10 +140,10 @@ $save_data[$m] .= '
 		<td width="25%"></td>
 	</tr>
 </table>
-<br />
-<span style="font-weight:bold; font-size:large; text-align:left" style="font-size:larger;">รายการสั่งซื้อ</span>
+
+<span style="font-weight:bold; font-size:large; text-align:left" style="font-size:larger; ">รายการสั่งซื้อ</span>
 <br>
-<table cellpadding="3" cellspacing="0" border="1" width="100%" align="center" style="font-size:larger;">
+<table cellpadding="3" cellspacing="0" border="1" width="100%" align="center" style="font-size:larger; ">
 <tr style="font-weight:bold; " align="center">
     <td width="10%">ลำดับที่</td>
 	<td width="10%">รหัสสินค้า</td>
@@ -154,15 +162,15 @@ $purchaseOrderPartsDetails_qry = pg_query("
 	SELECT 
 		* 
 	FROM 
-		\"PurchaseOrderPartsDetails\" 
+		\"PartsReceivedDetails\" 
 	WHERE 
-		\"parts_pocode\" = '$po_id' 
+		\"parts_rcvcode\" = '$po_id' 
 ");
 while($res = pg_fetch_array($purchaseOrderPartsDetails_qry)){
     $j++;
 	
 	$parts_code = $res['parts_code'];
-	$quantity = $res['quantity'];
+	$quantity = $res['rcv_quantity'];
 	$unit = $res['unit'];
 	$costperunit = $res['costperunit'];
 	$total = $res['total'];
@@ -283,6 +291,7 @@ $save_data[$m] .= '
 	</tr>
 </table>
 
+<br />
 <table width="100%">
 	<tr>
 		<td align="left"><b>หมายเหตุ  :</b>&nbsp;&nbsp;'.$po_remark.'</td>
@@ -301,7 +310,7 @@ $save_data[$m] .= '
 					<td width="270" colspan="2">(______'.$user_fullname.'_____ )</td>
 				</tr>
 				<tr align="center">
-					<td width="270" colspan="2">วันที่____________________________ )</td>
+					<td width="270" colspan="2">วันที่ (__________________________ )</td>
 				</tr>
 			</table>
 		</td>
@@ -314,7 +323,7 @@ $save_data[$m] .= '
 					<td width="270" colspan="2">(___________________________________)</td>
 				</tr>
 				<tr align="center">
-					<td width="270" colspan="2">วันที่____________________________ )</td>
+					<td width="270" colspan="2">วันที่ (__________________________ )</td>
 				</tr>
 			</table>
 		</td>
@@ -363,5 +372,5 @@ for($k=0;$k<=1;$k++){
 $pdf->AddPage();
 $pdf->writeHTML($save_data[$k], true, false, true, false, '');
 }
-$pdf->Output('po_buy_'.$po_id.'.pdf', 'I');
+$pdf->Output('po_receive_'.$po_id.'.pdf', 'I');
 ?>

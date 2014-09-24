@@ -2,6 +2,7 @@
 include_once("../include/config.php");
 include_once("../include/function.php");
 
+$p_has_barcode = pg_escape_string($_POST["p_has_barcode"]);
 $p_code = pg_escape_string($_POST['p_code']);
 $p_name = pg_escape_string($_POST['p_name']);
 $p_detail = pg_escape_string($_POST['p_detail']);
@@ -14,6 +15,13 @@ pg_query("BEGIN WORK");
 $status = 0;
 $txt_error = array();
 
+if($p_has_barcode == "yes"){
+	$barcode = pg_escape_string($_POST["p_barcode"]);
+}
+else{
+	$barcode = $p_code;
+}
+
 $up_qry="
 Update  \"parts\" 
 SET 
@@ -22,7 +30,8 @@ details='$p_detail',
 priceperunit='$p_priceperunit',
 unitid='$p_unitid',
 svcharge='$p_svcharge',
-type='$p_Type'
+type='$p_Type',
+barcode='$barcode'
 where code='$p_code' 
 ";
 if(!$res=@pg_query($up_qry)){ //Record Parts Tables

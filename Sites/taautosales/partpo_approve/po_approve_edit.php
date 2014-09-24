@@ -81,13 +81,13 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 		        echo "<tr class=\"even\">";
 		    }
 		?>
-		    <td><?php echo $purchaseOrderPartsDetails_result['parts_pocode']; ?></td>
+		    <td><?php echo $purchaseOrderPartsDetails_result['parts_code']; ?></td>
 		    <td><?php echo $purchaseOrderPartsDetails_result['name']; ?></td>
 		    <td><?php echo $purchaseOrderPartsDetails_result['details']; ?></td>
-		    <td><?php echo $purchaseOrderPartsDetails_result['quantity']; ?></td>
-		    <td><?php echo read_Parts_Unit($purchaseOrderPartsDetails_result['unit']); ?></td>
-		    <td><?php echo number_format($purchaseOrderPartsDetails_result['costperunit'], 2); ?></td>
-		    <td><?php echo number_format($purchaseOrderPartsDetails_result['total'], 2); ?></td>
+		    <td align="center"><?php echo $purchaseOrderPartsDetails_result['quantity']; ?></td>
+		    <td align="center"><?php echo read_Parts_Unit($purchaseOrderPartsDetails_result['unit']); ?></td>
+		    <td align="right"><?php echo number_format($purchaseOrderPartsDetails_result['costperunit'], 2); ?></td>
+		    <td align="right"><?php echo number_format($purchaseOrderPartsDetails_result['total'], 2); ?></td>
 		    
 		</tr>
 		<?php
@@ -109,81 +109,81 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 		while($PartsApproved_result = pg_fetch_array($PartsApproved_query)){
 ?>
 		
-			<div style="width: 50%; float: left; margin-left: 50%; height: 30px;">
+			<div style="width: 55%; float: left; margin-left: 45%; height: 30px;">
 				<!-- PO type -->
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>เงินรวมก่อนหักส่วนลด : </b>
 				</div>
 				<div style="width: 28%; float: left; margin-top: 1.2%;">
-					<span id="dsubtotal"><?php echo $PartsApproved_result["subtotal"]; ?></span>
+					<span id="dsubtotal"><?php echo number_format(($PartsApproved_result["subtotal"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
 			</div>
 			<div style="clear: both;"></div>
 			
 			
-			<div style="width: 50%; float: left; height: 30px; ">
+			<div style="width: 45%; float: left; height: 30px; ">
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>%ส่วนลด : </b>
 				</div>
 				<div style="width: 28%; float: left;">
-					<span name="pcdiscount" id="pcdiscount"><?php echo $PartsApproved_result["pcdiscount"]; ?></span>
+					<span name="pcdiscount" id="pcdiscount"><?php echo number_format(($PartsApproved_result["pcdiscount"]*100.0), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
 			</div>
 			
-			<div style="width: 50%; float: left; height: 30px; ">
+			<div style="width: 55%; float: left; height: 30px; ">
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนเงินส่วนลด :</b>
 				</div>
 				<div style="width: 28%; float: left;">
-					<span name="discount" id="discount"><?php echo $PartsApproved_result["discount"]; ?></span>
+					<span name="discount" id="discount"><?php echo number_format(($PartsApproved_result["discount"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
 			</div>
 			<div style="clear: both;"></div>
 			
 			
-			<div style="width: 50%; float: left; margin-left: 50%; height: 30px; ">
+			<div style="width: 55%; float: left; margin-left: 45%; height: 30px; ">
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนเงินรวมก่อนภาษีมูลค่าเพิ่ม :</b>
 				</div>
 				<div style="width: 28%; float: left; margin-top: 1.2%;">
-					<span id="vsubtotal"><?php echo $PartsApproved_result["bfv_total"]; ?></span>
+					<span id="vsubtotal"><?php echo number_format(($PartsApproved_result["bfv_total"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
 			</div>
 			<div style="clear: both;"></div>
 			
 			
-			<div style="width: 50%; float: left; height: 30px; ">
+			<div style="width: 45%; float: left; height: 30px; ">
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>%ภาษีมูลค่าเพิ่ม :</b>
 				</div>
 				<div style="width: 28%; float: left;">
-					<span name="pcvat" id="pcvat" ><?php echo $PartsApproved_result["pcvat"]; ?></span>
+					<span name="pcvat" id="pcvat" ><?php echo number_format(($PartsApproved_result["pcvat"]*100.0), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
 			</div>
 			
-			<div style="width: 50%; float: left; height: 30px; ">
+			<div style="width: 55%; float: left; height: 30px; ">
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนภาษี :</b>
 				</div>
 				<div style="width: 28%; float: left; margin-top: 1.2%;">
-					<span id="vat"><?php echo $PartsApproved_result["vat"]; ?></span>
+					<span id="vat"><?php echo number_format(($PartsApproved_result["vat"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
 			</div>
 			<div style="clear: both;"></div>
 		
 		
-			<div style="width: 50%; float: left; margin-left: 50%; height: 30px; ">
+			<div style="width: 55%; float: left; margin-left: 45%; height: 30px; ">
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนรวมสุทธิ :</b>
 				</div>
 				<div style="width: 28%; float: left; margin-top: 1.2%;">
-					<span id="nettotal"><?php echo $PartsApproved_result["nettotal"]; ?></span>
+					<span id="nettotal"><?php echo number_format(($PartsApproved_result["nettotal"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
 			</div>
@@ -284,7 +284,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 			
 			//Make Confirm Alert
 			if(ApproveStatus == 0){
-				if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
+				if(!confirm('คุณต้องการที่จะยืนยันทำรายการ ไม่อนุมัติ หรือไม่')){
 					return false;
 				} 
 			}

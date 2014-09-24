@@ -28,7 +28,7 @@ else
     
 </head>
 <body>
-
+<?php if($_SESSION["ss_iduser"] == ""){ ?>
 <div class="roundedcornr_box" style="width:430px">
    <div class="roundedcornr_top"><div></div></div>
       <div class="roundedcornr_content">
@@ -71,6 +71,11 @@ if(passlog == '1')
 	document.getElementById("btnLogin").click();
 }
 </script>
-
 </body>
+<?php 
+}
+else{
+	header("Location: main.php");
+}
+?>
 </html>

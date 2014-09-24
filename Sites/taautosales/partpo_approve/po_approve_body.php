@@ -23,7 +23,7 @@
 				    <td width="50"><b>เงินรวมก่อนภาษีมูลค่าเพิ่ม</b></td>
 				    <td width="50"><b>จำนวนภาษีมูลค่าเพิ่ม</b></td>
 				    <td width="50"><b>จำนวนรวมสุทธิ</b></td>
-				    <td width="50" style="text-align:center;">แก้ไข</td>
+				    <td width="50" style="text-align:center;">ทำรายการ</td>
 				</tr>
 <?php 
 				$a=0;	
@@ -50,19 +50,19 @@
 					?>"><!-- style="background-color:<?php echo $bg; ?>" -->
 					    <td><?php echo $parts_pocode_query_result["parts_pocode"]; ?></td>
 					    <td><?php echo $parts_pocode_query_result["date"]; ?></td>
-					    <td><?php echo $parts_pocode_query_result["credit_terms"]; ?></td>
+					    <td align="right"><?php echo $parts_pocode_query_result["credit_terms"]; ?></td>
 					    <td><?php echo $parts_pocode_query_result["app_sentpartdate"]; ?></td>
 					    <td><?php echo $parts_pocode_query_result["esm_paydate"]; ?></td>
-					    <td><?php echo number_format($parts_pocode_query_result["subtotal"], 2); ?></td>
-					    <td><?php echo number_format($parts_pocode_query_result["discount"], 2); ?></td>
-					    <td><?php echo number_format($parts_pocode_query_result["bfv_total"], 2); ?></td>
-					    <td><?php echo number_format($parts_pocode_query_result["vat"], 2); ?></td>
-					    <td><?php echo number_format($parts_pocode_query_result["nettotal"], 2); ?></td>
+					    <td align="right"><?php echo number_format($parts_pocode_query_result["subtotal"], 2); ?></td>
+					    <td align="right"><?php echo number_format($parts_pocode_query_result["discount"], 2); ?></td>
+					    <td align="right"><?php echo number_format($parts_pocode_query_result["bfv_total"], 2); ?></td>
+					    <td align="right"><?php echo number_format($parts_pocode_query_result["vat"], 2); ?></td>
+					    <td align="right"><?php echo number_format($parts_pocode_query_result["nettotal"], 2); ?></td>
 					    <td style="text-align:center;">
-					    	<a href="../partpo/po_buy_mat_pdf.php?po_id=<?php echo $parts_pocode_query_result["parts_pocode"]; ?>" target="_blank" ><img src="../images/zoom.png" border="0" width="16" alt="อ่านรายละเอียด" title="อ่านรายละเอียด" /></a>
+					    	<a href="../partpo/po_buy_mat_pdf.php?po_id=<?php echo $parts_pocode_query_result["parts_pocode"]; ?>" target="_blank" ><img src="../images/zoom.png" border="0" width="16" alt="แสดงใบสั่งซื้อ" title="แสดงใบสั่งซื้อ" /></a>
 					    	<span style="margin-left: 10px;"></span>
 					    	<!-- <a href="" onclick="javascript:popU('po_approve_edit.php','','toolbar=no,menubar=no,resizable=no,scrollbars=yes,status=no,location=no,width=750,height=300')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" /></a> -->
-					    	<a href="#" onclick="javascript:ShowDetail('po_approve_edit.php', '<?php echo $parts_pocode_query_result["parts_pocode"]; ?>')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" alt="แก้ไขรายละเอียด" title="แก้ไขรายละเอียด" /></a>
+					    	<a href="#" onclick="javascript:ShowDetail('po_approve_edit.php', '<?php echo $parts_pocode_query_result["parts_pocode"]; ?>')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" alt="ทำรายการอนุมัติ" title="ทำรายการอนุมัติ" /></a>
 					    </td>
 					</tr>
 <?php

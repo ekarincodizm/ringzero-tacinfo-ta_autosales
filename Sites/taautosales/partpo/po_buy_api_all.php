@@ -1,6 +1,4 @@
 <?php
-
-//------------------------------------------------- สั่งซื้ออุปกรณ์อื่นๆ ------------------------------------------------------------
 ?>
 
 <!-- header -->
@@ -48,7 +46,6 @@
 	</div>
 	<div style="clear: both;"></div>
 </div>
-
 
 <script>
 	var PurchaseOrderPart = new Array();
@@ -188,105 +185,105 @@
 	
 		<div style="float:right; margin-top:10px; width:85%">
 			<table cellpadding="5" cellspacing="0" border="0" width="100%" bgcolor="#F0F0F0">
-			<tr style="font-weight:bold; text-align:center; " bgcolor="#D0D0D0">
-				<td width="5%">ลำดับที่</td>
-				<td width="10%">รหัสสินค้า</td>
-				<td width="15%">ชื่อสินค้า</td>
-				<td width="30%">รายละเอียดสินค้า</td>
-				<td width="10%">จำนวน</td>
-				<td width="10%">หน่วย</td>
-				<td width="10%">ราคา/หน่วย</td>
-				<td width="10%">จำนวนเงิน</td>
-			</tr>
-			
-			<tr bgcolor="#FFFFFF">
-				<td>
-					1.
-					<!-- <input type="hidden" name="idno1" id="idno1" value="1" /> -->
-				</td>
-				<td>
-					<!-- <select id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1"> -->
-						<!-- <option value="">เลือกรหัสสินค้า</option> -->
-						<script>
-							var parts = new Array();
-			<?php
-						$strQuery_parts = "
-							SELECT *
-							FROM \"parts\" 
-							ORDER BY code ASC
-						";
-						$qry_parts=@pg_query($strQuery_parts);
-						$numrows_parts = pg_num_rows($qry_parts);
-						$parts_data = array();
-						while($res_parts=@pg_fetch_array($qry_parts)){
-							$parts_data[] = $res_parts;
-							$dt['value'] = $res_parts['code'];
-							$dt['label'] = $res_parts["code"]." # ".$res_parts["name"];
-							$parts_matches[] = $dt;
-			?>
-								parts.push(["<?php echo $res_parts['code']; ?>", "<?php echo $res_parts['name']; ?>", "<?php echo $res_parts['unitid']; ?>", "<?php echo $res_parts['details']; ?>"]);
-			<?php
-						}
-						if($numrows_parts == 0){
-					        $parts_matches[] = "ไม่พบข้อมูล";
-					    }
-						$parts_matches = array_slice($parts_matches, 0, 100);
-			?>
-						</script>
-			
-					<!-- </select> -->
-					<input type="text" id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1" />
-				</td>
+				<tr style="font-weight:bold; text-align:center; " bgcolor="#D0D0D0">
+					<td width="5%">ลำดับที่</td>
+					<td width="10%">รหัสสินค้า</td>
+					<td width="15%">ชื่อสินค้า</td>
+					<td width="30%">รายละเอียดสินค้า</td>
+					<td width="10%">จำนวน</td>
+					<td width="10%">หน่วย</td>
+					<td width="10%">ราคา/หน่วย</td>
+					<td width="10%">จำนวนเงิน</td>
+				</tr>
 				
-				<td>
-					<span id="parts_name1" class="parts_name"></span>
-					<input type="hidden" name="parts_name1" class="parts_name" value="" />
-				</td>
-				<td>
-					<span id="parts_detail1" class="parts_detail"></span>
-				</td>
-				<td align="right">
-					<input type="text" name="quantity1" id="quantity1" class="quantity" data-quantity_id="1" disabled="disabled" style="width:100%; text-align:right" />
-				</td>
-				<td align="center">
-					<!-- <input type="text" name="unit1" id="unit1" class="unit" style="width:40px; text-align:right" onkeyup="" onkeypress="" /> -->
+				<tr bgcolor="#FFFFFF">
+					<td>
+						1.
+						<!-- <input type="hidden" name="idno1" id="idno1" value="1" /> -->
+					</td>
+					<td>
+						<!-- <select id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1"> -->
+							<!-- <option value="">เลือกรหัสสินค้า</option> -->
+							<script>
+								var parts = new Array();
+				<?php
+							$strQuery_parts = "
+								SELECT code, name, details, priceperunit, unitid, svcharge, type, item_count
+								FROM \"parts\" 
+								ORDER BY code ASC
+							";
+							$qry_parts=@pg_query($strQuery_parts);
+							$numrows_parts = pg_num_rows($qry_parts);
+							$parts_data = array();
+							while($res_parts=@pg_fetch_array($qry_parts)){
+								$parts_data[] = $res_parts;
+								$dt['value'] = $res_parts['code'];
+								$dt['label'] = $res_parts["code"]." # ".$res_parts["name"]." # ".$res_parts["details"];
+								$parts_matches[] = $dt;
+				?>
+									parts.push(["<?php echo $res_parts['code']; ?>", "<?php echo $res_parts['name']; ?>", "<?php echo $res_parts['unitid']; ?>", "<?php echo $res_parts['details']; ?>"]);
+				<?php
+							}
+							if($numrows_parts == 0){
+						        $parts_matches[] = "ไม่พบข้อมูล";
+						    }
+							$parts_matches = array_slice($parts_matches, 0, 100);
+				?>
+							</script>
+				
+						<!-- </select> -->
+						<input type="text" id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1" />
+					</td>
 					
-					<!-- <select id="unit1" name="unit1" class="unit" data-code_id="1" disabled="disabled"> -->
-						<!-- <option value="">เลือกหน่วย</option> -->
-						<!-- <option value="<?php echo $res_parts_unit['unitid']; ?>"> -->
-							<!-- <?php echo $res_parts_unit['unitname']; ?> -->
-						<!-- </option> -->
-					<!-- </select> -->
-				
-					<script>
-						var parts_unit = new Array();
-			<?php
-						$strQuery_parts_unit = "
-							SELECT *
-							FROM \"parts_unit\" 
-							ORDER BY unitname ASC
-						";
-						$parts_unit_data = array();
-						$qry_parts_unit = @pg_query($strQuery_parts_unit);
-						while($res_parts_unit = @pg_fetch_array($qry_parts_unit)){
-							$parts_unit_data[] = $res_parts_unit;
-			?>
-							parts_unit.push(["<?php echo $res_parts_unit['unitid']; ?>", "<?php echo $res_parts_unit['unitname']; ?>"]);
-			<?php
-						}
-			?>
-					</script>
-					<span id="unit1" class="unit"></span>
-					<input type="hidden" name="unit1" class="unit" value="" />
-				</td>
-				<td>
-					<input type="text" name="costperunit1" id="costperunit1" class="costperunit" data-costperunit_id="1" disabled="disabled" style="width:40px; text-align:right" />
-				</td>
-				<td align="right">
-					<span id="total1" class="total" style="font-weight:bold">0</span>
-					<input type="hidden" name="total1" class="total" value="0" />
-				</td>
-			</tr>
+					<td>
+						<span id="parts_name1" class="parts_name"></span>
+						<input type="hidden" name="parts_name1" class="parts_name" value="" />
+					</td>
+					<td>
+						<span id="parts_detail1" class="parts_detail"></span>
+					</td>
+					<td align="right">
+						<input type="text" name="quantity1" id="quantity1" class="quantity" data-quantity_id="1" disabled="disabled" style="width:100%; text-align:right" />
+					</td>
+					<td align="center">
+						<!-- <input type="text" name="unit1" id="unit1" class="unit" style="width:40px; text-align:right" onkeyup="" onkeypress="" /> -->
+						
+						<!-- <select id="unit1" name="unit1" class="unit" data-code_id="1" disabled="disabled"> -->
+							<!-- <option value="">เลือกหน่วย</option> -->
+							<!-- <option value="<?php echo $res_parts_unit['unitid']; ?>"> -->
+								<!-- <?php echo $res_parts_unit['unitname']; ?> -->
+							<!-- </option> -->
+						<!-- </select> -->
+					
+						<script>
+							var parts_unit = new Array();
+				<?php
+							$strQuery_parts_unit = "
+								SELECT *
+								FROM \"parts_unit\" 
+								ORDER BY unitname ASC
+							";
+							$parts_unit_data = array();
+							$qry_parts_unit = @pg_query($strQuery_parts_unit);
+							while($res_parts_unit = @pg_fetch_array($qry_parts_unit)){
+								$parts_unit_data[] = $res_parts_unit;
+				?>
+								parts_unit.push(["<?php echo $res_parts_unit['unitid']; ?>", "<?php echo $res_parts_unit['unitname']; ?>"]);
+				<?php
+							}
+				?>
+						</script>
+						<span id="unit1" class="unit"></span>
+						<input type="hidden" name="unit1" class="unit" value="" />
+					</td>
+					<td>
+						<input type="text" name="costperunit1" id="costperunit1" class="costperunit" data-costperunit_id="1" disabled="disabled" style="width:40px; text-align:right" />
+					</td>
+					<td align="right">
+						<span id="total1" class="total" style="font-weight:bold">0</span>
+						<input type="hidden" name="total1" class="total" value="0" />
+					</td>
+				</tr>
 			</table>
 			
 			<div id="TextBoxesGroup"></div>
@@ -347,7 +344,7 @@
 					<b>%ภาษีมูลค่าเพิ่ม :</b>
 				</div>
 				<div style="width: 48%; float: left;">
-					<input type="text" name="pcvat" id="pcvat" class="" value="7" />
+					<input type="text" name="pcvat" id="pcvat" class="" value="7.0" />
 				</div>
 				<div style="clear: both;"></div>
 			</div>
@@ -419,7 +416,7 @@
 	var pcdiscount = 0;
 	var discount = 0;
 	var vsubtotal = 0;
-	var pcvat = 7;
+	var pcvat = 0.07;
 	var vat = 0;
 	var nettotal = 0;
 	
@@ -473,7 +470,7 @@
 			$("#pcdiscount").val("");
 			$("#discount").val("");
 			$("#vsubtotal").html("");
-			$("#pcvat").val("");
+			$("#pcvat").val("7.0");
 			$("#vat").html("");
 			$("#nettotal").html("");
 			
@@ -481,7 +478,7 @@
 			pcdiscount = 0;
 			discount = 0;
 			vsubtotal = 0;
-			pcvat = 7;
+			pcvat = 0.07;
 			vat = 0;
 			nettotal = 0;
 		}
@@ -510,13 +507,13 @@
 						nettotal = data.purchaseOrderPart_nettotal;
 						
 						//Replace Data From SELECT Query to HTML
-						$("#dsubtotal").html(data.purchaseOrderPart_subtotal);
-						$("#pcdiscount").val(data.purchaseOrderPart_pcdiscount);
-						$("#discount").val(data.purchaseOrderPart_discount);
-						$("#vsubtotal").html(data.purchaseOrderPart_bfv_total);
-						$("#pcvat").val(data.purchaseOrderPart_pcvat);
-						$("#vat").html(data.purchaseOrderPart_vat);
-						$("#nettotal").html(data.purchaseOrderPart_nettotal);
+						$("#dsubtotal").html(parseFloat(data.purchaseOrderPart_subtotal).toFixed(2));
+						$("#pcdiscount").val(parseFloat((data.purchaseOrderPart_pcdiscount)*100.0).toFixed(2));
+						$("#discount").val(parseFloat(data.purchaseOrderPart_discount).toFixed(2));
+						$("#vsubtotal").html(parseFloat(data.purchaseOrderPart_bfv_total).toFixed(2));
+						$("#pcvat").val(parseFloat((data.purchaseOrderPart_pcvat)*100.0).toFixed(2));
+						$("#vat").html(parseFloat(data.purchaseOrderPart_vat).toFixed(2));
+						$("#nettotal").html(parseFloat(data.purchaseOrderPart_nettotal).toFixed(2));
 					}
 					else{
 						console.log("data.success = " + data.success);
@@ -704,7 +701,13 @@
 				if(ui.item.value == 'ไม่พบข้อมูลเก่า'){
 					
 				}else{
-					
+					console.log("dsubtotal = "+dsubtotal);
+					console.log("pcdiscount = "+pcdiscount);
+					console.log("discount = "+discount);
+					console.log("vsubtotal = "+vsubtotal);
+					console.log("pcvat = "+pcvat);
+					console.log("vat = "+vat);
+					console.log("nettotal = "+nettotal);
 				}
 	        }
 	    });
@@ -852,16 +855,16 @@
 	
 		newTextBoxDiv.html(table);
 		newTextBoxDiv.appendTo("#TextBoxesGroup");
-});
+	});
 	
 	//############### Delete ###################
 	$("#btn_del").click(function(){
 		if(counter==1){
-		return false;
+			return false;
 		}
 		$("#TextBoxDiv" + counter).remove();
 		counter--;
-		// SumAll();
+		calculate_total();
 	});
 	
     //######################## วันที่นัดส่งของ #########################
@@ -928,20 +931,32 @@
 		console.log("esm_paydate = " + $('#esm_paydate').datepicker('getDate'));
     }
     
-    $(function() {
-    	$("#vat_status").live("change", function(){
-    		var vat_status_value = $(this).val();
-    		console.log("vat_status" + vat_status_value);
-    		if(vat_status_value == "1"){
-    			$("#pcvat").val("7");
-    			$("#pcvat").prop("disabled", false);
-    		}
-    		else if(vat_status_value == "0"){
-    			$("#pcvat").val("0");
-    			$("#pcvat").prop("disabled", true);
-    		}
-    	});
+	$(function() {
+		$("#vat_status").live("change", function(){
+			var vat_status_value = $(this).val();
+			console.log("vat_status" + vat_status_value);
+			if(vat_status_value == "1"){
+				$("#pcvat").prop("disabled", false);
+				$("#pcvat").val("7.0");
+				pcvat = 0.07;
+				vat_status_change();
+			}
+			else if(vat_status_value == "0"){
+				$("#pcvat").prop("disabled", true);
+				$("#pcvat").val("0.0");
+				pcvat = 0.0;
+				vat_status_change();
+			}
+		});
 	});
+	
+	function vat_status_change(){
+		console.log("vsubtotal = " + vsubtotal);
+		vat = vsubtotal * pcvat;
+		$("#vat").html(numberWithCommas(parseFloat(vat).toFixed(2)));
+		nettotal = vsubtotal + vat;
+		$("#nettotal").html(numberWithCommas(parseFloat(nettotal).toFixed(2)));
+	}
 	
 	
 	//######################## Calculate Mode ############################
@@ -1020,9 +1035,9 @@
 	//% ภาษีมูลค่าเพิ่ม
 	//vat = vsubtotal * pcvat
 	$("#pcvat").live("keyup", function(){
-		pcvat = $(this).val();
+		pcvat = ($(this).val()/100.0);
 		console.log("pcvat = " + pcvat);
-		vat = vsubtotal * (pcvat / 100.0);
+		vat = vsubtotal * (pcvat);
 		
 		calculate_total();
 	});
@@ -1073,18 +1088,28 @@
 		console.log("vsubtotal = " + vsubtotal);
 		$("#vsubtotal").html(numberWithCommas(vsubtotal));
 		
-		vat = parseFloat(vsubtotal * (pcvat / 100.0)).toFixed(2);
+		vat = parseFloat(vsubtotal * (pcvat)).toFixed(2);
 		
 		//vat
 		//จำนวนภาษี
 		console.log("vat = " + vat);
-		$("#vat").html(numberWithCommas(vat));
+		$("#vat").html(numberWithCommas(vat*1.0));
 		
 		//nettotal
 		//จำนวนรวมสุทธิ
 		nettotal = parseFloat((vsubtotal * 1.0) + (vat * 1.0)).toFixed(2);
 		console.log("nettotal = " + numberWithCommas(nettotal));
 		$("#nettotal").html(numberWithCommas(nettotal));
+		
+		
+		//Result Cost before Submit
+		console.log("dsubtotal = "+dsubtotal);
+		console.log("pcdiscount = "+pcdiscount);
+		console.log("discount = "+discount);
+		console.log("vsubtotal = "+vsubtotal);
+		console.log("pcvat = "+pcvat);
+		console.log("vat = "+vat);
+		console.log("nettotal = "+nettotal);
 	}
 	
 	function numberWithCommas(x) {
@@ -1093,6 +1118,18 @@
 	
 	//########## Submit ###########
 	$('#btnSubmit').click(function(){
+		
+		//Result Cost before Submit
+		console.log("dsubtotal = "+dsubtotal);
+		console.log("pcdiscount = "+pcdiscount);
+		console.log("discount = "+discount);
+		console.log("vsubtotal = "+vsubtotal);
+		console.log("pcvat = "+pcvat);
+		console.log("vat = "+vat);
+		console.log("nettotal = "+nettotal);
+		
+		
+		var chk = 0;
 		
 		//### Header ###
 		var _type = $('#type').val();
@@ -1109,38 +1146,47 @@
 		
 		if(_type == ""){
 			alert('กรุณาเลือก ประเภทของ PO');
+			chk++;
 			return false;
 		}
 		if(_date == ""){
 			alert('กรุณากรอก วันที่ใบสั่งซื้อ');
+			chk++;
 			return false;
 		}
 		// if(_parts_pocode == ""){
 			// alert('กรุณากรอก เลขที่ใบสั่งซื้อ');
+			// chk++;
 			// return false;
 		// }
 		// if(_copypo_id == ""){
 			// alert('กรุณากรอก เลขที่ใบสั่งซื้อที่ต้องการคัดลอก');
+			// chk++;
 			// return false;
 		// }
 		if(_app_sentpartdate == ""){
 			alert('กรุณากรอก วันที่นัดส่งของ');
+			chk++;
 			return false;
 		}
 		if(_credit_terms == ""){
 			alert('กรุณากรอก กำหนดชำระเงิน (วัน)');
+			chk++;
 			return false;
 		}
 		if(_esm_paydate == ""){
 			alert('กรุณากรอก ประมาณการวันที่ชำระเงิน');
+			chk++;
 			return false;
 		}
 		if(_vender_id == ""){
 			alert('กรุณาเลือก ผู้ขาย');
+			chk++;
 			return false;
 		}
 		if(_vat_status == ""){
 			alert('กรุณาเลือก ใบสั่งซื้อ มี VAT');
+			chk++;
 			return false;
 		}
 		
@@ -1158,18 +1204,22 @@
 			
 			if(_parts_code == ""){
 				alert('กรุณาเลือก เลือกรหัสสินค้า (รายการที่ '+i+')');
+				chk++;
 				return false;
 			}
 			if(_quantity == "" || _quantity == 0){
 				alert('กรุณากรอกจำนวน (รายการที่ '+i+')');
+				chk++;
 				return false;
 			}
 			// if(_unit == ""){
 				// alert('กรุณาเลือก หน่วย (รายการที่ '+i+')');
+				// chk++;
 				// return false;
 			// }
 			if(_costperunit == "" || _costperunit == 0){
 				alert('กรุณากรอก ราคา/หน่วย (รายการที่ '+i+')');
+				chk++;
 				return false;
 			}
 			if(_total == "" || _total == 0){
@@ -1193,60 +1243,74 @@
 		
 		if(_pcdiscount == ""){
 			alert('กรุณากรอก %ส่วนลด');
+			chk++;
 			return false;
 		}
 		if(_discount == ""){
 			alert('กรุณากรอก จำนวนเงินส่วนลด');
+			chk++;
 			return false;
 		}
 		if(_pcvat == ""){
 			alert('กรุณากรอก %ภาษีมูลค่าเพิ่ม');
+			chk++;
 			return false;
 		}
 		if(_PartsApproved_appr_note == ""){
 			alert('กรุณากรอก หมายเหตุ');
+			chk++;
 			return false;
 		}
 		
-		$.post('po_buy_api_save.php',{
-			id_user: "<?php echo $_GET["ss_iduser"] ?>",
-			type: $('#type').val(),
-			date: $('#date').val(),
-			// parts_pocode: $('#parts_pocode').val(),
-			copypo_id: $('#copypo_id').val(),
-			app_sentpartdate: $('#app_sentpartdate').val(),
-			credit_terms: $('#credit_terms').val(),
-			esm_paydate: $('#esm_paydate').val(),
-			vender_id: $('#vender_id').val(),
-			vat_status: $('#vat_status').val(),
-			
-			purchase_order_parts_details_array: JSON.stringify(arradd),
-			
-			dsubtotal: dsubtotal,
-			pcdiscount: $('#pcdiscount').val(),
-			discount: $('#discount').val(),
-			vsubtotal: vsubtotal,
-			pcvat: $('#pcvat').val(),
-			vat: vat,
-			nettotal: nettotal,
-			PartsApproved_appr_note: $('#PartsApproved_appr_note').val(),
-			
-		},
-		function(data){
-			if(data.success){
-				ShowPrint(data.parts_pocode);
-				console.log("data.success = " + data.success);
-				console.log("data.message = " + data.message);
-				console.log("data.test = " + data.test);
-				//location.reload();
-			}else{
-				alert(data.message);
-				console.log("data.success = " + data.success);
-				console.log("data.message = " + data.message);
-				console.log("data.test = " + data.test);
+		if(chk == 0){
+			if(!confirm('ต้องการบันทึก สั่งซื้ออะไหล่/อุปกรณ์ หรือไม่')){
+				return false;
 			}
-		},'json');
-	});
+		
+			$.post(
+				'po_buy_api_save.php',
+				{
+					id_user: "<?php echo $_GET["ss_iduser"] ?>",
+					type: $('#type').val(),
+					date: $('#date').val(),
+					// parts_pocode: $('#parts_pocode').val(),
+					copypo_id: $('#copypo_id').val(),
+					app_sentpartdate: $('#app_sentpartdate').val(),
+					credit_terms: $('#credit_terms').val(),
+					esm_paydate: $('#esm_paydate').val(),
+					vender_id: $('#vender_id').val(),
+					vat_status: $('#vat_status').val(),
+					
+					purchase_order_parts_details_array: JSON.stringify(arradd),
+					
+					dsubtotal: dsubtotal,
+					pcdiscount: pcdiscount,
+					discount: discount,
+					vsubtotal: vsubtotal,
+					pcvat: pcvat,
+					vat: vat,
+					nettotal: nettotal,
+					PartsApproved_appr_note: $('#PartsApproved_appr_note').val(),
+					
+				},
+				function(data){
+					if(data.success){
+						ShowPrint(data.parts_pocode);
+						console.log("data.success = " + data.success);
+						console.log("data.message = " + data.message);
+						console.log("data.test = " + data.test);
+						//location.reload();
+					}else{
+						alert(data.message);
+						console.log("data.success = " + data.success);
+						console.log("data.message = " + data.message);
+						console.log("data.test = " + data.test);
+					}
+				},'json'
+			);
+		}
+		
+	}); //End BtnClick
 	
 	//##############################################################################
 	

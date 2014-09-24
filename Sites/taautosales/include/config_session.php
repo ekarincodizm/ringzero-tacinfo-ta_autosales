@@ -27,6 +27,6 @@ foreach($company as $v){
 	break;
 }	
 //Alert Admin menu
-$_session['menu_admin'] = array('PO02','C041','RC03','CUS02','TA01','TA02','TA03','TA04','TA05');
+$_session['menu_admin'] = array('PO02','C041','RC03','CUS02','TA01','TA02','TA03','TA04','TA05','TA06','TA07');
 
 ?>

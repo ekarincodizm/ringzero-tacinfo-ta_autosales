@@ -73,10 +73,11 @@
 	$txt_error = array();
 	
 	
-	$nowdate = nowDate();
+	$nowDate = nowDate();
+	$nowDateTime = nowDateTime();	
 	$generate_id_StrQuery = "
 		select gen_parts_no(
-			'".$nowdate."', 
+			'".$app_sentpartdate."', 
 			'".$type_X."', 
 			'".$office_id."', 
 			'".$kny."'
@@ -109,7 +110,7 @@
 		'{$gen_parts_no}',		'{$parts_pocode}',
 		'{$app_sentpartdate}',	'{$inv_no}',
 		'{$receipt_no}',		'{$esm_paydate}',
-		'{$id_user}',			'{$nowdate}',
+		'{$id_user}',			'{$nowDate}',
 		'1',					'{$dsubtotal}',
 		'{$pcdiscount}',		'{$discount}',
 		'{$vsubtotal}',			'{$pcvat}',
@@ -123,7 +124,7 @@
         $status++;
     }
 	
-    //Query PurchaseOrderPartsDetails
+    //Query PartsReceivedDetails
     foreach($parts_received_details_array as $key => $value){
     	
 		$idno = $value->idno;
@@ -172,14 +173,17 @@
 		//Check That there are parts_code in PartsStock or not
 		$partsStock_check_strQuery = "
 			SELECT 
-				parts_code
+				parts_code,
+				MAX(stock_lot) AS stock_lot
 			FROM 
 				\"PartsStock\"
 			WHERE 
-				parts_code = '".$parts_code."' ;
+				parts_code = '".$parts_code."' 
+			group by parts_code ;
 		";
 		$partsStock_check_query = pg_query($partsStock_check_strQuery);
 		if($partsStock_check_result = pg_fetch_array($partsStock_check_query)){
+			/*
 			$partsStock_strQuery = "
 				UPDATE \"PartsStock\"
 				SET 
@@ -194,6 +198,36 @@
 					stock_status = '1'
 				WHERE 
 					parts_code = '{$parts_code}'
+				RETURNING stock_id;
+			";
+			*/
+			$partsStock_strQuery = "
+				INSERT INTO \"PartsStock\"
+				(
+					parts_code, 
+					stock_lot, 
+					parts_rcvcode, 
+					rcv_date, 
+					rcv_quantity, 
+					costperunit, 
+					stock_remain, 
+					wh_id, 
+					locate_id, 
+					stock_status
+				)
+				VALUES
+				(
+					'{$parts_code}',
+					".($partsStock_check_result["stock_lot"] + 1).",
+					'{$gen_parts_no}',
+					'{$app_sentpartdate}',
+					'{$rcv_quantity}',
+					'{$costperunit}',
+					'{$rcv_quantity}',
+					'{$wh_id}',
+					'{$locate_id}',
+					'1'
+				)
 				RETURNING stock_id;
 			";
 		}
@@ -221,7 +255,7 @@
 					'{$app_sentpartdate}',
 					'{$rcv_quantity}',
 					'{$costperunit}',
-					NULL,
+					'{$rcv_quantity}',
 					'{$wh_id}',
 					'{$locate_id}',
 					'1'
@@ -239,64 +273,182 @@
 			
 			// Check That, Type PO is 1 or not, if yes, will insert PartsStockDetails each item.
 			if($type == 1){
-			
-				// insert PartsStockDetails (each row of item)
-				for($i = 0; $i < $rcv_quantity; $i++){
+				
+				// Check that parts_code is parts.type = 1 or not, if yes, Query Insert PartStockDetails
+				$parts_check_type_strQuery = "
+					SELECT
+						parts.type
+					FROM
+						parts
+					WHERE 
+						parts.code = '{$parts_code}'
+						AND
+						parts.type = 1
+				";
+				$parts_check_type_query = @pg_query($parts_check_type_strQuery);
+				if(@pg_fetch_result($parts_check_type_query, 0) == 1){
 					
-					
-					$item_count_strQuery = "
-						UPDATE
-							\"parts\"
-						SET
-							\"item_count\" = \"item_count\" + 1
-						WHERE
-							code = '".$parts_code."'
-						RETURNING \"item_count\" ;
-					";
-					$item_count_query = @pg_query($item_count_strQuery);
-					$item_count = pg_fetch_result($item_count_query, 0);
-					
-					//Generate PartsStockDetails : codeid	
-					$codeid = $parts_code.sprintf('%06d', $item_count);
-									
-					$PartsStockDetails_strQuery = "
-						INSERT INTO \"PartsStockDetails\"(
-							codeid, 
-							stock_id, 
-							status, 
-							wh_id, 
-							locate_id, 
-							note
-						)
-						VALUES (
-							'{$codeid}', 
-							'".$partsStock_result["stock_id"]."',
-							'1',
-							'{$wh_id}',
-							'{$locate_id}',
-							'{$recv_remark}'
-						);
-					";
-					
-					if(!$result=@pg_query($PartsStockDetails_strQuery)){
-				        $txt_error[] = "INSERT PartsStockDetails_strQuery ไม่สำเร็จ $PartsStockDetails_strQuery";
-				        $status++;
-				    }
+					// insert PartsStockDetails (each row of item)
+					for($i = 0; $i < $rcv_quantity; $i++){
+						$item_count_strQuery = "
+							UPDATE
+								\"parts\"
+							SET
+								\"item_count\" = \"item_count\" + 1
+							WHERE
+								code = '".$parts_code."'
+							RETURNING \"item_count\" ;
+						";
+						$item_count_query = @pg_query($item_count_strQuery);
+						$item_count = pg_fetch_result($item_count_query, 0);
+						
+						//Generate PartsStockDetails : codeid	
+						$codeid = $parts_code.sprintf('%06d', $item_count);
+						
+						$PartsStockDetails_strQuery = "
+							INSERT INTO \"PartsStockDetails\"(
+								codeid, 
+								stock_id, 
+								status, 
+								wh_id, 
+								locate_id, 
+								note
+							)
+							VALUES (
+								'{$codeid}', 
+								'".$partsStock_result["stock_id"]."',
+								'1',
+								'{$wh_id}',
+								'{$locate_id}',
+								'{$recv_remark}'
+							);
+						";
+						
+						if(!$result=@pg_query($PartsStockDetails_strQuery)){
+					        $txt_error[] = "INSERT PartsStockDetails_strQuery ไม่สำเร็จ $PartsStockDetails_strQuery";
+					        $status++;
+					    }
+					}
+					// END insert PartsStockDetails (each row of item)
 				}
-			
+				//END Check that parts_code is parts.type = 1 or not, if yes, Query Insert PartStockDetails
 			}
 		}
 		else{
 	        $txt_error[] = "INSERT PartsStock_strQuery ไม่สำเร็จ $partsStock_strQuery";
 	        $status++;
 		}
-		
 	}
-	//End Query PurchaseOrderPartsDetails
+	// End Query PurchaseOrderPartsDetails
 	
-	//Check Is Query or Not?
+	
+	
+	// ########## Check ว่า Quantity เท่ากับ rcv_quantity หรือไม่ ##########
+	$purchaseOrderPart_strQuery = "
+		SELECT
+			\"parts_pocode\",\"date\",\"type\",\"copypo_id\",
+			\"credit_terms\",\"app_sentpartdate\",\"esm_paydate\",\"vender_id\",
+			\"subtotal\",\"pcdiscount\",\"discount\",\"bfv_total\",
+			\"pcvat\",\"vat\",\"nettotal\",\"status\",\"paid\"
+		FROM
+			\"PurchaseOrderPart\"
+		WHERE 
+			\"parts_pocode\" = '{$parts_pocode}'; 
+	";
+	$purchaseOrderPart_query = pg_query($purchaseOrderPart_strQuery);
+	$purchaseOrderPart_numrow = pg_num_rows($purchaseOrderPart_query);
+	while ($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)) {
+		
+		$purchaseOrderPartsDetails_strQuery = "
+			SELECT
+				\"idno\",
+				\"parts_code\",
+				\"quantity\",
+				\"unit\",
+				\"costperunit\",
+				\"total\"
+			FROM
+				\"PurchaseOrderPartsDetails\"
+			WHERE 
+				\"parts_pocode\" = '{$parts_pocode}'; 
+		";
+		$purchaseOrderPartsDetails_query = pg_query($purchaseOrderPartsDetails_strQuery);
+		$purchaseOrderPartsDetails_numrows = pg_num_rows($purchaseOrderPartsDetails_query);
+		$rcv_quantity_count_numrows = 0;
+		while ($purchaseOrderPartsDetails_result = pg_fetch_array($purchaseOrderPartsDetails_query)) {
+			
+			// ### Get the Used Quantity ###
+			$rcv_quantity_count = 0;
+	    	$received_quantity_strQuery = "
+				select 
+					parts_code,
+					SUM(rcv_quantity) AS rcv_quantity_count
+				from 
+					\"PartsReceivedDetails\" 
+				where 
+					parts_rcvcode IN 
+					(
+						select parts_rcvcode 
+						from \"PartsReceived\" 
+						where parts_pocode = '".$purchaseOrderPart_result["parts_pocode"]."'
+					) 
+					AND
+					parts_code = '".$purchaseOrderPartsDetails_result['parts_code']."'
+				group by parts_code ;
+			";
+			$received_quantity_query = pg_query($received_quantity_strQuery);
+			while($received_quantity_result = pg_fetch_array($received_quantity_query)){
+				$rcv_quantity_count = $received_quantity_result["rcv_quantity_count"];
+			}
+			
+			// ### Check if there are no Used Quantity ###
+			if(($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count) == 0 ){
+				$rcv_quantity_count_numrows++;
+			}
+		}
+	}
+	if($purchaseOrderPartsDetails_numrows == $rcv_quantity_count_numrows){
+		$purchaseOrderParts_update_status_query = "
+			UPDATE \"PurchaseOrderPart\"
+			SET 
+				status = '3'
+			WHERE
+				parts_pocode = '".$parts_pocode."' 
+			;
+		";
+		if(!$result=@pg_query($purchaseOrderParts_update_status_query)){
+	        $txt_error[] = "INSERT purchaseOrderParts_update_status_query ไม่สำเร็จ $purchaseOrderParts_update_status_query";
+	        $status++;
+	    }
+	}
+	// ########## END - Check ว่า Quantity เท่ากับ rcv_quantity หรือไม่ ถ้าเท่าให้ Update status = 3 ##########
+	
+	$ApproveParts_forReceive_strQuery = "
+		INSERT INTO 
+			\"PartsApproved\"
+		(
+			code, user_id, user_note, user_timestamp, appr_id, appr_note, 
+			appr_timestamp
+		)
+		VALUES
+		(
+			'{$gen_parts_no}',
+			'{$id_user}',
+			'{$recv_remark}',
+			'{$nowDateTime}',
+			'{$id_user}',
+			'{$recv_remark}',
+			'{$nowDateTime}'
+		)
+	";
+	if(!$result=@pg_query($ApproveParts_forReceive_strQuery)){
+        $txt_error[] = "INSERT ApproveParts_forReceive_strQuery ไม่สำเร็จ {$ApproveParts_forReceive_strQuery}";
+        $status++;
+    }
+	
+	// Check Is Query or Not?
 	if($status == 0){
-        //pg_query("ROLLBACK");
+        // pg_query("ROLLBACK");
         pg_query("COMMIT");
         $data['success'] = true;
         $data['parts_pocode'] = $gen_parts_no;

@@ -39,26 +39,40 @@ $res_p=pg_fetch_array($qry_p);
 <div>
   <div style="float:right; "><button style="width:75px;" onclick="window.location='product.php'">กลับ</button></div><br />
   <div>
-    <table width="578" border="0" cellpadding="2">
+    <table width="860" border="0" cellpadding="2">
   <tr >
-    <td colspan="4" style="text-align:right;">รหัสสินค้า</td>
-    <td width="456"><input type="text" name="p_code" id="p_code" style="width:300px;" disabled="disabled" value="<?php echo $res_p["code"] ?>" /></td>
+    <td width="100" style="text-align:right;">รหัสสินค้า</td>
+    <td width="300"><input type="text" name="p_code" id="p_code" style="width:300px;" disabled="disabled" value="<?php echo $res_p["code"] ?>" /></td>
+    <td width="100" style="text-align: right; ">
+	  		ประเภทรหัสบาร์โค้ด
+	  	</td>
+	  	<td width="300">
+	  		<!-- <input type="radio" name="has_barcode" value="no_checked" style="visibility: hidden; " /> -->
+	  		<label style="margin-left: 15px; margin-right: 15px;">
+	  			<input type="radio" name="has_barcode" value="yes" >มีรหัสบาร์โค้ด
+	  		</label>
+	  		<label>
+	  			<input type="radio" name="has_barcode" value="no" >ไม่มีรหัสบาร์โค้ด
+	  		</label>
+	  	</td>
+  </tr>
+  <tr class="barcode_type">
   </tr>
   <tr >
-    <td colspan="4" style="text-align:right;">ชื่อสินค้า</td>
-    <td width="456"><input type="text" name="p_name" id="p_name" style="width:300px;" value="<?php echo $res_p["name"]; ?>" /></td>
+    <td style="text-align:right;">ชื่อสินค้า</td>
+    <td><input type="text" name="p_name" id="p_name" style="width:300px;" value="<?php echo $res_p["name"]; ?>" /></td>
   </tr>
   <tr >
-    <td colspan="4" style="text-align:right;">รายละเอียดสินค้า</td>
-    <td width="456"><input type="text" name="p_detail" id="p_detail" style="width:300px;" value="<?php echo $res_p["details"]; ?>" /></td>
+    <td style="text-align:right;">รายละเอียดสินค้า</td>
+    <td><input type="text" name="p_detail" id="p_detail" style="width:300px;" value="<?php echo $res_p["details"]; ?>" /></td>
   </tr>
   <tr >
-    <td colspan="4" style="text-align:right;">ราคาขายของสินค้า</td>
-    <td width="456"><input type="text" name="p_priceperunit" id="p_priceperunit" style="width:300px;" maxlength="15" value="<?php echo $res_p["priceperunit"]; ?>"/></td>
+    <td style="text-align:right;">ราคาขายของสินค้า</td>
+    <td><input type="text" name="p_priceperunit" id="p_priceperunit" style="width:300px;" maxlength="15" value="<?php echo $res_p["priceperunit"]; ?>"/></td>
   </tr>
   <tr >
-    <td colspan="4" style="text-align:right;">หน่วย</td>
-    <td width="456">
+    <td style="text-align:right;">หน่วย</td>
+    <td>
     	<select name="p_unitid" id="p_unitid" style="width:150px;">
 <?php
 			$sqlStr = "
@@ -91,8 +105,8 @@ $res_p=pg_fetch_array($qry_p);
     </td>
   </tr>
   <tr >
-    <td colspan="4" style="text-align:right;">คิดค่าบริการ</td>
-    <td width="456">
+    <td style="text-align:right;">คิดค่าบริการ</td>
+    <td>
     	<select name="p_svcharge" id="p_svcharge" style="width:150px;">
     		<option value="1" <?php
 				if($res_p["svcharge"] == 1){
@@ -108,8 +122,8 @@ $res_p=pg_fetch_array($qry_p);
     </td>
   </tr>
   <tr >
-    <td colspan="4" style="text-align:right;">ประเภท</td>
-    <td width="456">
+    <td style="text-align:right;">ประเภท</td>
+    <td>
     	<select name="p_Type" id="p_Type" style="width:150px;">
 			<option value="0"<?php
 				if($res_p["type"] == 0){
@@ -126,7 +140,7 @@ $res_p=pg_fetch_array($qry_p);
   </tr>
   
   <tr>
-    <td colspan="4">&nbsp;</td>
+    <td>&nbsp;</td>
     <td><input type="submit" name="btnSave" id="btnSave" value="บันทึก" /></td>
   </tr>
   
@@ -176,13 +190,58 @@ $res_p=pg_fetch_array($qry_p);
 		        e.preventDefault();
 		    }
 		});
+		
+<?php
+		if($res_p["barcode"] != ""){
+?>
+			$("input[name=has_barcode][value=yes]").prop("checked", true);
+<?php
+		}
+		elseif($res_p["barcode"] == ""){
+?>
+			$("input[name=has_barcode][value=no]").prop("checked", true);
+<?php
+		}
+?>
+		
+		//For Check ว่่า มีรหัสบาร์โค้ด หรือไม่
+		$("input[name=has_barcode]").live("change", function(){
+			var has_barcode = $(this).val();
+			console.log(has_barcode);
+			if(has_barcode == "yes"){
+				
+				var str_barcode_dom = ""
+					+"		<td style=\"text-align: right; \">"
+					+"			รหัสบาร์โค้ด"
+					+"		</td>"
+					+"		<td>"
+					+"			<input type=\"text\" name=\"barcode\" value=\"\" style=\"width:300px;\" />"
+					+"		</td>"
+				;
+				$(".barcode_type").html(str_barcode_dom);
+			}
+			else if(has_barcode == "no"){
+				$(".barcode_type").html("");
+			}
+		});
 	});
 	
 	
 	$('#btnSave').click(function() {
 		var chk = 0;
 		var msg = "ผิดพลาด! \n";
-
+		
+		if ($("input[name=has_barcode]:checked").val() == "" || $("input[name=has_barcode]:checked").val() == null ) {
+			msg += "กรุณาระบุ ประเภทรหัสบาร์โค้ด \n";
+			chk++;
+		}
+		else if($("input[name=has_barcode]:checked").val() == "yes"){
+			if($("input[name=barcode]").val() == ""){
+				msg += "กรุณาระบุ รหัสบาร์โค้ด \n";
+				chk++;
+			}
+		}
+		
 		if ($('#p_name').val() == "") {
 			msg += "กรุณาระบุ ชื่อสินค้า \n";
 			chk++;
@@ -231,10 +290,20 @@ $res_p=pg_fetch_array($qry_p);
 			
 			if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
 				return false;
+			}
+			
+			if($("input[name=has_barcode]:checked").val() == "yes"){
+				var _barcode = $("input[name=barcode]").val();
+			}
+			else if($("input[name=has_barcode]:checked").val() == "no"){
+				var _barcode = "";
 			} 
 			
 			//Send AJAX Request: HTTP POST: For Record Parts 's Products
 			$.post('update_product.php', {
+				p_has_barcode: $("input[name=has_barcode]:checked").val(),
+				p_barcode: _barcode,
+				
 				p_code : "<?php echo $pid; ?>",
 				p_name : $('#p_name').val(),
 				p_detail : $('#p_detail').val(),

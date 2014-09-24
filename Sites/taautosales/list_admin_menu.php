@@ -94,6 +94,37 @@ $qry = pg_query("select * from \"installGas_edit\" where \"appvStatus\" = '9'");
 $res = pg_num_rows($qry);
 $count['TA05'] = $res;
 
+// อนุมัติการแก้ไข อนุมัติสั่งซื้ออะไหล่/อุปกรณ์
+$qry = pg_query("
+	SELECT 
+		*	
+	FROM 
+		\"PurchaseOrderPart\"
+	WHERE
+		\"status\" = 1 
+");
+$res = pg_num_rows($qry);
+$count['TA06'] = $res;
+
+// อนุมัติการเบิกสินค้าออกสต๊อก์
+$qry = pg_query("
+	SELECT 
+		code, 
+		type, 
+		user_id, 
+		withdraw_user_id, 
+		date, 
+		usedate, 
+		status 
+	FROM 
+		\"WithdrawalParts\"
+	WHERE
+		status = 2 ;
+");
+$res = pg_num_rows($qry);
+$count['TA07'] = $res;
+
+
 echo '<table width="93%" cellpadding="0" cellspacing="0" border="0" align="center" class="menu"><tr>';
 foreach($arr['admin'] as $k => $v){
    $pic = strtolower($k);//แปลงช่ื่อicon ให้เป็นตัวเพิมพฺเล็ก

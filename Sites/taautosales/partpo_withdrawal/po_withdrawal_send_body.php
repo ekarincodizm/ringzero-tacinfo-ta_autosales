@@ -1,6 +1,9 @@
-<!-- header -->
 <br />
 <?php
+// ###################### Function ###########################
+include_once("po_withdrawal_webservice.php");
+// #################### End Function #########################
+
 $withdrawalParts_code = pg_escape_string($_GET["code"]);
 
 $appr_strQuery = "
@@ -24,7 +27,9 @@ $withdrawalParts_strQuery = "
 		withdraw_user_id, 
 		date, 
 		usedate, 
-		status
+		status,
+		project_id,
+		project_quantity
 	FROM 
 		\"WithdrawalParts\"
 	WHERE
@@ -35,15 +40,16 @@ $withdrawalParts_strQuery = "
 $withdrawalParts_query = @pg_query($withdrawalParts_strQuery);
 $withdrawalParts_numrow = @pg_num_rows($withdrawalParts_query);
 while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
+	$withdrawalParts_type = $withdrawalParts_result["type"];
 ?>
 	<div style="width: 50%; float:left; ">
 		
 		<div>
 			<!-- PO type -->
-			<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
+			<div style="width: 50%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
 				<strong>จุดประสงค์ :</strong>
 			</div>
-			<div style="width: 58%; float: left;">
+			<div style="width: 48%; float: left;">
 				<select name="withdrawal_type" id="withdrawal_type" disabled="disabled">
 					<option value="" >เลือกจุดประสงค์</option>
 					<option value="1" <?php 
@@ -71,10 +77,10 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 			<div style="clear: both;"></div>
 		</div>
 		<div>
-			<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
+			<div style="width: 50%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
 				<b>เจ้าหน้าที่ผู้ทำรายการ :</b>
 			</div>
-			<div style="width: 58%; float: left;">
+			<div style="width: 48%; float: left;">
 				<input type="hidden" name="withdrawal_user_id" id="withdrawal_user_id" value="<?php echo $_SESSION["ss_iduser"]; ?>" disabled="disabled" />
 <?php
 				$fuser_strQuery = "
@@ -94,10 +100,10 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 			<div style="clear: both;"></div>
 		</div>
 		<div>
-			<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
+			<div style="width: 50%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
 				<b>เจ้าหน้าที่ผู้ขอเบิก :</b>
 			</div>
-			<div style="width: 58%; float: left;">
+			<div style="width: 48%; float: left;">
 				<select name="withdrawal_withdraw_user_id" id="withdrawal_withdraw_user_id" disabled="disabled">
 <?php
 					$fuser_strQuery = "
@@ -125,26 +131,50 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 	<div style="width: 50%; float:left; ">
 		
 		<div>
-			<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
+			<div style="width: 50%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
 				<b>วันที่เบิก :</b>
 			</div>
-			<div style="width: 58%; float: left;">
+			<div style="width: 48%; float: left;">
 				<input type="text" name="withdrawal_date" id="withdrawal_date" class="datepicker" disabled="disabled" value="<?php echo date("d-m-Y", strtotime($withdrawalParts_result["date"])); ?>" />
 			</div>
 			<div style="clear: both;"></div>
 		</div>
 		
 		<div>
-			<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
+			<div style="width: 50%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
 				<b>วันที่ต้องการใช้งาน :</b>
 			</div>
-			<div style="width: 58%; float: left;">
+			<div style="width: 48%; float: left;">
 				<input type="text" name="withdrawal_usedate" id="withdrawal_usedate" class="datepicker" disabled="disabled" value="<?php echo date("d-m-Y", strtotime($withdrawalParts_result["usedate"])); ?>" />
 			</div>
 			<div style="clear: both;"></div>
 		</div>
 		
 	</div>
+	<div class="withdrawal_type_2" style="width: 50%; float:left; ">
+<?php
+		if($withdrawalParts_result["type"] == 2){
+?>
+			<div style="width: 50%; float: left; text-align: right; margin-right: 2%; ">
+				<b> ใช้ทำโปรเจค :</b>
+			</div>
+			<div style="width: 48%; float: left;"><?php
+				$project_id = $withdrawalParts_result["project_id"];
+				echo get_projectName($project_id); 
+			?></div>
+			<div style="clear: both; "></div>
+			<div style="width: 50%; float: left; text-align: right; margin-right: 2%; ">
+				<b> ต้องการผลิตเป็นสินค้าจำนวน :</b>
+			</div>
+			<div style="width: 48%; float: left;"><?php 
+				$project_quantity = $withdrawalParts_result["project_quantity"];
+				echo $project_quantity; 
+			?></div>
+<?php
+		}
+?>
+	</div>
+	
 	<div style="clear: both;"></div>
 	
 	
@@ -158,9 +188,9 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 					<td width="15%">รหัสสินค้า</td>
 					<td width="15%">ชื่อสินค้า</td>
 					<td width="20%">รายละเอียดสินค้า</td>
-					<td width="15%">จำนวนคงเหลือในสต๊อก</td>
-					<td width="10%">จำนวนทั้งหมดที่เบิก</td>
-					<td width="20%">จำนวนที่ต้องการขอเบิก&sol;จำนวนที่เบิกได้สูงสุด</td>
+					<td width="15%">จำนวนที่เบิกได้สูงสุด(จำนวนสินค้าในคลัง)</td>
+					<td width="10%">จำนวนที่เบิก</td>
+					<td width="20%">จำนวนที่จ่าย&sol;จำนวนที่เบิกได้สูงสุด</td>
 				</tr>
 <?php
 				function call_parts($parts_code, $return){
@@ -466,14 +496,27 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 								<span id="parts_detail1" class="parts_detail"><?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "details"); ?></span>
 							</td>
 							<td align="center">
-								<span id="quantity1" class="quantity" data-quantity_id="1"><?php echo /*$stock_remain_with_withdrawal." (".*/(call_parts($withdrawalPartsDetails_result["parts_code"], "stock_remain"))/*.")"*/; ?></span>
+								<span id="quantity1" class="quantity" data-quantity_id="1"><?php echo $stock_remain_with_withdrawal." (".(call_parts($withdrawalPartsDetails_result["parts_code"], "stock_remain")).")"; ?></span>
 								<input type="hidden" name="quantity1" class="quantity" data-quantity_id="1" value="<?php echo $stock_remain_with_withdrawal; ?>" />
 							</td>
 							<td>
 								<?php echo $withdrawalPartsDetails_result["withdrawal_quantity"]; ?>
 							</td>
 							<td>
-								<input type="text" name="quantity_withdrawal1" id="quantity_withdrawal1" class="quantity_withdrawal" data-quantity_withdrawal="1" data-Max_send_qty="<?php echo $max_send_quantity; ?>" value="<?php echo $max_send_quantity; ?>" style="width:40px; text-align:right" /> &sol; <?php echo $max_send_quantity; ?>
+								<input type="<?php 
+									if($withdrawalParts_result["type"] == 2){
+										?>hidden<?php
+									}
+									else{
+										?>text<?php
+									}
+								?>" name="quantity_withdrawal1" id="quantity_withdrawal1" class="quantity_withdrawal" data-quantity_withdrawal="1" data-Max_send_qty="<?php echo $max_send_quantity; ?>" value="<?php echo $max_send_quantity; ?>" style="width:40px; text-align:right" />
+<?php
+								if($withdrawalParts_result["type"] == 2){
+									echo $max_send_quantity;
+								}
+?>
+								&sol; <?php echo $max_send_quantity; ?>
 							</td>
 						</tr>
 					</table>
@@ -507,7 +550,20 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 											<?php echo $withdrawalPartsDetails_result["withdrawal_quantity"]; ?>
 										</td>
 								    	<td width="20%">
-											<input type="text" name="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" id="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="quantity_withdrawal" data-Max_send_qty="<?php echo $max_send_quantity; ?>" data-quantity_withdrawal="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $max_send_quantity; ?>" style="width:40px; text-align:right" /> &sol; <?php echo $max_send_quantity; ?>
+											<input type="<?php 
+												if($withdrawalParts_result["type"] == 2){
+													?>hidden<?php
+												}
+												else{
+													?>text<?php
+												}
+											?>" name="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" id="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="quantity_withdrawal" data-Max_send_qty="<?php echo $max_send_quantity; ?>" data-quantity_withdrawal="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $max_send_quantity; ?>" style="width:40px; text-align:right" />
+<?php
+											if($withdrawalParts_result["type"] == 2){
+												echo $max_send_quantity;
+											}
+?>
+											&sol; <?php echo $max_send_quantity; ?>
 										</td>
 									</tr>
 								</table>
@@ -712,7 +768,7 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 				$('#parts_code' + i).focus();
 				return false;
 			}
-			if(_quantity_withdrawal == "" || _quantity_withdrawal == 0){
+			if(_quantity_withdrawal == ""){
 				alert('กรุณากรอก จำนวนที่เบิก (รายการที่ '+i+')');
 				chk++;
 				$('#quantity_withdrawal' + i).focus();
@@ -763,7 +819,7 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 		
 		
 		if(chk == 0){
-			if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติการเบิกหรือไม่')){
+			if(!confirm('ต้องการทำการบันทึกหรือไม่?')){
 				return false;
 			}
 		
@@ -771,6 +827,7 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 				'po_withdrawal_send_save.php',
 				{
 					withdrawal_code: "<?php echo $withdrawalParts_code; ?>", 
+					withdrawal_type: "<?php echo $withdrawalParts_type; ?>",
 					
 					send_type: _withdrawal_type,
 					send_user_id: _withdrawal_user_id,
@@ -778,22 +835,25 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 					send_date : _withdrawal_date,
 					send_usedate : _withdrawal_usedate,
 					
+					project_id : "<?php echo $project_id; ?>",
+					project_quantity : "<?php echo $project_quantity; ?>",
+					
 					send_details_array: JSON.stringify(arradd),
 					
 					send_note : _withdrawal_note,
 				},
 				function(data){
 					if(data.success){
-						ShowPrint(data.parts_pocode);
 						console.log("data.success = " + data.success);
 						console.log("data.message = " + data.message);
-						console.log("data.test = " + data.test);
+						console.log("data.sendParts_code = " + data.sendParts_code);
+						ShowPrint(data.sendParts_code);
 						//location.reload();
 					}else{
-						alert(data.message);
 						console.log("data.success = " + data.success);
 						console.log("data.message = " + data.message);
 						console.log("data.test = " + data.test);
+						alert(data.message);
 					}
 				},'json'
 			);
@@ -805,7 +865,14 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 	
 	function ShowPrint(id){
 		$('body').append('<div id="divdialogprint"></div>');
-		$('#divdialogprint').html("<br/><div style=\"text-align:center\">บันทึกเรียบร้อยแล้ว<br /><br /><input type=\"button\" name=\"btnPrint\" id=\"btnPrint\" value=\"กลับสู่หน้าหลัก\" onclick=\"javascript:location.reload();\"></div>");
+		$str = 
+		"<br/>"+
+		"<div style=\"text-align:center\">"+
+		"	บันทึกเรียบร้อยแล้ว<br /><br />"+
+		"	<input type=\"button\" name=\"btnPrint\" id=\"btnPrint\" value=\"กลับสู่หน้าหลัก\" onclick=\"javascript:window.open('./po_withdrawal_mat_pdf.php?sendParts_code="+id+"') />"
+		"</div>";
+		
+		$('#divdialogprint').html("<br/><div style=\"text-align:center\">บันทึกเรียบร้อยแล้ว<br /><br /><input type=\"button\" name=\"btnPrint\" id=\"btnPrint\" value=\"กลับสู่หน้าหลัก\" onclick=\"javascript:window.open('./po_withdrawal_mat_pdf.php?sendParts_code="+ id +"','po_id4343423','toolbar=no,menubar=no,resizable=yes,scrollbars=yes,status=no,location=no,width=800,height=600'); javascript:location.reload();\"></div>");
 		$('#divdialogprint').dialog({
 			title: 'บันทึกเรียบร้อยแล้ว : '+id,
 			resizable: false,

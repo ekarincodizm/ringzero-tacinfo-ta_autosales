@@ -1,11 +1,12 @@
 <?php
 include_once("../include/config.php");
 include_once("../include/function.php");
+include_once("parts_returnstock_webservice.php");
 if(!CheckAuth()){
     header("Refresh: 0; url=../index.php");
     exit();
 }
-$page_title = "เบิกสินค้าออกสต๊อก";
+$page_title = "คืนสินค้า (อะไหล่และอุปกรณ์)";
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -30,13 +31,13 @@ $page_title = "เบิกสินค้าออกสต๊อก";
 		// include_once("po_receive_body.php"); 
 ?>
 		<div style="text-align: right; ">
-			<input type="button" value="เพิ่มใบเบิก" onclick="javascript:AddNewWithdrawal('po_withdrawal_new.php')" style="cursor:pointer;" alt="เพิ่มใบเบิก" title="เพิ่มใบเบิก" />
+			<input type="button" value="เพิ่มใบคืนสินค้าที่คืน" onclick="javascript:AddNewWithdrawal('parts_returnstock_new.php')" style="cursor:pointer;" alt="เพิ่มใบคืนสินค้าที่คืน" title="เพิ่มใบคืนสินค้าที่คืน" />
 		</div>
 		<div id="maintabs">
 		    <ul>
-		        <li><a href="po_withdrawal_body_1.php">รอส่งอนุมัติ</a></li>
-		        <li><a href="po_withdrawal_body_2.php">รออนุมัติ</a></li>
-				<li><a href="po_withdrawal_body_3.php">รอจ่าย</a></li>
+		        <li><a href="parts_returnstock_body_1.php">คืนของเข้าสต๊อก</a></li>
+		        <li><a href="parts_returnstock_body_2.php">คืนเป็นของเสีย</a></li>
+				<!-- <li><a href="parts_returnstock_body_3.php">รอคืน</a></li> -->
 		    </ul>
 		</div>
 		
@@ -63,7 +64,7 @@ $page_title = "เบิกสินค้าออกสต๊อก";
 			    $('body').append('<div id="divdialogadd"></div>');
 			    $('#divdialogadd').load(url);
 			    $('#divdialogadd').dialog({
-			        title: 'เพิ่มใบเบิก',
+			        title: 'เพิ่มใบคืนสินค้าที่คืน',
 			        resizable: false,
 			        modal: true,  
 			        width: 1000,

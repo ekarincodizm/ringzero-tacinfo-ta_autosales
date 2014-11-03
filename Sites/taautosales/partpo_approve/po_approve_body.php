@@ -1,14 +1,6 @@
+<?php ?>
 <div class="roundedcornr_box" style="width: 900px; ">
 	<div class="roundedcornr_content">
-
-<?php
-		include_once("../include/header_popup.php");
-?>
-		
-		<!-- <div style="text-align:left; padding-top:0px;"> -->
-		<!-- <input type="button" name="btnNew" id="btnNew" value="เพิ่มสินค้า" onclick="window.location='add_product.php'">&nbsp; -->
-		<!-- </div> -->
-		
 		<div style="margin-top:5px; font-weight: bold">รายการสินค้า</div>
 		<div style="width:870px; overflow-y: hidden; overflow-x: auto; ">
 			<table  border="1" bordercolor="#FFFFFF" cellspacing="0" cellpadding="4" style="width: 830px;">
@@ -61,7 +53,6 @@
 					    <td style="text-align:center;">
 					    	<a href="../partpo/po_buy_mat_pdf.php?po_id=<?php echo $parts_pocode_query_result["parts_pocode"]; ?>" target="_blank" ><img src="../images/zoom.png" border="0" width="16" alt="แสดงใบสั่งซื้อ" title="แสดงใบสั่งซื้อ" /></a>
 					    	<span style="margin-left: 10px;"></span>
-					    	<!-- <a href="" onclick="javascript:popU('po_approve_edit.php','','toolbar=no,menubar=no,resizable=no,scrollbars=yes,status=no,location=no,width=750,height=300')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" /></a> -->
 					    	<a href="#" onclick="javascript:ShowDetail('po_approve_edit.php', '<?php echo $parts_pocode_query_result["parts_pocode"]; ?>')" style="cursor:pointer;" ><img src="../images/icon-edit.png" border="0" alt="ทำรายการอนุมัติ" title="ทำรายการอนุมัติ" /></a>
 					    </td>
 					</tr>

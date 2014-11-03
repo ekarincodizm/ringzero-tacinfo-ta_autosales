@@ -259,7 +259,7 @@ if($s_showDetail == "1") // ถ้า แสดงรายการทั้ง
 {
 	$t_showDetail = "โดยแสดงรายการทั้งหมด";
 	$disabledDate = "disabled";
-	$sDate = "A.\"o_prndate\" >= '$date1' AND A.\"o_prndate\" <= '$date2'";
+	$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
 	$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
 }
 elseif($s_showDetail == "2") // ถ้า แสดงรายการปกติ
@@ -267,7 +267,7 @@ elseif($s_showDetail == "2") // ถ้า แสดงรายการปก�
 	$t_showDetail = "โดยแสดงรายการปกติ";
 	$disabledDate = "disabled";
 	$qwhere = "AND \"cancel\" = false";
-	$sDate = "A.\"o_prndate\" >= '$date1' AND A.\"o_prndate\" <= '$date2'";
+	$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
 	$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
 }
 elseif($s_showDetail == "3") // ถ้า แสดงรายการที่ยกเลิก
@@ -289,7 +289,7 @@ elseif($s_showDetail == "3") // ถ้า แสดงรายการที�
 	{
 		$join = "left join \"CancelReceipt\" C on A.\"o_receipt\" = C.\"c_receipt\"";
 		$cdc = ",C.\"c_date\"";
-		$sDate = "A.\"o_prndate\" >= '$date1' AND A.\"o_prndate\" <= '$date2'";
+		$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
 		
 		$joinChq = "LEFT JOIN \"CancelReceipt\" C ON chq_detail.\"receipt_no\" = C.\"c_receipt\"";
 		$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
@@ -318,7 +318,7 @@ else
 	$s_showDetail = "1";
 	$s_showDate = "1";
 	$disabledDate = "disabled";
-	$sDate = "A.\"o_prndate\" >= '$date1' AND A.\"o_prndate\" <= '$date2'";
+	$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
 	$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
 }
 
@@ -348,7 +348,7 @@ $save_data .= '
 $j = 0;
 $sum = 0 ;
 $qry = pg_query("SELECT A.*,B.* $cdc FROM \"Otherpays\" A inner join \"OtherpayDtl\" B on A.o_receipt = B.o_receipt $join
-WHERE A.o_prndate>='$date1' AND A.o_prndate<='$date2' AND B.status='CA' AND A.user_id like '$cashier_id' $qwhere ORDER BY A.o_receipt ASC ");
+WHERE $sDate AND B.status='CA' AND A.user_id like '$cashier_id' $qwhere ORDER BY A.o_receipt ASC ");
 while($res = pg_fetch_array($qry)){
     $j++;
     $user_id = $res['user_id'];
@@ -614,7 +614,7 @@ $j = 0;
 $sum = 0 ;   
 $sum_all = 0;
 $qry = pg_query("SELECT A.*,B.* $cdc FROM \"Discountpays\" A inner join \"DiscountpayDtl\" B on A.o_receipt = B.o_receipt $join
-WHERE A.o_prndate>='$date1' AND A.o_prndate<='$date2' AND A.user_id like '$cashier_id' $qwhere ORDER BY A.o_receipt ASC ");
+WHERE $sDate AND A.user_id like '$cashier_id' $qwhere ORDER BY A.o_receipt ASC ");
 while($res = pg_fetch_array($qry)){
     $j++;
     $user_id = $res['user_id'];

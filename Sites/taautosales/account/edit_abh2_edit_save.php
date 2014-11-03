@@ -31,7 +31,7 @@ for($i = 1; $i<=$ct; $i++){
 
 if(round($sum_cr,2) != round($sum_dr,2)){
     $status++;
-    $err = "ยอดเงิน Dr Cr ไม่เท่ากัน $sum_cr / $sum_dr";
+    $err = "ยอดเงิน Dr Cr ไม่เท่ากัน $sum_dr / $sum_cr";
 }else{
 
     $nub_4700 = 0;
@@ -41,6 +41,7 @@ if(round($sum_cr,2) != round($sum_dr,2)){
         $acid = ${"acid".$i};
         $dr = ${"dr".$i};
         $cr = ${"cr".$i};
+		$abd_serial = ${"abd_serial".$i};
         
         if($acid == 4700 AND $dr != 0 AND $subacb != "AJ"){
             $nub_4700++;
@@ -50,7 +51,16 @@ if(round($sum_cr,2) != round($sum_dr,2)){
             $nubcheck_1999++;
         }
         
-        $sql_update="UPDATE account.\"AccountBookDetail\" SET \"AcID\"='$acid',\"AmtDr\"='$dr',\"AmtCr\"='$cr' WHERE acb_id='$acb_id' AND \"AcID\"='$aid' AND \"canceltimes\" is null ";
+        $sql_update="UPDATE
+						account.\"AccountBookDetail\"
+					SET
+						\"AcID\" = '$acid',
+						\"AmtDr\" = '$dr',
+						\"AmtCr\" = '$cr'
+					WHERE
+						acb_id = '$acb_id' AND
+						\"abd_serial\" = '$abd_serial' AND
+						\"canceltimes\" is null";
         $res_update=@pg_query($sql_update);
         if(!$res_update){
             $status++;

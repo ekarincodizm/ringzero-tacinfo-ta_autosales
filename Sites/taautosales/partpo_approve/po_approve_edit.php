@@ -114,7 +114,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>เงินรวมก่อนหักส่วนลด : </b>
 				</div>
-				<div style="width: 28%; float: left; margin-top: 1.2%;">
+				<div style="width: 28%; float: left; margin-top: 1.2%; text-align: right;">
 					<span id="dsubtotal"><?php echo number_format(($PartsApproved_result["subtotal"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
@@ -126,8 +126,10 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>%ส่วนลด : </b>
 				</div>
-				<div style="width: 28%; float: left;">
+				<div style="width: 23%; float: left; margin-top: 1.2%; text-align: right;">
 					<span name="pcdiscount" id="pcdiscount"><?php echo number_format(($PartsApproved_result["pcdiscount"]*100.0), 2); ?></span>
+				</div>
+				<div style="width: 5%; float: left; margin-top: 1.2%;">
 				</div>
 				<div style="clear: both;"></div>
 			</div>
@@ -136,7 +138,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนเงินส่วนลด :</b>
 				</div>
-				<div style="width: 28%; float: left;">
+				<div style="width: 28%; float: left; margin-top: 1.2%; text-align: right;">
 					<span name="discount" id="discount"><?php echo number_format(($PartsApproved_result["discount"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
@@ -148,7 +150,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนเงินรวมก่อนภาษีมูลค่าเพิ่ม :</b>
 				</div>
-				<div style="width: 28%; float: left; margin-top: 1.2%;">
+				<div style="width: 28%; float: left; margin-top: 1.2%; text-align: right;">
 					<span id="vsubtotal"><?php echo number_format(($PartsApproved_result["bfv_total"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
@@ -160,8 +162,10 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>%ภาษีมูลค่าเพิ่ม :</b>
 				</div>
-				<div style="width: 28%; float: left;">
+				<div style="width: 23%; float: left; margin-top: 1.2%; text-align: right; ">
 					<span name="pcvat" id="pcvat" ><?php echo number_format(($PartsApproved_result["pcvat"]*100.0), 2); ?></span>
+				</div>
+				<div style="width: 5%; float: left; margin-top: 1.2%;">
 				</div>
 				<div style="clear: both;"></div>
 			</div>
@@ -170,7 +174,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนภาษี :</b>
 				</div>
-				<div style="width: 28%; float: left; margin-top: 1.2%;">
+				<div style="width: 28%; float: left; margin-top: 1.2%; text-align: right;">
 					<span id="vat"><?php echo number_format(($PartsApproved_result["vat"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>
@@ -182,7 +186,7 @@ $parts_pocode = pg_escape_string($_GET["parts_pocode"]);
 				<div style="width: 70%; float: left; text-align: right; margin-right: 2%; margin-top: 1.2%;">
 					<b>จำนวนรวมสุทธิ :</b>
 				</div>
-				<div style="width: 28%; float: left; margin-top: 1.2%;">
+				<div style="width: 28%; float: left; margin-top: 1.2%; text-align: right;">
 					<span id="nettotal"><?php echo number_format(($PartsApproved_result["nettotal"]), 2); ?></span>
 				</div>
 				<div style="clear: both;"></div>

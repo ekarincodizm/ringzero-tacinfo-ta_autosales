@@ -29,6 +29,10 @@
 		$kny = 4;
 	}
 	elseif($withdrawal_type == 2){
+		//Load Initial HTTP Post Variables
+		$withdrawal_project_id = pg_escape_string($_POST["withdrawal_project_id"]);
+		$withdrawal_project_quantity = pg_escape_string($_POST["withdrawal_project_quantity"]);
+		
 		$type_X = "RLPJ";
 		$kny = 5;
 	}
@@ -93,7 +97,16 @@
 		withdraw_user_id, 
 		date, 
 		usedate, 
-		status 
+		status
+	";
+	if($withdrawal_type == 2){
+		$withdrawalParts_strQuery .= "
+			,
+			project_id,
+			project_quantity
+		";
+	}
+	$withdrawalParts_strQuery .= "	
 	)
 	VALUES (
 		'{$gen_parts_no}',
@@ -103,9 +116,17 @@
 		'{$withdrawal_date}',
 		'{$withdrawal_usedate}',
 		1
-	);
 	";
-	
+	if($withdrawal_type == 2){
+		$withdrawalParts_strQuery .= "
+				,
+				{$withdrawal_project_id},
+				{$withdrawal_project_quantity}
+		";
+	}
+	$withdrawalParts_strQuery .= "
+		);
+	";
 	if(!$result=@pg_query($withdrawalParts_strQuery)){
         $txt_error[] = "INSERT withdrawalParts_strQuery ไม่สำเร็จ $withdrawalParts_strQuery";
         $status++;

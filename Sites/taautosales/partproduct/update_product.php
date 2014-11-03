@@ -52,6 +52,4 @@ if($status == 0){
     
 echo json_encode($data);
 //Return to the edit_product.php For AJAX Response
-
-
 ?>

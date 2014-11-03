@@ -22,7 +22,9 @@ $withdrawalParts_strQuery = "
 		withdraw_user_id, 
 		date, 
 		usedate, 
-		status
+		status,
+		project_id,
+		project_quantity
 	FROM 
 		\"WithdrawalParts\"
 	WHERE
@@ -137,6 +139,53 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 			<div style="clear: both;"></div>
 		</div>
 		
+		<div class="withdrawal_type_2">
+<?php
+			if($withdrawalParts_result["type"] == 2){
+?>
+				<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
+					<b> ใช้ทำโปรเจค :</b>
+				</div>
+				<div style="width: 58%; float: left;">
+					<select name="project_id" class="project_id">
+						<option value="">
+							เลือกโปรเจค	
+						</option>
+<?php
+						$project_strQuery = "
+							SELECT 
+								project_id, name
+				  			FROM 
+				  				\"Projects\"
+				  			WHERE
+				  				cancel = FALSE;
+						";
+						$project_query = @pg_query($project_strQuery);
+						while ($project_result = @pg_fetch_array($project_query)) {
+?>
+							<option value="<?php echo $project_result["project_id"]; ?>" <?php
+								if($withdrawalParts_result["project_id"] == $project_result["project_id"]){
+									?>selected="selected"<?php
+								}
+							?>>
+								<?php echo $project_result["name"]; ?>
+							</option>
+<?php
+						}
+?>
+					</select>
+				</div>
+				<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
+					<b> ต้องการผลิตเป็นสินค้าจำนวน :</b>
+				</div>
+				<div style="width: 58%; float: left;">
+					<input type="text" name="project_quantity" id="project_quantity" value="<?php echo $withdrawalParts_result["project_quantity"]; ?>" />
+				</div>
+<?php
+			}
+?>
+		</div>
+		
 	</div>
 	<div style="clear: both;"></div>
 	
@@ -145,8 +194,16 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 		<!-- ##################### Middle ####################### -->
 		
 		<div style="float:left; margin-top:10px; width:15%">
-			<b>รายการสั่งซื้อ</b><br />
-			<input type="button" name="btn_add" id="btn_add" value="+ เพิ่ม"><input type="button" name="btn_del" id="btn_del" value="- ลบ">
+			<b>รายการเบิกสินค้า</b><br />
+			<input type="button" name="btn_add" id="btn_add" value="+ เพิ่ม" <?php 
+				if($withdrawalParts_result["type"] == 2){
+					?>disabled="disabled"<?php
+				} 
+			?>><input type="button" name="btn_del" id="btn_del" value="- ลบ" <?php 
+				if($withdrawalParts_result["type"] == 2){
+					?>disabled="disabled"<?php
+				} 
+			?>>
 		</div>
 		
 		<div style="float:right; margin-top:10px; width:85%">
@@ -295,7 +352,8 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 								code,
 								name,
 								details,
-								type
+								type,
+								barcode
 							FROM
 								\"parts\"
 						)
@@ -305,7 +363,8 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 								\"PartsStockDetails\".codeid AS code,
 								parts.name,
 								parts.details,
-								'3' AS type
+								'3' AS type,
+								\"PartsStockDetails\".codeid AS barcode
 							FROM
 								\"parts\"
 							JOIN
@@ -326,7 +385,7 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 					while($res_parts=@pg_fetch_array($qry_parts)){
 						// $parts_data[] = $res_parts;
 						$dt['value'] = $res_parts['code'];
-						$dt['label'] = $res_parts["code"]." # ".$res_parts["name"]." # ".$res_parts["details"];
+						$dt['label'] = $res_parts["code"]." # ".$res_parts["barcode"]." # ".$res_parts["name"]." # ".$res_parts["details"];
 						$dt['type'] = $res_parts["type"];
 						$parts_matches[] = $dt;
 						
@@ -479,7 +538,11 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 								<?php echo $withdrawalPartsDetails_result["idno"]; ?>.
 							</td>
 							<td>
-								<input type="text" id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1" value="<?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" />
+								<input type="text" id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1" value="<?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" <?php 
+									if($withdrawalParts_result["type"] == 2){
+										?>disabled="disabled"<?php
+									} 
+								?> />
 							</td>
 							
 							<td>
@@ -494,7 +557,11 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 								<input type="hidden" name="quantity1" class="quantity" data-quantity_id="1" value="<?php echo $stock_remain_with_withdrawal; ?>" />
 							</td>
 							<td>
-								<input type="text" name="quantity_withdrawal1" id="quantity_withdrawal1" class="quantity_withdrawal" data-quantity_withdrawal="1" value="<?php echo $withdrawalPartsDetails_result["withdrawal_quantity"]; ?>" style="width:40px; text-align:right" />
+								<input type="text" name="quantity_withdrawal1" id="quantity_withdrawal1" class="quantity_withdrawal" data-quantity_withdrawal="1" value="<?php echo $withdrawalPartsDetails_result["withdrawal_quantity"]; ?>" style="width:40px; text-align:right" <?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" <?php 
+									if($withdrawalParts_result["type"] == 2){
+										?>disabled="disabled"<?php
+									} 
+								?> />
 								<?php // echo $withdrawalPartsDetails_result["parts_code"]; ?>
 							</td>
 						</tr>
@@ -512,7 +579,11 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 							    			<?php echo $withdrawalPartsDetails_result["idno"]; ?>.
 								    	</td>
 								    	<td width="15%">
-											<input type="text" id="parts_code<?php echo $withdrawalPartsDetails_result["idno"]; ?>" name="parts_code<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_code" data-code_id="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" />
+											<input type="text" id="parts_code<?php echo $withdrawalPartsDetails_result["idno"]; ?>" name="parts_code<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_code" data-code_id="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" <?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" <?php 
+												if($withdrawalParts_result["type"] == 2){
+													?>disabled="disabled"<?php
+												} 
+											?> />
 										</td>
 										<td width="20%">
 											<span id="parts_name<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_name"><?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?></span>
@@ -527,7 +598,11 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 								    		
 								    	</td>
 								    	<td width="15%">
-											<input type="text" name="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" id="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="quantity_withdrawal" data-quantity_withdrawal="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $withdrawalPartsDetails_result["withdrawal_quantity"]; ?>" style="width:40px; text-align:right" />
+											<input type="text" name="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" id="quantity_withdrawal<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="quantity_withdrawal" data-quantity_withdrawal="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $withdrawalPartsDetails_result["withdrawal_quantity"]; ?>" style="width:40px; text-align:right"  <?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" <?php 
+												if($withdrawalParts_result["type"] == 2){
+													?>disabled="disabled"<?php
+												} 
+											?>/>
 										</td>
 									</tr>
 								</table>
@@ -566,6 +641,56 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 ?>
 <script>
 	//######################## Initial Calculate Variables ############################
+	var projectDetailCount = new Array();
+	var projectDetail = new Array();
+	
+	//counter = Count how many rows
+	var counter = 1;
+	
+	// ######################## Initial => projectDetail ########################
+<?php
+	$projectDetailCount_strQuery = "
+		SELECT 
+			project_id,
+			count(project_id) AS count
+		FROM 
+			\"ProjectDetails\"
+		WHERE
+			cancel = FALSE
+		group by project_id; 
+	;";
+	$projectDetailCount_query = @pg_query($projectDetailCount_strQuery);
+	while($projectDetailCount_result = @pg_fetch_array($projectDetailCount_query)){
+?>
+		projectDetailCount.push([
+			"<?php echo $projectDetailCount_result["project_id"]; ?>",
+			"<?php echo $projectDetailCount_result["count"]; ?>"
+		]);
+<?php
+	}
+	$projectDetail_strQuery = "
+		SELECT 
+			project_id,
+			material_id, 
+			use_unit
+		FROM 
+			\"ProjectDetails\"
+		WHERE
+			cancel = FALSE 
+	;";
+	$projectDetail_query = @pg_query($projectDetail_strQuery);
+
+	while ($projectDetail_result = @pg_fetch_array($projectDetail_query)) {
+?>
+		projectDetail.push([
+			"<?php echo $projectDetail_result["project_id"]; ?>",
+			"<?php echo $projectDetail_result["material_id"]; ?>",
+			"<?php echo $projectDetail_result["use_unit"]; ?>"
+		]);
+<?php
+	}
+	// ###################### END Initial => projectDetail ######################
+?>
 	
 	$(function() {
 		$(".datepicker").datepicker({
@@ -573,10 +698,189 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 		});
 	}); 
 	
+	$(".project_id").live("change", function(){
+		var project_id = $(this).val();
+		var temp_project_detail = new Array();
+		
+		// แสดงค่า ในช่อง -> ต้องการผลิตเป็นสินค้าจำนวน
+		$("#project_quantity").val("1");
+		
+		// Count how many of parts do they have in that project
+		var this_count_project = 0;
+		for(var i = 0; i < projectDetailCount.length; i++){
+			if($.inArray(project_id , projectDetailCount[i]) == 0){
+				this_count_project = projectDetailCount[i][1];
+			}
+		}
+		
+		// ### Clear List of Parts Data (Body Table)
+		counter = 1;
+		$("#TextBoxesGroup").html("");
+		$(".parts_code#parts_code1").val("");
+		$(".parts_name#parts_name1").val("");
+		$(".parts_name[name=parts_name1]").html("");
+		$(".parts_detail#parts_detail1").val("");
+		$(".quantity#quantity1").html("");
+		$(".quantity[name=quantity1]").val("");
+		$(".quantity_withdrawal#quantity_withdrawal1").val("");
+		$(".quantity_withdrawal#quantity_withdrawal1").prop("disabled", true);
+		
+		
+		// find the real parts for that project
+		for(var i = 0; i < projectDetail.length; i++){
+			
+			// if project_id is in Table : projectDetail
+			if($.inArray(project_id , projectDetail[i]) == 0){
+				$("#btn_add").click();
+				
+				temp_project_detail.push([
+					projectDetail[i][0],
+					projectDetail[i][1],
+					projectDetail[i][2],
+				]);
+			}
+		}
+		$("#btn_del").click();
+		
+		// console.log(temp_project_detail);
+		
+		for(var i = 0; i < counter; i++){
+			// console.log(i);
+			// if(i == 0){
+				// $(".parts_code#parts_code1").val(temp_project_detail[i][1]);
+				// // $(".parts_name#parts_name1").val("");
+				// // $(".parts_name[name=parts_name1]").html("");
+				// // $(".parts_detail#parts_detail1").val("");
+				// // $(".quantity#quantity1").html("");
+				// // $(".quantity[name=quantity1]").val("");
+				// $(".quantity_withdrawal#quantity_withdrawal1").prop("disabled", false);
+				// $(".quantity_withdrawal#quantity_withdrawal1").val(temp_project_detail[i][2]);
+			// }
+			// else{
+				
+				// ใส่ค่า Parts Code
+				$(".parts_code#parts_code"+(i+1)).val(temp_project_detail[i][1]);
+				
+				// Enable Text Fields
+				$("#parts_code"+(i+1)).prop("disabled", false);
+				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).prop("disabled", false);
+				
+				// เพิ่มค่า Name, Detail
+				$(".parts_code#parts_code"+(i+1)).focus();
+				$(".parts_code#parts_code"+(i+1)).blur();
+				
+				// ใส่ค่า quantity_withdrawal
+				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val(temp_project_detail[i][2]);
+				
+				// Disable Text Fields
+				$("#parts_code"+(i+1)).prop("disabled", true);
+				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).prop("disabled", true);
+			// }
+		}
+		
+		//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
+		// Check ค่าก่อน
+		var _project_quantity = 1;
+		var status_proeject_quantity = 0;
+		for(var i = 0; i < counter; i++){
+			
+			console.log($(".quantity[name=quantity"+(i+1)+"]").val());
+			// console.log(((temp_project_detail[i][2])*_project_quantity));
+			
+			// quantity
+			if($(".quantity[name=quantity"+(i+1)+"]").val() < ((temp_project_detail[i][2])*_project_quantity) ){
+				status_proeject_quantity++;
+			}
+		}
+		
+		//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
+		if(status_proeject_quantity > 0){
+			alert("จำนวนที่เบิกได้สูงสุด เกินกว่า ที่มีอยู่");
+			for(var i = 0; i < counter; i++){
+				$("#project_quantity").val("0");
+				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*0) );
+			}
+		}
+		else{
+			for(var i = 0; i < counter; i++){
+				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*_project_quantity) );
+			}
+		}
+		
+	});
+	// ###### End Check Withdrawal Type ######
+	
+	$("#project_quantity").live("keyup", function(){
+		var _project_quantity = $(this).val();
+		var project_id = $(".project_id").val();
+		var temp_project_detail = new Array();
+		
+		//เก็บค่า Project ล่าสุด จาก Project id นั้น
+		// find the real parts for that project
+		for(var i = 0; i < projectDetail.length; i++){
+			
+			// if project_id is in Table : projectDetail
+			if($.inArray(project_id , projectDetail[i]) == 0){
+				temp_project_detail.push([
+					projectDetail[i][0],
+					projectDetail[i][1],
+					projectDetail[i][2],
+				]);
+			}
+		}
+		
+		//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
+		// Check ค่าก่อน
+		var status_proeject_quantity = 0;
+		for(var i = 0; i < counter; i++){
+			
+			console.log($(".quantity[name=quantity"+(i+1)+"]").val());
+			// console.log(((temp_project_detail[i][2])*_project_quantity));
+			
+			// quantity
+			if($(".quantity[name=quantity"+(i+1)+"]").val() < ((temp_project_detail[i][2])*_project_quantity) ){
+				status_proeject_quantity++;
+			}
+		}
+		
+		//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
+		if(status_proeject_quantity > 0){
+			
+			alert("จำนวนที่เบิกได้สูงสุด เกินกว่า ที่มีอยู่");
+			for(var i = 0; i < counter; i++){
+				$("#project_quantity").val("0");
+				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*0) );
+			}
+		}
+		else{
+			for(var i = 0; i < counter; i++){
+				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*_project_quantity) );
+			}
+		}
+		
+	});
+	
+	$(".project_quantity").live("keydown", function(e){
+		// Allow: backspace, delete, tab, escape, enter and .
+		if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
+		     // Allow: Ctrl+A
+		    (e.keyCode == 65 && e.ctrlKey === true) || 
+		     // Allow: home, end, left, right
+		    (e.keyCode >= 35 && e.keyCode <= 39)) {
+		         // let it happen, don't do anything
+		         return;
+		}
+		// Ensure that it is a number and stop the keypress
+		if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+		    e.preventDefault();
+		}
+	});
+	
 	$(".parts_code").live("blur", function(){
 		// console.log("parts_code = " + $(this).val());
 		var this_id = $(this).data("code_id");
 		// console.log("this_id = " + this_id);
+		var parts_code = $(".parts_code#parts_code"+this_id).val();
 		
 		var i = 0;
 		var parts_name_value = "";
@@ -614,29 +918,51 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 		console.log("parts_name = " + parts_name_value);
 		console.log("sum_withdrawal_quantity_value = "+sum_withdrawal_quantity_value);
 		
-		$(".parts_name#parts_name"+this_id).html(parts_name_value);
-		$(".parts_name[name=parts_name"+this_id+"]").val(parts_name_value);
-		$(".parts_detail#parts_detail"+this_id).html(parts_detail_value);
-		$(".quantity#quantity"+this_id).html(stock_remain_with_withdrawal_value+" ("+stock_remain_value+")");
-		$(".quantity[name=quantity"+this_id+"]").val(stock_remain_with_withdrawal_value);
-		$(".quantity_withdrawal#quantity_withdrawal"+this_id).val("");
+		// check ถ้า มี ของอยู่ใน Stock ถึงจะทำการ Show Parts อันนั้น
+		if(stock_remain_with_withdrawal_value > 0 && parts_code != "" ){
 		
-		
-		if(parts_name_value == ""){
-			$(this).val("");
-			// alert("ไม่มีรหัสนี้อยู่ในระบบ")
-			$(".quantity#quantity"+this_id).prop("disabled", "disabled");
-			$(".quantity_withdrawal#quantity_withdrawal"+this_id).prop("disabled", "disabled");
-		}
-		else{
+			$(".parts_name#parts_name"+this_id).html(parts_name_value);
+			$(".parts_name[name=parts_name"+this_id+"]").val(parts_name_value);
+			$(".parts_detail#parts_detail"+this_id).html(parts_detail_value);
+			$(".quantity#quantity"+this_id).html(stock_remain_with_withdrawal_value+" ("+stock_remain_value+")");
+			$(".quantity[name=quantity"+this_id+"]").val(stock_remain_with_withdrawal_value);
+			$(".quantity_withdrawal#quantity_withdrawal"+this_id).val(stock_remain_with_withdrawal_value);
+			
 			$(".quantity#quantity"+this_id).prop("disabled", false);
 			$(".quantity_withdrawal#quantity_withdrawal"+this_id).prop("disabled", false);
+		}
+		
+		else{
+			console.log("##");
+			
+			$(this).val("");
+			
+			$(".parts_name#parts_name"+this_id).html("");
+			$(".parts_name[name=parts_name"+this_id+"]").val("");
+			$(".parts_detail#parts_detail"+this_id).html("");
+			$(".quantity#quantity"+this_id).html("");
+			$(".quantity[name=quantity"+this_id+"]").val("");
+			$(".quantity_withdrawal#quantity_withdrawal"+this_id).val("");
+			
+			$(".quantity#quantity"+this_id).prop("disabled", "disabled");
+			$(".quantity_withdrawal#quantity_withdrawal"+this_id).prop("disabled", "disabled");
 		}
 	});
 	
 	
 	// ทำการเพิ่ม Item Parts_code สำหรับ Autocomplete 
 	var parts_code_autocomplete = <?php echo json_encode($parts_matches); ?>;
+	
+	//On Key Enter For close Autocomplete
+	$(".parts_code").live("keydown", function(event) {
+		var code_id = $(this).data("code_id");
+		if(event.keyCode == 13){
+			$(this).autocomplete( "close" );
+			$(".parts_code#parts_code"+(code_id+1)).focus();
+			
+	    }
+	});
+	
 	$(".parts_code").live("focus", function() {
 		$(this).autocomplete({
 	        source: parts_code_autocomplete,
@@ -864,7 +1190,7 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 		}
 		
 		if(chk == 0){
-			if(!confirm('ต้องการยืนยันบีนทึกค่าการรอนุมัติการเบิก รหัส : <?php echo $withdrawalParts_code; ?> ใช่หรือไม่')){
+			if(!confirm('ต้องการทำการบันทึก รหัส : <?php echo $withdrawalParts_code; ?> หรือไม่?')){
 				return false;
 			}
 		

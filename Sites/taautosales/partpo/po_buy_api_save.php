@@ -3,25 +3,25 @@
 	include_once("../include/function.php");
 	
 	//Load Initial HTTP Post Variables
-	$id_user = $_POST['id_user'];
-	$type = $_POST['type'];
-	$date = date("m-d-Y", strtotime($_POST['date']));
-	// $parts_pocode = $_POST['parts_pocode'];
-	$copypo_id = $_POST['copypo_id'];
-	$app_sentpartdate = date("m-d-Y", strtotime($_POST['app_sentpartdate']));
-	$credit_terms = $_POST['credit_terms'];
-	$esm_paydate = date("m-d-Y", strtotime($_POST['esm_paydate']));
-	$vender_id = $_POST['vender_id'];
-	$vat_status = $_POST['vat_status'];
-	$purchase_order_parts_details_array = json_decode(stripcslashes($_POST['purchase_order_parts_details_array']));
-	$dsubtotal = $_POST['dsubtotal'];
-	$pcdiscount = $_POST['pcdiscount'];
-	$discount= $_POST['discount'];
-	$vsubtotal = $_POST['vsubtotal'];
-	$pcvat = $_POST['pcvat'];
-	$vat = $_POST['vat'];
-	$nettotal = $_POST['nettotal'];
-	$PartsApproved_appr_note = $_POST['PartsApproved_appr_note'];
+	$id_user = pg_escape_string($_POST['id_user']);
+	$type = pg_escape_string($_POST['type']);
+	$date = date("m-d-Y", strtotime(pg_escape_string($_POST['date'])));
+	// $parts_pocode = pg_escape_string($_POST['parts_pocode']);
+	$copypo_id = pg_escape_string($_POST['copypo_id']);
+	$app_sentpartdate = date("m-d-Y", strtotime(pg_escape_string($_POST['app_sentpartdate'])));
+	$credit_terms = pg_escape_string($_POST['credit_terms']);
+	$esm_paydate = date("m-d-Y", strtotime(pg_escape_string($_POST['esm_paydate'])));
+	$vender_id = pg_escape_string($_POST['vender_id']);
+	$vat_status = pg_escape_string($_POST['vat_status']);
+	$purchase_order_parts_details_array = json_decode(stripcslashes(pg_escape_string($_POST['purchase_order_parts_details_array'])));
+	$dsubtotal = pg_escape_string($_POST['dsubtotal']);
+	$pcdiscount = pg_escape_string($_POST['pcdiscount']);
+	$discount= pg_escape_string($_POST['discount']);
+	$vsubtotal = pg_escape_string($_POST['vsubtotal']);
+	$pcvat = pg_escape_string($_POST['pcvat']);
+	$vat = pg_escape_string($_POST['vat']);
+	$nettotal = pg_escape_string($_POST['nettotal']);
+	$PartsApproved_appr_note = pg_escape_string($_POST['PartsApproved_appr_note']);
 	
 	if($type == 1){
 		$type_X = "N";
@@ -112,14 +112,6 @@
         $status++;
     }
 	
-	
-	// $data["test"] = $strQuery_PurchaseOrderPart;
-	// $data["success"] = false;
-	// $data["message"] = "";
-	// echo json_encode($data);
-	// exit;
-	
-    
     //Query PurchaseOrderPartsDetails
     foreach($purchase_order_parts_details_array as $key => $value){
     	

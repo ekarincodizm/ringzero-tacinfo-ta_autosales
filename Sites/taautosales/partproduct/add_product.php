@@ -32,10 +32,6 @@ include_once ("../include/header_popup.php");
   <div style="float:right; "><button style="width:75px;" onclick="window.location='product.php'">กลับ</button></div><br />
   <div>
     <table width="860" border="0" cellpadding="2">
-	  <!-- <tr>
-	    <td style="text-align:right;">รหัสสินค้า</td>
-	    <td width="456"><input type="text" name="p_code" id="p_code" style="width:300px;" /></td>
-	  </tr> -->
 	  <tr>
 	  	<td width="100" style="text-align:right;">ประเภทกลุ่มอะไหล่</td>
 	  	<td width="300">
@@ -64,7 +60,6 @@ include_once ("../include/header_popup.php");
 	  		ประเภทรหัสบาร์โค้ด
 	  	</td>
 	  	<td width="300">
-	  		<!-- <input type="radio" name="has_barcode" value="no_checked" style="visibility: hidden; " /> -->
 	  		<label style="margin-left: 15px; margin-right: 15px;">
 	  			<input type="radio" name="has_barcode" id="has_barcode_yes" value="yes" >มีรหัสบาร์โค้ด
 	  		</label>
@@ -165,7 +160,9 @@ include_once ("../include/header_popup.php");
 	$sqlStr_parts_code = "
 		SELECT code
 		FROM parts;
-	"; //Query Parts' Products to check that There are some Parts Name that Already Added on the System
+	"; 
+	//Query Parts' Products to check that There are some Parts Name that Already Added on the System
+	
 	$query_parts_code = pg_query($sqlStr_parts_code);
 	while($res_parts_code = pg_fetch_array($query_parts_code)){
 ?>
@@ -173,8 +170,6 @@ include_once ("../include/header_popup.php");
 }
 ?>
 	// For Test parts_code can be added From the Query
-	// console.log(parts_code);
-	
 	
 	$(function() {
 		$("#p_priceperunit").live("keydown", function(e){
@@ -220,9 +215,6 @@ include_once ("../include/header_popup.php");
 		var chk = 0;
 		var msg = "ผิดพลาด! \n";
 
-		//var txttable = $('#cb_product').val();
-		//alert(txttable);
-
 		if ($('#p_code_type').val() == "") {
 			msg += "กรุณาระบุ ประเภทกลุ่มอะไหล่ \n";
 			chk++;
@@ -266,27 +258,12 @@ include_once ("../include/header_popup.php");
 			chk++;
 		}
 		
-		//For Valudate check that there are Parts Product that already Added
-		/*
-		for (var i = 0; i < parts_code.length; i++) {//For Valudate check that there are Parts Product that already Added
-			var count_code = 0;
-			if ($('#p_code').val() == parts_code[i]) {
-				count_code++;
-			}
-			// console.log("count_code = "+count_code);
-			if (count_code > 0) {
-				msg += "กรุณาระบุ รหัสสินค้าใหม่ เนื่องจากรหัสสินค้าซ้ำกับของเก่า \n";
-				chk++;
-			}
-		}
-		*/
-
 		if (chk > 0) {
 			alert(msg);
 			return false;
 		} else {
 			
-			if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
+			if(!confirm('ต้องการบันทึกรายการหรือไม่')){
 				return false;
 			} 
 			
@@ -319,7 +296,6 @@ include_once ("../include/header_popup.php");
 
 					alert(data.message);
 					
-					// location.reload();
 					location='product.php'
 				} else {//If Failed, Will not be recorded
 					console.log("# data.success = false #");

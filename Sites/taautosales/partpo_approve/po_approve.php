@@ -28,40 +28,7 @@ $page_title = "อนุมัติสั่งซื้ออะไหล่/�
 
 <?php
 include_once("../include/header_popup.php");
-
 include_once("po_approve_body.php");
-
-/*
-?>
-
-<div id="maintabs">
-    <ul>
-        <li><a href="po_buy_api.php?cmd=div_car">สั่งซื้อรถยนต์</a></li>
-        <li><a href="po_buy_api.php?cmd=div_other">สั่งซื้ออุปกรณ์อื่น</a></li>
-		<li><a href="po_buy_api.php?cmd=div_usedcar">สั่งซื้อรถยนต์มือสอง</a></li>
-    </ul>
-</div>
-
-      </div>
-   <div class="roundedcornr_bottom"><div></div></div>
-</div>
-
-<script>
-$(function(){
-    $( "#maintabs" ).tabs({
-        select: function(e, ui) {
-            $('#ui-tabs-1').empty();
-            $('#ui-tabs-2').empty();
-        },
-        ajaxOptions: {
-            error: function( xhr, status, index, anchor ) {
-                $( anchor.hash ).html("ไม่สามารถโหลดเนื้อหาได้");
-            }
-        }
-    });
-});
-</script>
-*/
 ?>
 
       </div>

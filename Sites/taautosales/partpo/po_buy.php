@@ -19,6 +19,11 @@ $page_title = "สั่งซื้ออะไหล่/อุปกรณ์"
     <link type="text/css" href="../images/jqueryui/css/redmond/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
     <script type="text/javascript" src="../images/jqueryui/js/jquery-1.6.2.min.js"></script>
     <script type="text/javascript" src="../images/jqueryui/js/jquery-ui-1.8.16.custom.min.js"></script>
+    <style>
+    	.ui-autocomplete { 
+    		height: 400px; overflow-y: scroll; overflow-x: hidden;
+    	}
+    </style>
 </head>
 <body>
 
@@ -28,45 +33,7 @@ $page_title = "สั่งซื้ออะไหล่/อุปกรณ์"
 
 <?php
 include_once("../include/header_popup.php");
-
-// include_once("po_buy_api_old.php");
 include_once("po_buy_api_all.php");
-// include_once("po_buy_api1.php");
-// include_once("po_buy_api2.php");
-// include_once("po_buy_api3.php");
-// include_once("po_buy_api4.php");
-
-/*
-?>
-
-<div id="maintabs">
-    <ul>
-        <li><a href="po_buy_api.php?cmd=div_car">สั่งซื้อรถยนต์</a></li>
-        <li><a href="po_buy_api.php?cmd=div_other">สั่งซื้ออุปกรณ์อื่น</a></li>
-		<li><a href="po_buy_api.php?cmd=div_usedcar">สั่งซื้อรถยนต์มือสอง</a></li>
-    </ul>
-</div>
-
-      </div>
-   <div class="roundedcornr_bottom"><div></div></div>
-</div>
-
-<script>
-$(function(){
-    $( "#maintabs" ).tabs({
-        select: function(e, ui) {
-            $('#ui-tabs-1').empty();
-            $('#ui-tabs-2').empty();
-        },
-        ajaxOptions: {
-            error: function( xhr, status, index, anchor ) {
-                $( anchor.hash ).html("ไม่สามารถโหลดเนื้อหาได้");
-            }
-        }
-    });
-});
-</script>
-*/
 ?>
 
 </body>

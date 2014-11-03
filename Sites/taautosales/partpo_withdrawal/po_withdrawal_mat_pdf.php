@@ -10,7 +10,7 @@ if(!CheckAuth()){
 /* ?><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><?php */
 
 // ########### GET Withdrawal code ###########
-$po_id = pg_escape_string($_REQUEST['withdrawal_parts_code']);
+$po_id = pg_escape_string($_REQUEST['sendParts_code']);
 
 if(empty($po_id) OR $po_id == ""){
     echo "invalid param.";
@@ -18,29 +18,23 @@ if(empty($po_id) OR $po_id == ""){
 }
 
 
-// ########### Load WithdrawalParts ###########
+// ########### Load SendParts ###########
 $partsReceived_strQuery = pg_query("
 	SELECT 
-		code, 
-		type, 
-		user_id, 
-		withdraw_user_id, 
-		date, 
-		usedate, 
-		status, 
-		note
-	FROM 
-		\"WithdrawalParts\"
+		send_code, withdrawal_code, type, user_id, send_user_id, date, usedate, status, note
+	FROM \"SendParts\"
 	WHERE
-		status = 3
+		status = 1 
 		AND
-		\"code\" = '$po_id' 
+		send_code = '".$po_id."'
+	;
 ");
 if($res = pg_fetch_array($partsReceived_strQuery)){
-	$code = $res["code"];
+	$send_code = $res["send_code"];
+	$withdrawal_code = $res["withdrawal_code"];
 	$type = $res["type"];
 	$user_id = $res["user_id"]; 
-	$withdraw_user_id = $res["withdraw_user_id"];
+	$send_user_id = $res["send_user_id"];
 	$date = $res["date"];
 	$usedate = $res["usedate"];
 	$status = $res["status"];
@@ -230,7 +224,7 @@ $save_data[$m] .= '
 	</tr>
 	<tr>
 		<!-- <td width="75%" align="left"><b>ที่อยู่:</b>'.$address.' '.$add_post.'</td> -->
-		<td width="25%"><b>วันที่สั่งซื้อ:</b>'.formatDate($date,"/").'</td>
+		<td width="25%"><b>วันที่สั่งซื้อ:</b> '.formatDate($date,"/").'</td>
 	</tr>
 	<!-- <tr>
 		<td width="75%" align="left"><b>โทรศัพท์: </b>'.$telephone.'</td>
@@ -251,20 +245,21 @@ $save_data[$m] .= '
 ';
 
 $purchaseOrderPartsDetails_qry = pg_query("
+
 	SELECT 
-		idno, 
-		parts_code, 
-		withdrawal_quantity 
+		--send_details_id, send_code, 
+		idno, parts_code, send_quantity
 	FROM 
-		\"WithdrawalPartsDetails\" 
-	WHERE 
-		\"withdrawal_code\" = '$po_id' 
+		\"SendPartsDetails\"
+	WHERE
+		send_code = '".$po_id."'
+	;
 ");
 while($res = pg_fetch_array($purchaseOrderPartsDetails_qry)){
 	
 	$idno = $res["idno"];
 	$parts_code = $res['parts_code'];
-	$withdrawal_quantity = $res['withdrawal_quantity'];
+	$send_quantity = $res['send_quantity'];
 	
     $save_data[$m] .= '
     <tr>
@@ -272,7 +267,7 @@ while($res = pg_fetch_array($purchaseOrderPartsDetails_qry)){
         <td>'.$parts_code.'</td>
         <td>'.call_parts($parts_code, "name").'</td>
         <td>'.call_parts($parts_code, "details").'</td>
-		<td>'.$withdrawal_quantity.'</td>
+		<td>'.$send_quantity.'</td>
     </tr>';
 }
 
@@ -310,7 +305,7 @@ $save_data[$m] .= '
 					<td width="270" colspan="2">(___________________________________)</td>
 				</tr>
 				<tr align="center">
-					<td width="270" colspan="2">วันที่————————————————————————————————</td>
+					<td width="270" colspan="2">วันที่__________________________________</td>
 				</tr>
 			</table>
 		</td>

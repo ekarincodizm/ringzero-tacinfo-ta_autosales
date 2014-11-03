@@ -2,17 +2,23 @@
 	// ini_set('max_execution_time', 300);
 	include_once("../include/config.php");
 	include_once("../include/function.php");
+	include_once("po_withdrawal_webservice.php");
 	
 	//Load Initial HTTP Post Variables
 	$id_user = $_SESSION["ss_iduser"];
 	
 	$withdrawal_code = pg_escape_string($_POST["withdrawal_code"]);
+	$withdrawal_type = pg_escape_string($_POST["withdrawal_type"]);
 	
 	$send_type = pg_escape_string($_POST["send_type"]);
 	$send_user_id = pg_escape_string($_POST["send_user_id"]);
 	$send_withdraw_user_id = pg_escape_string($_POST["send_withdraw_user_id"]);
 	$send_date = date("Y-m-d", strtotime(pg_escape_string($_POST['send_date'])));
 	$send_usedate = date("Y-m-d", strtotime(pg_escape_string($_POST["send_usedate"])));
+	
+	$project_id = pg_escape_string($_POST["project_id"]);
+	$project_quantity = pg_escape_string($_POST["project_quantity"]);
+	
 	$send_details_array = json_decode(stripcslashes(pg_escape_string($_POST["send_details_array"])));
 	$send_note = pg_escape_string($_POST["send_note"]);
 	
@@ -20,6 +26,10 @@
 	pg_query("BEGIN WORK");
 	$status = 0;
 	$txt_error = array();
+	
+	//Inport Class Functions
+	$function = new Withdrawal_send_save();
+	
 	
 	// ######### For Test checking the Variables #########
 	
@@ -93,7 +103,7 @@
 	}
 	
 	//Query PartsReceived
-	$withdrawalParts_strQuery = "
+	$sendParts_strQuery = "
 	INSERT INTO \"SendParts\"(
 		send_code, 
 		withdrawal_code,
@@ -103,7 +113,8 @@
 		date, 
 		usedate, 
 		status, 
-		note
+		note,
+		send_date
 	)
 	VALUES (
 		'{$gen_parts_no}',
@@ -114,19 +125,22 @@
 		'{$send_date}',
 		'{$send_usedate}',
 		1,
-		'{$send_note}'
+		'{$send_note}',
+		'{$nowDateTime}'
 	);
 	";
 	
-	if(!$result=@pg_query($withdrawalParts_strQuery)){
-        $txt_error[] = "INSERT withdrawalParts_strQuery ไม่สำเร็จ $withdrawalParts_strQuery";
+	if(!$result=@pg_query($sendParts_strQuery)){
+        $txt_error[] = "INSERT sendParts_strQuery ไม่สำเร็จ $sendParts_strQuery";
         $status++;
     }
 	
+	
 	$count_send_details_array = count($send_details_array);
 	$status_quantity_equal = 0;
+	$project_subtotal = 0.0;
 	
-    // ### Query Withdrawal Parts Details ###
+    // ### Query Send Details ###
     foreach($send_details_array as $value){
     	
 		$idno = $value->idno;
@@ -134,8 +148,9 @@
 		$quantity = $value->quantity;
 		$send_quantity = $value->send_quantity; //จำนวน ที่ส่งออก
 		
+		
 		// insert PartsReceivedDetails
-		$withdrawalPartsDetails_strQuery = "
+		$sendPartsDetails_strQuery = "
 			INSERT INTO \"SendPartsDetails\"
 			(
 				send_code,
@@ -152,8 +167,8 @@
 			)
 		";
 		
-		if(!$result=@pg_query($withdrawalPartsDetails_strQuery)){
-	        $txt_error[] = "INSERT withdrawalPartsDetails ไม่สำเร็จ $withdrawalPartsDetails_strQuery";
+		if(!$result=@pg_query($sendPartsDetails_strQuery)){
+	        $txt_error[] = "INSERT sendPartsDetails_strQuery ไม่สำเร็จ $sendPartsDetails_strQuery";
 	        $status++;
 	    }
 		
@@ -214,12 +229,8 @@
 		        
 			}
 			
-			// echo $parts_strQuery;
-			// pg_query("ROLLBACK");
-			// exit;
-			
 			if(!$result=@pg_query($parts_strQuery)){
-		        $txt_error[] = "INSERT withdrawalPartsDetails ไม่สำเร็จ $withdrawalPartsDetails_strQuery";
+		        $txt_error[] = "UPDATE parts_strQuery ไม่สำเร็จ $parts_strQuery";
 		        $status++;
 		    }
 			
@@ -262,22 +273,22 @@
 		while ($partsStockDetails_result = @pg_fetch_array($partsStockDetails_query)) {
 			
 			//ถ้า parts_code อยู่ใน PartsStockDetails
-			$parts_strQuery = "
-				UPDATE \"PartsStock\"
+			$partsStockDetails_update_strQuery = "
+				UPDATE \"PartsStockDetails\"
 					SET status = 2
 				WHERE 
-					parts_code = '".$parts_code."' ;
+					codeid = '".$parts_code."' ;
 			";
-			if(!$result=@pg_query($withdrawalPartsDetails_strQuery)){
-		        $txt_error[] = "INSERT partsStockDetails_strQuery ไม่สำเร็จ $partsStockDetails_strQuery";
+			if(!$result=@pg_query($partsStockDetails_update_strQuery)){
+		        $txt_error[] = "UPDATE partsStockDetails_update_strQuery 123 ไม่สำเร็จ $partsStockDetails_update_strQuery";
 		        $status++;
 		    }
+			
 		}
 		
 		
 	}
-	// End Query PurchaseOrderPartsDetails
-	
+	// ################# End Query SendDetails ####################
 	
 	/*
 	// ###### Insert Approve กลับ ######
@@ -297,10 +308,6 @@
         $status++;
     }
 	*/
-	
-	// echo $ApproveParts_forWithdrawal_strQuery;
-	// pg_query("ROLLBACK");
-	// exit;
 	
 	
 	// ไปเพิ่ม Comment บน Table: PartsStock ที่เก็บของใน Stock 
@@ -348,6 +355,7 @@
 			$status_quantity_equal++;
 		}
 	}
+
 	if($status_quantity_equal == $count_send_details_array){
 		$withdrawalParts_setStatus_strQuery = "
 			UPDATE
@@ -361,17 +369,165 @@
 	        $txt_error[] = "UPDATE withdrawalParts_setStatus_strQuery ไม่สำเร็จ {$withdrawalParts_setStatus_strQuery}";
 	        $status++;
 	    }
+		
 	}
 	// End ไปเพิ่ม Comment บน Table: PartsStock ที่เก็บของใน Stock 
 	// ให้เตือนว่า ถ้า Status = 2 จะแปลว่า สินค้าชิ้นนั้น ขายไปแล้ว หลังจากที่ กด SendParts สำเร็จแล้ว
 	
+	
+	// ###################### For purchaseOrderParts PartsApproved ###########################
+	$purchaseOrderParts_PartsApproved_strQuery = "
+		INSERT INTO \"PartsApproved\"(
+			code, 
+			user_id, 
+			user_note, 
+			user_timestamp, 
+			appr_id, appr_note, 
+			appr_timestamp
+		)
+		VALUES (
+			'".$gen_parts_no."',  
+			'000', 
+			'ระบบอัตโนมัติ', 
+			'{$nowDateTime}', 
+			'000', 
+			'ระบบอัตโนมัติ', 
+			'{$nowDateTime}'
+		);
+	";
+	if(!$result=@pg_query($purchaseOrderParts_PartsApproved_strQuery)){
+        $txt_error[] = "INSERT PartsApproved ไม่สำเร็จ $purchaseOrderParts_PartsApproved_strQuery";
+        $status++;
+    }
+	// ########################### END For PartsApproved ################################
+	
+	
+	// ################ For PurchaseOrderPartsDetails #####################
+	$new_product_id = $function->get_Projects($project_id, "product_id");
+	
+	$costperunit = floatval(
+		$function->get_parts(
+			$new_product_id, "priceperunit"
+		)
+	);
+	$project_total = $costperunit * floatval($project_quantity);
+	
+	$purchaseOrderPartsDetails_strQuery = "
+		INSERT INTO \"PurchaseOrderPartsDetails\"(
+			parts_pocode, 
+			idno, 
+			parts_code, 
+			quantity, 
+			unit, 
+			costperunit, 
+			total
+		)
+		VALUES (
+			'".$gen_parts_no."', 
+			'".$idno."', 
+			'".$new_product_id."', 
+			'".$project_quantity."', 
+			'".$function->get_parts($parts_code, "unitid")."', 
+			'".$costperunit."', 
+			'".$project_total."'
+		);
+	
+	";
+	if(!$result=@pg_query($purchaseOrderPartsDetails_strQuery)){
+        $txt_error[] = "INSERT purchaseOrderPartsDetails_strQuery ไม่สำเร็จ $purchaseOrderPartsDetails_strQuery";
+        $status++;
+    }
+	$project_subtotal += $project_total;
+	
+	// ############## END For PurchaseOrderPartsDetails ###################
+	
+	
+	// ############################## For Insert to --> PurchaseOrderPart ########################################
+	// ##### if(type == 2) #####
+	if($withdrawal_type == 2){
+		
+		$purchaseOrderPart_strQuery = "
+			INSERT INTO
+				\"PurchaseOrderPart\"
+				(
+					parts_pocode,
+					date, 
+					type, 
+					credit_terms, 
+					app_sentpartdate, 
+					esm_paydate, 
+					vender_id, 
+					vat_status, 
+					subtotal, 
+					pcdiscount, 
+					discount, 
+					bfv_total, 
+					pcvat, 
+					vat, 
+					nettotal, 
+					status, 
+					paid
+				)
+				VALUES
+				(
+					'".$gen_parts_no."',
+					'".$nowDateTime."',
+					1,
+					0,
+					'".$nowDateTime."',
+					'".$nowDateTime."',
+					1,
+					0,
+					'".$project_subtotal."',
+					0,
+					0,
+					'".$project_subtotal."',
+					0,
+					0,
+					'".$project_subtotal."',
+					2,
+					1
+				);
+		";
+		if(!$purchaseOrderPart_result = @pg_query($purchaseOrderPart_strQuery)){
+	        $txt_error[] = "INSERT PurchaseOrderPart ไม่สำเร็จ $purchaseOrderPart_strQuery";
+	        $status++;
+	    }
+		
+	}
+	// ############################## END For Insert to --> PurchaseOrderPart ######################################
+	
+	
+	/*
+	// #### For Test ####
+	$test_purchaseOrderPartsDetails_strQuery = "
+		SELECT 
+			auto_id, parts_pocode, idno, parts_code, quantity, unit, costperunit, 
+			total
+		FROM \"PurchaseOrderPartsDetails\"
+		WHERE 
+			parts_code = '".$new_product_id."'
+		;
+	";
+	$test_purchaseOrderPartsDetails_query = @pg_query($test_purchaseOrderPartsDetails_strQuery);
+	while ($test_purchaseOrderPartsDetails_result = @pg_fetch_array($test_purchaseOrderPartsDetails_query)) {
+		$test[] = $test_purchaseOrderPartsDetails_result;
+		// var_dump($test_purchaseOrderPartsDetails_result);
+	}
+	// #################
+	*/
+	
+	
+	// var_dump($test);
+	// pg_query("ROLLBACK");
+	// exit;
 	
 	// Check Is Query or Not?
 	if($status == 0){
         // pg_query("ROLLBACK");
         pg_query("COMMIT");
         $data['success'] = true;
-        $data['parts_pocode'] = $gen_parts_no;
+        $data['sendParts_code'] = $gen_parts_no;
     }else{
         pg_query("ROLLBACK");
         $data['success'] = false;

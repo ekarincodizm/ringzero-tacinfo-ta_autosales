@@ -20,7 +20,7 @@ $page_title = "เบิกสินค้าออกสต๊อก";
 
 </head>
 <body class="body">
-<div class="roundedcornr_box" style="width:1000px">
+<div class="roundedcornr_box" style="width:930px">
 	<div class="roundedcornr_top">
 		<div></div>
 	</div>
@@ -29,7 +29,7 @@ $page_title = "เบิกสินค้าออกสต๊อก";
 		include_once("../include/header_popup.php");
 		// include_once("po_receive_body.php"); 
 ?>
-		<div style="text-align: right; ">
+		<div style="text-align: right; margin-top: 10px; margin-bottom: 10px;">
 			<input type="button" value="เพิ่มใบเบิก" onclick="javascript:AddNewWithdrawal('po_withdrawal_new.php')" style="cursor:pointer;" alt="เพิ่มใบเบิก" title="เพิ่มใบเบิก" />
 		</div>
 		<div id="maintabs">
@@ -66,7 +66,7 @@ $page_title = "เบิกสินค้าออกสต๊อก";
 			        title: 'เพิ่มใบเบิก',
 			        resizable: false,
 			        modal: true,  
-			        width: 1000,
+			        width: 930,
 			        height: 600,
 			        close: function(ev, ui){
 			            $('#divdialogadd').remove();

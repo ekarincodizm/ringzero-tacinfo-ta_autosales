@@ -1,5 +1,75 @@
-<div style="width:870px; overflow-y: hidden; overflow-x: auto; ">
+<?php
+if(isset($_POST["display_type"])){
+	$display_type = pg_escape_string($_POST["display_type"]);
+}
+if(!isset($display_type)){
+	$display_type = 1;
+}
 
+if($display_type == 2){
+	$display_type2 = pg_escape_string($_POST["display_type2"]);
+}
+elseif($display_type == 3){
+	$po_id = pg_escape_string($_POST["po_id"]);
+}
+
+// $function = new Model_po_receive();
+
+?>
+<div style="width:870px; overflow-y: hidden; overflow-x: auto; ">
+	<form action="po_receive.php" method="post" accept-charset="UTF-8" >
+		<fieldset>
+			<legend>ค้นหาข้อมูล</legend>
+			<div class="search div1">
+				<select id="display_type" name="display_type">
+					<option value="1" <?php 
+						if($display_type == 1){
+							?>selected='selected'<?php
+						}
+					?>>แสดงทั้งหมด</option>
+					<option value="2" <?php 
+						if($display_type == 2){
+							?>selected='selected'<?php
+						}
+					?>>ประเภทใบสั่งซื้อ</option>
+					<option value="3" <?php 
+						if($display_type == 3){
+							?>selected='selected'<?php
+						}
+					?>>เลขที่ใบสั่งซื้อ</option>
+				</select>
+			</div>
+			<div class="search div2">
+<?php
+				if($display_type == 2){
+?>
+					<select id="display_type2" name="display_type2">
+						<option value="0">เลือกประเภท</option>
+						<option value="1" <?php
+							if($display_type2 == 1){
+								?>selected='selected'<?php
+							}
+						?>>มาจากการสั่งซื้อ</option>
+						<option value="2" <?php
+							if($display_type2 == 2){
+								?>selected='selected'<?php
+							}
+						?>>มาจากการสั่งประกอบชิ้นงาน</option>
+					</select>
+<?php
+				}
+				elseif ($display_type == 3) {
+?>
+					<input type="text" name="po_id" value="<?php echo $po_id; ?>" style="width: 70%; " />
+<?php
+				}
+?>
+			</div>
+			<div class="search div3">
+				<input type="submit" value="ค้นหา" />
+			</div>
+		</fieldset>
+	</form>
 	<table cellpadding="3" cellspacing="1" border="0" width="100%" bgcolor="#F0F0F0">
 		<tr bgcolor="#D0D0D0" style="font-weight:bold; text-align:center">
 			<td width="80"><b>รหัสสั่งซื้อ</b></td>
@@ -28,133 +98,82 @@
 		<?php
 		$j = 0;
 		
-		function read_Parts_Unit($unitid){ //Return UnitName
-			$parts_unit_strQuery = "
-				SELECT 
-					\"unitname\"
-				FROM 
-					\"parts_unit\"
-				WHERE
-					\"unitid\" = '".$unitid."'
-			";
-			$parts_unit_query = pg_query($parts_unit_strQuery);
-			while($parts_unit_result = pg_fetch_array($parts_unit_query)){
-				echo $parts_unit_result["unitname"];
-			}
+		if($display_type == 1){
+			$purchaseOrderPart = get_purchaseOrderPart($display_type);
+		}
+		elseif($display_type == 2){
+			$purchaseOrderPart = get_purchaseOrderPart($display_type, $display_type2);
+		}
+		elseif($display_type == 3){
+			$purchaseOrderPart = get_purchaseOrderPart($display_type, '', $po_id);
 		}
 		
-		//แสดง PO
-		$purchaseOrderPart_strQuery = "
-			SELECT * 
-			FROM 
-				\"PurchaseOrderPart\" 
-			WHERE 
-				\"status\" = '2'
-			ORDER BY parts_pocode ASC 
-		";
-		$purchaseOrderPart_query = pg_query($purchaseOrderPart_strQuery);
-		while($purchaseOrderPart_result = pg_fetch_array($purchaseOrderPart_query)){
-			
-			// Check Received Quantity Count
-			if(received_quantity_check($purchaseOrderPart_result["parts_pocode"]) == 0){
-?>
-				<tr bgcolor="#E1F0FF" style="font-weight:bold">
-				    <td><?php echo $purchaseOrderPart_result["parts_pocode"]; ?></td>
-				    <td><?php echo $purchaseOrderPart_result["date"]; ?></td>
-				    <!-- <td><?php echo $purchaseOrderPart_result["credit_terms"]; ?></td> -->
-				    <td><?php echo $purchaseOrderPart_result["app_sentpartdate"]; ?></td>
-				    <!-- <td><?php echo $purchaseOrderPart_result["esm_paydate"]; ?></td> -->
-				    
-				    <td colspan="3"></td>
-				    
-				    <!-- <td><?php echo number_format($purchaseOrderPart_result["subtotal"], 2); ?></td> -->
-				    <!-- <td><?php echo number_format($purchaseOrderPart_result["discount"], 2); ?></td> -->
-				    <!-- <td><?php echo number_format($purchaseOrderPart_result["bfv_total"], 2); ?></td> -->
-				    <!-- <td><?php echo number_format($purchaseOrderPart_result["vat"], 2); ?></td> -->
-				    <td><?php echo number_format($purchaseOrderPart_result["nettotal"], 2); ?></td>
-				    <td>
-				    	<input type="image" src="../images/viewdetails.gif" value="แสดงรายละเอียด" onclick="javascript:ShowDetail('po_receive_detail.php', '<?php echo $purchaseOrderPart_result["parts_pocode"]; ?>')" style="cursor:pointer;" alt="ทำรายการรับ" title="ทำรายการรับ" />
-				    </td>
-				</tr>
-<?php
-				//แสดง PO Details
-				$purchaseOrderPartsDetails_strQuery = "
-					SELECT 
-						* 
-					FROM 
-						\"PurchaseOrderPartsDetails\" 
-					JOIN 
-						\"parts\"
-					ON
-						\"parts\".code = \"PurchaseOrderPartsDetails\".parts_code
-					WHERE 
-						\"PurchaseOrderPartsDetails\".parts_pocode = '".$purchaseOrderPart_result["parts_pocode"]."'
-					ORDER BY auto_id ASC 
-				";
-			    $purchaseOrderPartsDetails_query = pg_query($purchaseOrderPartsDetails_strQuery);
-			    while($purchaseOrderPartsDetails_result = pg_fetch_array($purchaseOrderPartsDetails_query)){
-			    	
-			    	$j++;
-
-					/*
-			    	$received_strQuery = "
-			    		SELECT 
-			    			* 
-			    		FROM 
-			    			v_parts_received__quantity_2
-			    		WHERE
-			    			parts_pocode = ''
-			    	";
-					*/
-					$received_quantity_strQuery = "
-						select 
-							parts_code,
-							SUM(rcv_quantity) AS rcv_quantity_count
-						from 
-							\"PartsReceivedDetails\" 
-						where 
-							parts_rcvcode IN 
-							(
-								select parts_rcvcode 
-								from \"PartsReceived\" 
-								where parts_pocode = '".$purchaseOrderPart_result["parts_pocode"]."'
-							) 
-							AND
-							parts_code = '".$purchaseOrderPartsDetails_result['parts_code']."'
-						group by parts_code ;
-					";
-					$received_quantity_query = pg_query($received_quantity_strQuery);
-					$received_quantity_numrow = pg_num_rows($received_quantity_query);
-	    			while($received_quantity_result = pg_fetch_array($received_quantity_query)){
-	    				$rcv_quantity_count = $received_quantity_result["rcv_quantity_count"];
-					}
-					if($received_quantity_numrow == 0){
-						$rcv_quantity_count = 0;
-					}
-					
+		if($purchaseOrderPart != ""){
+			foreach ($purchaseOrderPart as $purchaseOrderPart_result) {
+				
+				// Check Received Quantity Count
+				if(received_quantity_check($purchaseOrderPart_result["parts_pocode"]) == 0){
 	?>
-					<tr bgcolor="#FFFFFF">
-					    <td colspan="1"></td>
+					<tr bgcolor="#E1F0FF" style="font-weight:bold">
+					    <td><?php echo $purchaseOrderPart_result["parts_pocode"]; ?></td>
+					    <td><?php echo $purchaseOrderPart_result["date"]; ?></td>
+					    <!-- <td><?php echo $purchaseOrderPart_result["credit_terms"]; ?></td> -->
+					    <td><?php echo $purchaseOrderPart_result["app_sentpartdate"]; ?></td>
+					    <!-- <td><?php echo $purchaseOrderPart_result["esm_paydate"]; ?></td> -->
 					    
-					    <td><?php echo $purchaseOrderPartsDetails_result['parts_code']; ?></td>
-					    <td><?php echo $purchaseOrderPartsDetails_result['name']; ?></td>
-					    <td><?php echo $purchaseOrderPartsDetails_result['details']; ?></td>
-					    <td><?php echo $purchaseOrderPartsDetails_result['quantity']; ?></td>
-					    <td><?php echo read_Parts_Unit($purchaseOrderPartsDetails_result['unit']); ?></td>
-					    <!-- <td><?php echo number_format($purchaseOrderPartsDetails_result['costperunit'], 2); ?></td> -->
-					    <!-- <td><?php echo number_format($purchaseOrderPartsDetails_result['total'], 2); ?></td> -->
+					    <td colspan="3"></td>
 					    
-					    <td colspan="1"></td>
-					    
+					    <!-- <td><?php echo number_format($purchaseOrderPart_result["subtotal"], 2); ?></td> -->
+					    <!-- <td><?php echo number_format($purchaseOrderPart_result["discount"], 2); ?></td> -->
+					    <!-- <td><?php echo number_format($purchaseOrderPart_result["bfv_total"], 2); ?></td> -->
+					    <!-- <td><?php echo number_format($purchaseOrderPart_result["vat"], 2); ?></td> -->
+					    <td><?php echo number_format($purchaseOrderPart_result["nettotal"], 2); ?></td>
 					    <td>
-	<?php
-							echo $rcv_quantity_count."/".$purchaseOrderPartsDetails_result['quantity'];
-	?>
+					    	<input type="image" src="../images/viewdetails.gif" value="แสดงรายละเอียด" onclick="javascript:ShowDetail('po_receive_detail.php', '<?php echo $purchaseOrderPart_result["parts_pocode"]; ?>')" style="cursor:pointer;" alt="ทำรายการรับ" title="ทำรายการรับ" />
 					    </td>
 					</tr>
 	<?php
-				}
-			} // End Check Received Quantity Count
+					$purchaseOrderPartsDetails = get_purchaseOrderPartsDetails($purchaseOrderPart_result["parts_pocode"]);
+					foreach ($purchaseOrderPartsDetails as $purchaseOrderPartsDetails_result) {
+				    	
+				    	$j++;
+						
+						$received_quantity = get_received_quantity(
+							$purchaseOrderPart_result["parts_pocode"],
+							$purchaseOrderPartsDetails_result['parts_code']
+						);
+						
+						$received_quantity_numrow = $received_quantity["numrow"];
+						$rcv_quantity_count = $received_quantity["rcv_quantity_count"][0]["rcv_quantity_count"];
+						
+						if($received_quantity_numrow == 0){
+							$rcv_quantity_count = 0;
+						}
+						
+		?>
+						<tr bgcolor="#FFFFFF">
+						    <td colspan="1"></td>
+						    
+						    <td><?php echo $purchaseOrderPartsDetails_result['parts_code']; ?></td>
+						    <td><?php echo $purchaseOrderPartsDetails_result['name']; ?></td>
+						    <td><?php echo $purchaseOrderPartsDetails_result['details']; ?></td>
+						    <td><?php echo $purchaseOrderPartsDetails_result['quantity']; ?></td>
+						    <td><?php echo read_Parts_Unit($purchaseOrderPartsDetails_result['unit']); ?></td>
+						    <!-- <td><?php echo number_format($purchaseOrderPartsDetails_result['costperunit'], 2); ?></td> -->
+						    <!-- <td><?php echo number_format($purchaseOrderPartsDetails_result['total'], 2); ?></td> -->
+						    
+						    <td colspan="1"></td>
+						    
+						    <td>
+	<?php
+								echo $rcv_quantity_count."/".$purchaseOrderPartsDetails_result['quantity'];
+	?>
+						    </td>
+						</tr>
+		<?php
+					}
+				} // End Check Received Quantity Count
+			}
 		}
 		if($j == 0){
 		    echo "<tr><td colspan=6 align=center>- ไม่พบข้อมูล -</td></tr>";
@@ -162,63 +181,6 @@
 ?>
 	</table>
 </div>
-<?php
-
-// Function
-function received_quantity_check($parts_pocode){
-	
-	// Initial
-	$isList = 0;
-	
-	// แสดง PO Details
-	$purchaseOrderPartsDetails_strQuery = "
-		SELECT 
-			* 
-		FROM 
-			\"PurchaseOrderPartsDetails\" 
-		JOIN 
-			\"parts\"
-		ON
-			\"parts\".code = \"PurchaseOrderPartsDetails\".parts_code
-		WHERE 
-			\"PurchaseOrderPartsDetails\".parts_pocode = '".$parts_pocode."'
-		ORDER BY auto_id ASC 
-	";
-    $purchaseOrderPartsDetails_query = pg_query($purchaseOrderPartsDetails_strQuery);
-    while($purchaseOrderPartsDetails_result = pg_fetch_array($purchaseOrderPartsDetails_query)){
-    	
-		// Check Received Quantity Count
-		$received_quantity_check_strQuery = "
-			select 
-				parts_code,
-				SUM(rcv_quantity) AS rcv_quantity_count
-			from 
-				\"PartsReceivedDetails\" 
-			where 
-				parts_rcvcode IN 
-				(
-					select parts_rcvcode 
-					from \"PartsReceived\" 
-					where parts_pocode = '".$parts_pocode."'
-				)
-				AND
-				parts_code = '".$purchaseOrderPartsDetails_result['parts_code']."'
-			group by parts_code 
-			;
-		";
-		$received_quantity_check_query = pg_query($received_quantity_check_strQuery);
-		while($received_quantity_check_result = pg_fetch_array($received_quantity_check_query)){
-			
-			if($purchaseOrderPartsDetails_result['quantity'] - $received_quantity_check_result["rcv_quantity_count"] == 0){
-				$isList++;
-			}
-		}
-		
-	}
-	
-	return $isList;
-}
-?>
 
 <script>
 function ShowDetail(url, id){
@@ -235,4 +197,24 @@ function ShowDetail(url, id){
         }
     });
 }
+
+$(".search.div1 #display_type").live("change", function(){
+	var type = $(this).val();
+	if(type == 1){
+		var str = '';
+	}
+	else if(type == 2){
+		var str = 
+		'<select id="display_type2" name="display_type2">'+
+		'	<option value="0">เลือกประเภท</option>'+
+		'	<option value="1">มาจากการสั่งซื้อ</option>'+
+		'	<option value="2">มาจากการสั่งประกอบชิ้นงาน</option>'+
+		'</select>';
+	}
+	else if(type == 3){
+		var str = 
+		'<input type="text" name="po_id" style="width: 70%; " />';
+	}
+	$(".search.div2").html(str);
+});
 </script>

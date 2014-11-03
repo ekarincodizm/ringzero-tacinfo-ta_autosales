@@ -14,37 +14,55 @@
 	
 	$nowDateTime = nowDateTime();
 	
-	//Query PartsReceived
-	$withdrawalParts_strQuery = "
-		UPDATE 
+	// ######## Select that there are NO WithdrawalParts insert before (Test concurrency Pass) ########
+	$test_concurrency_strQuery = "
+		SELECT *
+		FROM
 			\"WithdrawalParts\"
-		SET 
-			status = ".$set_status."
-		WHERE code = '".$withdrawal_code."';
+		WHERE 
+			code = '".$withdrawal_code."';
 	";
+	$test_concurrency_query = @pg_query($test_concurrency_strQuery);
+	$test_concurrency_numrow = @pg_num_rows($test_concurrency_query); 
+	if($test_concurrency_numrow == 0){
+		
+		//Query PartsReceived
+		$withdrawalParts_strQuery = "
+			UPDATE 
+				\"WithdrawalParts\"
+			SET 
+				status = ".$set_status."
+			WHERE code = '".$withdrawal_code."';
+		";
+		
+		if(!$result=@pg_query($withdrawalParts_strQuery)){
+	        $txt_error[] = "INSERT withdrawalParts ไม่สำเร็จ $withdrawalParts_strQuery";
+	        $status++;
+	    }
+		
+		// ###### Insert Approve กลับ ######
+		$ApproveParts_forWithdrawal_strQuery = "
+			UPDATE
+				\"PartsApproved\"
+			SET
+				appr_id = '".$id_user."', 
+				appr_note = '".$appr_note."', 
+				appr_timestamp = '".$nowDateTime."'
+			WHERE
+				code = '".$withdrawal_code."' ;
+		";
+		
+		if(!$result = @pg_query($ApproveParts_forWithdrawal_strQuery)){
+	        $txt_error[] = "UPDATE ApproveParts_forWithdrawal_strQuery ไม่สำเร็จ ".$ApproveParts_forWithdrawal_strQuery;
+	        $status++;
+	    }
+	}
 	
-	if(!$result=@pg_query($withdrawalParts_strQuery)){
-        $txt_error[] = "INSERT withdrawalParts ไม่สำเร็จ $withdrawalParts_strQuery";
+	// ######## Select that there are WithdrawalParts insert before (Test concurrency False) ########
+	else{
+		$txt_error[] = "ไม่สามารถทำรายการได้ เลขที่ขอเบิก : ".$withdrawal_code." มีการอนุมัติการเบิกสินค้าออกสต๊อกแล้ว";
         $status++;
-    }
-	
-	// ###### Insert Approve กลับ ######
-	$ApproveParts_forWithdrawal_strQuery = "
-		UPDATE
-			\"PartsApproved\"
-		SET
-			appr_id = '".$id_user."', 
-			appr_note = '".$appr_note."', 
-			appr_timestamp = '".$nowDateTime."'
-		WHERE
-			code = '".$withdrawal_code."' ;
-	";
-	
-	if(!$result = @pg_query($ApproveParts_forWithdrawal_strQuery)){
-        $txt_error[] = "UPDATE ApproveParts_forWithdrawal_strQuery ไม่สำเร็จ ".$ApproveParts_forWithdrawal_strQuery;
-        $status++;
-    }
-	
+	}
 	
 	
 	// Check Is Query or Not?

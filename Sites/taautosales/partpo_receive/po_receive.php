@@ -12,12 +12,14 @@ $page_title = "รับสินค้าเข้าสต๊อก";
 <head>
     <meta http-equiv="Content-Type" content="txt/html; charset=utf-8" />
     <title><?php echo $company_name; ?> - <?php echo $page_title; ?></title>
-    <LINK href="../images/styles.css" type=text/css rel=stylesheet>
-
+    <LINK href="../images/styles.css" type="text/css" rel="stylesheet">
+	
+	<link type="text/css" href="css/style.css" rel="stylesheet" />
+	
     <link type="text/css" href="../images/jqueryui/css/redmond/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
     <script type="text/javascript" src="../images/jqueryui/js/jquery-1.6.2.min.js"></script>
     <script type="text/javascript" src="../images/jqueryui/js/jquery-ui-1.8.16.custom.min.js"></script>
-
+	
 </head>
 <body class="body">
 <div class="roundedcornr_box" style="width:900px">
@@ -25,6 +27,9 @@ $page_title = "รับสินค้าเข้าสต๊อก";
       <div class="roundedcornr_content">
 <?php
 		include_once("../include/header_popup.php");
+		
+		include_once("po_receive_webservice.php");
+		
 		include_once("po_receive_body.php"); 
 ?>
       </div>

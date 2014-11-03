@@ -24,6 +24,7 @@ $page_title = "ทำรายการรับสินค้าเข้า�
 
 <?php
 // include_once("../include/header_popup.php");
+include_once("po_receive_webservice.php");
 include_once("po_receive_detail_body.php");
 ?>
 

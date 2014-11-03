@@ -36,14 +36,6 @@ include_once ("../include/header_popup.php");
 
 <div>
   <div style="float:right; ">
-  	<!-- <button style="width:150px;" onclick="window.location='<?php
-	  	if($page == "add"){
-	  		?>add_product.php<?php
-	  	}
-		elseif($page == "edit"){
-			?>edit_product.php?pid=<?php echo pg_escape_string($_GET["pid"]);
-		}
-  	?>'">กลับไปยัง รายการเพิ่ม ของหน้า เพิ่มรายการอะไหล่/อุปกรณ์</button> -->
   </div><br />
   <div>
     <table width="578" border="0" cellpadding="2">
@@ -85,8 +77,6 @@ include_once ("../include/header_popup.php");
 	$('#btnSave').click(function() {
 		var chk = 0;
 		var msg = "Error! \n";
-		
-		// console.log($('#p_unitname').val());
 		
 		if ($('#p_unitname').val() == "") {
 			msg += "กรุณาระบุ ชื่อหน่วย \n";

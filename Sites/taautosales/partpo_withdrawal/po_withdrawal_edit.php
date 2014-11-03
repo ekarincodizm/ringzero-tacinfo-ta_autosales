@@ -33,7 +33,10 @@ $page_title = "ทำรายการรับสินค้าเข้า�
 		html .ui-autocomplete {
 			height: 200px;
 		}
-	</style>
+    	.ui-autocomplete { 
+    		height: 400px; overflow-y: scroll; overflow-x: hidden;
+    	}
+    </style>
 </head>
 <body>
 

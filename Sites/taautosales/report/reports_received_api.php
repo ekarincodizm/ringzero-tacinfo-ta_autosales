@@ -306,14 +306,14 @@ elseif($cmd == "receipt" ){
 	if($s_showDetail == "1") // ถ้า แสดงรายการทั้งหมด
 	{
 		$disabledDate = "disabled";
-		$sDate = "A.\"o_prndate\" >= '$date1' AND A.\"o_prndate\" <= '$date2'";
+		$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
 		$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
 	}
 	elseif($s_showDetail == "2") // ถ้า แสดงรายการปกติ
 	{
 		$disabledDate = "disabled";
 		$qwhere = "AND \"cancel\" = false";
-		$sDate = "A.\"o_prndate\" >= '$date1' AND A.\"o_prndate\" <= '$date2'";
+		$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
 		$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
 	}
 	elseif($s_showDetail == "3") // ถ้า แสดงรายการที่ยกเลิก
@@ -322,14 +322,25 @@ elseif($cmd == "receipt" ){
 	
 		$disabledDate = "";
 		$qwhere = "AND \"cancel\" = true";
-		// ถ้าแสดงตามวันที่ยกเลิก
-
+		
+		if($s_showDate == "2") // ถ้าแสดงตามวันที่ยกเลิก
+		{
 			$join = "left join \"CancelReceipt\" C on A.\"o_receipt\" = C.\"c_receipt\"";
 			$cdc = ",C.\"c_date\"";
 			$sDate = "C.\"c_date\" >= '$date1' AND C.\"c_date\" <= '$date2'";
 			
 			$joinChq = "LEFT JOIN \"CancelReceipt\" C ON chq_detail.\"receipt_no\" = C.\"c_receipt\"";
 			$sDateChq = "C.\"c_date\" >= '$date1' AND C.\"c_date\" <= '$date2'";
+		}
+		else
+		{
+			$join = "left join \"CancelReceipt\" C on A.\"o_receipt\" = C.\"c_receipt\"";
+			$cdc = ",C.\"c_date\"";
+			$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
+			
+			$joinChq = "LEFT JOIN \"CancelReceipt\" C ON chq_detail.\"receipt_no\" = C.\"c_receipt\"";
+			$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
+		}
 		
 		
 		//--- กำหนดค่า colspan
@@ -353,7 +364,7 @@ elseif($cmd == "receipt" ){
 		$s_showDetail = "1";
 		$s_showDate = "1";
 		$disabledDate = "disabled";
-		$sDate = "A.\"o_prndate\" >= '$date1' AND A.\"o_prndate\" <= '$date2'";
+		$sDate = "A.\"o_date\" >= '$date1' AND A.\"o_date\" <= '$date2'";
 		$sDateChq = "chq.\"receive_date\" >= '$date1' AND chq.\"receive_date\" <= '$date2'";
 	}
 ?>

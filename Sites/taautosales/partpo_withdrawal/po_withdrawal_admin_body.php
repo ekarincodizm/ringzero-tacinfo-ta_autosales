@@ -15,7 +15,7 @@ if(!CheckAuth()){
 			<td width="50"><b>ผู้ขอเบิก</b></td>
 			<td width="50"><b>ผู้ทำรายการ</b></td>
 			<!-- <td width="50"><b>ยกเลิก</b></td> -->
-			<td width="50"><b>ส่งรออนุมัติ</b></td>
+			<td width="50"><b>ทำรายการอนุมัติ</b></td>
 		</tr>
 <?php
 		// find user id
@@ -54,7 +54,7 @@ if(!CheckAuth()){
 				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo $withdrawalParts_result["date"]; ?></a></td>
 				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo find_username($withdrawalParts_result["withdraw_user_id"]); ?></a></td>
 				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo find_username($withdrawalParts_result["user_id"]); ?></a></td>
-				<td align="center"><a href="#" onclick="javascript:ApprWithdrawal('po_withdrawal_admin_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><img src="../images/icon-edit.png" border="0" alt="ส่งรออนุมัติ" title="ส่งรออนุมัติ" style="cursor: pointer; " /></a></td>
+				<td align="center"><a href="#" onclick="javascript:ApprWithdrawal('po_withdrawal_admin_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><img src="../images/icon-edit.png" border="0" alt="ทำรายการอนุมัติ" title="ทำรายการอนุมัติ" style="cursor: pointer; " /></a></td>
 			</tr>
 <?php
 		}

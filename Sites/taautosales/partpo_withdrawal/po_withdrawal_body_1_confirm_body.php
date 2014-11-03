@@ -1,6 +1,9 @@
-<!-- header -->
 <br />
 <?php
+// ###################### Function ###########################
+include_once("po_withdrawal_webservice.php");
+// #################### End Function #########################
+
 $withdrawalParts_code = pg_escape_string($_GET["code"]);
 
 $appr_strQuery = "
@@ -22,7 +25,9 @@ $withdrawalParts_strQuery = "
 		withdraw_user_id, 
 		date, 
 		usedate, 
-		status
+		status,
+		project_id,
+		project_quantity
 	FROM 
 		\"WithdrawalParts\"
 	WHERE
@@ -121,6 +126,30 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 				<?php echo date("d-m-Y", strtotime($withdrawalParts_result["usedate"])); ?>
 			</div>
 			<div style="clear: both;"></div>
+		</div>
+		
+		<div class="withdrawal_type_2">
+<?php
+			if($withdrawalParts_result["type"] == 2){
+?>
+				<div style="width: 40%; float: left; text-align: right; margin-right: 2%; ">
+					<b> ใช้ทำโปรเจค :</b>
+				</div>
+				<div style="width: 58%; float: left;">
+<?php
+					echo get_projectName($withdrawalParts_result["project_id"]);
+?>
+				</div>
+				<div style="clear: both; "></div>
+				<div style="width: 40%; float: left; text-align: right; margin-right: 2%; ">
+					<b> ต้องการผลิตเป็นสินค้าจำนวน :</b>
+				</div>
+				<div style="width: 58%; float: left;">
+					<?php echo $withdrawalParts_result["project_quantity"]; ?>
+				</div>
+<?php
+			}
+?>
 		</div>
 		
 	</div>
@@ -450,7 +479,7 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 		// ## End validate Quantity ##
 		
 		if(chk == 0){
-			if(confirm('คุณต้องการที่จะยืนยันการอนุมัติการเบิกหรือไม่') == false){
+			if(confirm('ต้องการทำการบันทึกหรือไม่?') == false){
 				return false;
 			}
 			else{

@@ -14,86 +14,60 @@
 	$status = 0;
 	$txt_error = array();
 	
-	
-	$PartsApproved_StrQuery = "
-		UPDATE
-			\"PartsApproved\"
-		SET
-			\"appr_id\" = '{$UserID}',
-			\"appr_note\" = '{$appr_note}',
-			\"appr_timestamp\" = '{$appr_timestamp}'
-		WHERE
-			\"code\" = '{$parts_pocode}'
-	";
-	if(!$PartsApproved_query = @pg_query($PartsApproved_StrQuery)){
-        $txt_error[] = "UPDATE PartsApproved ไม่สำเร็จ $PartsApproved_StrQuery";
-        $status++;
-    }
-	
-	
-	$PurchaseOrderPart_StrQuery = "
-		UPDATE
-			\"PurchaseOrderPart\"
-		SET
-			\"status\" = '{$approve_status}'
-		WHERE
-			\"parts_pocode\" = '{$parts_pocode}'
-	";
-	if(!$PurchaseOrderPart_query = @pg_query($PurchaseOrderPart_StrQuery)){
-        $txt_error[] = "UPDATE PurchaseOrderPart ไม่สำเร็จ $PurchaseOrderPart_StrQuery";
-        $status++;
-    }
-	
-	
-		
-	/*
-	$PartsApproved_StrQuery = "
+	//ต้อง Check ก่อนว่า Parts_pocode ตัวนั้น ได้ทำการ Update ไปก่อนหน้าหรือไม่
+	$check_isApprove_strQuery = "
 		SELECT 
-			\"code\"
+			parts_pocode, date, type, copypo_id, credit_terms, app_sentpartdate, 
+			esm_paydate, vender_id, vat_status, subtotal, pcdiscount, discount, 
+			bfv_total, pcvat, vat, nettotal, status, paid
 		FROM 
-			\"PartsApproved\"
-		WHERE 
-			\"code\" = '".$parts_pocode."'
+			\"PurchaseOrderPart\"
+		WHERE	
+			parts_pocode = '".$parts_pocode."'
 			AND
-			\"appr_id\" = '".$UserID."'
+			status = 1
+		;
 	";
-	$PartsApproved_query = @pg_query($PartsApproved_StrQuery);
-	if($PartsApproved_result = @pg_fetch_array($PartsApproved_query)){
+	$check_isApprove_query = @pg_query($check_isApprove_strQuery);
+	if($check_isApprove_result = @pg_fetch_array($check_isApprove_query)){
+	//ถ้า Check แล้ว ไม่ concurrency
 		
-	}
-	else{
-		$PartsApproved_StrQuery_record = "
-			INSERT INTO 
+		$PartsApproved_StrQuery = "
+			UPDATE
 				\"PartsApproved\"
-			(
-				\"code\",
-				\"appr_id\",
-				\"appr_note\",
-				\"appr_timestamp\"
-			)
-			VALUES
-			(
-				'{$UserID}',
-				'{$appr_note}',
-				'{$appr_timestamp}'
-			)
-				
-				
 			SET
-				\"appr_note\" = '{$appr_note}',
 				\"appr_id\" = '{$UserID}',
+				\"appr_note\" = '{$appr_note}',
 				\"appr_timestamp\" = '{$appr_timestamp}'
 			WHERE
 				\"code\" = '{$parts_pocode}'
 		";
 		if(!$PartsApproved_query = @pg_query($PartsApproved_StrQuery)){
-	        $txt_error[] = "UPDATE PartsApproved ไม่สำเร็จ $PartsApproved_StrQuery_record";
+	        $txt_error[] = "UPDATE PartsApproved ไม่สำเร็จ $PartsApproved_StrQuery";
 	        $status++;
 	    }
+		
+		
+		$PurchaseOrderPart_StrQuery = "
+			UPDATE
+				\"PurchaseOrderPart\"
+			SET
+				\"status\" = '{$approve_status}'
+			WHERE
+				\"parts_pocode\" = '{$parts_pocode}'
+		";
+		if(!$PurchaseOrderPart_query = @pg_query($PurchaseOrderPart_StrQuery)){
+	        $txt_error[] = "UPDATE PurchaseOrderPart ไม่สำเร็จ $PurchaseOrderPart_StrQuery";
+	        $status++;
+	    }
+		
+		
 	}
-	*/
-	
-	
+	else{
+	//ถ้า Check แล้ว concurrency
+		$txt_error[] = "ผู้ใช้ก่อนหน้านี้ ได้ทำรายการนี้ไปเรียบร้อยแล้ว";
+        $status++;
+	}
 	
 	// ######### For Test checking the Variables #########
 	
@@ -108,7 +82,7 @@
 	
 	//Check Is Query or Not?
 	if($status == 0){
-        //pg_query("ROLLBACK");
+        // pg_query("ROLLBACK");
         pg_query("COMMIT");
         $data['success'] = true;
         $data['message'] = "บันทึกเรียบร้อย";
@@ -117,8 +91,6 @@
         $data['success'] = false;
         $data['message'] = "ไม่สามารถบันทึกได้! $txt_error[0]";
     }
-	
-	// $data["test"] = $B_query;
 	
 	echo json_encode($data);
 ?>

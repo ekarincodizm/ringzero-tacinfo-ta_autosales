@@ -146,7 +146,7 @@ $save_data[$m] .='
 </table>';
 	
 	$save_data[$m] .='
-<table cellpadding="3" cellspacing="0" border="1" width="100%" style="font-size:16;">
+<table cellpadding="3" cellspacing="0" border="1" width="100%" style="font-size:14;">
 	<tr  bgcolor="#CCCCCC">
 		<td width="10%" align="center"><b>ลำดับที่</b></td>
 		<td width="20%" align="center"><b>เลขที่ใบแจ้งหนี้</b></td>

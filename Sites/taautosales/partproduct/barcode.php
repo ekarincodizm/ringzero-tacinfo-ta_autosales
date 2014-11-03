@@ -14,7 +14,9 @@ $page_title = "พิมพ์บาร์โค้ดอะไหล่/อุ�
     <link type="text/css" href="../images/jqueryui/css/redmond/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
     <script type="text/javascript" src="../images/jqueryui/js/jquery-1.6.2.min.js"></script>
     <script type="text/javascript" src="../images/jqueryui/js/jquery-ui-1.8.16.custom.min.js"></script>
-
+	<style>
+    	.ui-autocomplete { height: 400px; overflow-y: scroll; overflow-x: hidden;}
+    </style>
 </head>
 <body>
 
@@ -29,7 +31,6 @@ include_once ("../include/header_popup.php");
 <div style="text-align:left;">&nbsp;&nbsp;</div>
 
 <div>
-	<div style="float:right; "><button style="width:75px;" onclick="window.location='product.php'">กลับ</button></div><br />
 	<div>
 		<table width="860" border="0" cellpadding="2">
 			<tr>
@@ -47,7 +48,7 @@ include_once ("../include/header_popup.php");
 					รหัสสินค้าที่พิมพ์จาก รหัส
 				</td>
 				<td>
-					<input type="text" name="barcode_start" class="" value="" style="width:300px;" />
+					<input type="text" name="barcode_start" id="barcode_start" class="" value="" style="width:300px;" disabled="disabled" />
 				</td>
 			</tr>
 			<tr>
@@ -55,7 +56,7 @@ include_once ("../include/header_popup.php");
 					รหัสสินค้าที่พิมพ์ถึง รหัส
 				</td>
 				<td>
-					<input type="text" name="barcode_end" class="" value="" style="width:300px;" />
+					<input type="text" name="barcode_end" id="barcode_end" class="" value="" style="width:300px;" disabled="disabled" />
 				</td>
 			</tr>
 			<tr>
@@ -77,6 +78,9 @@ include_once ("../include/header_popup.php");
 	$("#p_Type").live("change", function(){
 		var _p_type = $(this).val();
 		if(_p_type == 0){
+			$("input[name=barcode_start]").prop("disabled", false);
+			$("input[name=barcode_end]").prop("disabled", false);
+			
 			$("input[name=barcode_start]").val("");
 			$("input[name=barcode_end]").val("");
 			
@@ -87,6 +91,9 @@ include_once ("../include/header_popup.php");
 			$("input[name=barcode_end]").addClass("parts_code_type0");
 		}
 		else if(_p_type == 1){
+			$("input[name=barcode_start]").prop("disabled", false);
+			$("input[name=barcode_end]").prop("disabled", false);
+			
 			$("input[name=barcode_start]").val("");
 			$("input[name=barcode_end]").val("");
 			
@@ -110,7 +117,8 @@ include_once ("../include/header_popup.php");
 		FROM
 			\"parts\"
 		WHERE
-			type = 0;
+			type = 0
+		ORDER by code;
 	";
 	$qry_parts_type0=@pg_query($strQuery_parts_type0);
 	$numrows_parts_type0 = pg_num_rows($qry_parts_type0);
@@ -212,18 +220,6 @@ include_once ("../include/header_popup.php");
 			$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
 			$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
 		}
-		// elseif($res_parts["type"] == 1){
-			// $v_parts_stock__count_per_parts_code_strQuery = "
-				// SELECT 
-					// stock_status
-				// FROM 
-					// v_parts_stock_detail__count_per_parts_code
-				// WHERE
-					// parts_code = '".$res_parts["code"]."'
-			// ";
-			// $v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-			// $stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-		// }
 		elseif($res_parts["type"] == 3){
 			$stock_remain = 1;
 		}
@@ -246,10 +242,11 @@ include_once ("../include/header_popup.php");
 				withdrawal_detail_status = 1
 				AND
 				parts_code = '".$res_parts["code"]."'
-				AND
-				code <> '".$withdrawalParts_code."'
 			GROUP BY parts_code ;
 		";
+		// AND
+			// code <> '".$withdrawalParts_code."'
+		
 		$v_parts_withdrawal_quantity3_query = @pg_query($v_parts_withdrawal_quantity3_strQuery);
 		$sum_withdrawal_quantity = @pg_fetch_result($v_parts_withdrawal_quantity3_query, 0);
 		
@@ -311,7 +308,6 @@ include_once ("../include/header_popup.php");
 	        }
 	    }).data("autocomplete")._renderItem = function(ul, item) {
 	    	
-	    	
 	    	// #### สำหรับ นับจำนวน สินค้าคงเหลือในคลัง ####
 	    	var i = 0;
 			var parts_name_value = "";
@@ -345,18 +341,12 @@ include_once ("../include/header_popup.php");
 			var String__stock_remain = stock_remain_with_withdrawal_value+" ("+stock_remain_value+")";
 	    	// #### End สำหรับ นับจำนวน สินค้าคงเหลือในคลัง ####
 	    	
-	    	// ### ถ้า  stock_remain_with_withdrawal_value หรือของที่ไม่มีอยู่ในคลัง หรือว่า ของหมด Stock ไปแล้ว => ให้ไม่ต้อง Show ใน Autocomplete ###
-	    	if(stock_remain_with_withdrawal_value > 0){
-	    	
-				if(item.type=='1'){
-				    return $('<li class="ui-menu-item disabled" style="margin-top:5px; margin-bottom: 5px; margin-left: 5px; color: #999; "></li>').data("item.autocomplete", item).append('<span>'+item.label+' # '+String__stock_remain+'</span>').appendTo(ul);
-				}
-				else{
-				    return $("<li></li>").data("item.autocomplete", item).append("<a>" + item.label + "</a>").appendTo(ul);
-				}
-				
+			if(item.type=='1'){
+			    return $('<li class="ui-menu-item disabled" style="margin-top:5px; margin-bottom: 5px; margin-left: 5px; color: #999; "></li>').data("item.autocomplete", item).append('<span>'+item.label+' # '+String__stock_remain+'</span>').appendTo(ul);
 			}
-			
+			else{
+			    return $("<li></li>").data("item.autocomplete", item).append("<a>" + item.label + "</a>").appendTo(ul);
+			}
 		};
 	});
 	// ################################## End Load All Parts Detail ##########################################
@@ -365,114 +355,34 @@ include_once ("../include/header_popup.php");
 	$('#btnSave').click(function() {
 		var chk = 0;
 		var msg = "ผิดพลาด! \n";
+		var p_Type = $('#p_Type').val();
+		var barcode_start = $('#barcode_start').val();
+		var barcode_end = $('#barcode_end').val();
 
-		//var txttable = $('#cb_product').val();
-		//alert(txttable);
-
-		if ($('#p_code_type').val() == "") {
-			msg += "กรุณาระบุ ประเภทกลุ่มอะไหล่ \n";
+		if (p_Type == "") {
+			msg += "กรุณาเลือก รหัสย่อย \n";
+			chk++;
+		}
+		if (barcode_start == "") {
+			msg += "กรุณาระบุ รหัสสินค้าที่พิมพ์จาก รหัส \n";
+			chk++;
+		}
+		if (barcode_end == "") {
+			msg += "กรุณาระบุ รหัสสินค้าที่พิมพ์ถึง รหัส \n";
 			chk++;
 		}
 		
-		if ($("input[name=has_barcode]:checked").val() == "" || $("input[name=has_barcode]:checked").val() == null ) {
-			msg += "กรุณาระบุ ประเภทรหัสบาร์โค้ด \n";
-			chk++;
-		}
-		else if($("input[name=has_barcode]:checked").val() == "yes"){
-			if($("input[name=barcode]").val() == ""){
-				msg += "กรุณาระบุ รหัสบาร์โค้ด \n";
-				chk++;
-			}
-		}
 		
-		if ($('#p_name').val() == "") {
-			msg += "กรุณาระบุ ชื่อสินค้า \n";
-			chk++;
-		}
-		if ($('#p_detail').val() == "") {
-			msg += "กรุณาระบุ รายละเอียดสินค้า \n";
-			chk++;
-		}
-
-		if ($('#p_priceperunit').val() == "") {
-			msg += "กรุณาระบุ ราคาขายของสินค้า \n";
-			chk++;
-		}
-
-		if ($('#p_unitid').val() == "") {
-			msg += "กรุณาระบุ หน่วย \n";
-			chk++;
-		}
-		if ($('#p_svcharge').val() == "") {
-			msg += "กรุณาระบุ ค่าบริการ \n";
-			chk++;
-		}
-		if ($('#p_Type').val() == "") {
-			msg += "กรุณาระบุ ประเภท \n";
-			chk++;
-		}
-		
-		//For Valudate check that there are Parts Product that already Added
-		/*
-		for (var i = 0; i < parts_code.length; i++) {//For Valudate check that there are Parts Product that already Added
-			var count_code = 0;
-			if ($('#p_code').val() == parts_code[i]) {
-				count_code++;
-			}
-			// console.log("count_code = "+count_code);
-			if (count_code > 0) {
-				msg += "กรุณาระบุ รหัสสินค้าใหม่ เนื่องจากรหัสสินค้าซ้ำกับของเก่า \n";
-				chk++;
-			}
-		}
-		*/
-
 		if (chk > 0) {
 			alert(msg);
 			return false;
 		} else {
 			
-			if(!confirm('คุณต้องการที่จะยืนยันการอนุมัติหรือไม่')){
+			if(!confirm('คุณต้องการที่จะยืนยันการพิมพ์บาร์โค้ด หรือไม่')){
 				return false;
-			} 
-			
-			if($("input[name=has_barcode]:checked").val() == "yes"){
-				var _barcode = $("input[name=barcode]").val();
-			}
-			else if($("input[name=has_barcode]:checked").val() == "no"){
-				var _barcode = "";
 			}
 			
-			//Send AJAX Request: HTTP POST: For Record Parts 's Products
-			$.post('save_product.php', {
-				p_has_barcode: $("input[name=has_barcode]:checked").val(),
-				p_barcode: _barcode,
-				
-				p_code_type : $("#p_code_type").val(),
-				p_name : $('#p_name').val(),
-				p_detail : $('#p_detail').val(),
-				p_priceperunit : $('#p_priceperunit').val(),
-				p_unitid : $('#p_unitid').val(),
-				p_svcharge : $('#p_svcharge').val(),
-				p_Type : $('#p_Type').val() //This is 2nd Parameter -- Send Post Variables
-			}, function(data) {
-				if (data.success) {//If Success, Will be recorded
-					console.log("# data.success = success #");
-
-					//For Test
-					console.log("id = " + data.test);
-					console.log("data.message = " + data.message);
-
-					alert(data.message);
-					
-					// location.reload();
-					location='product.php'
-				} else {//If Failed, Will not be recorded
-					console.log("# data.success = false #");
-					alert(data.message);
-					console.log(data.message);
-				}
-			}, 'json');
+			popU('barcode_pdf.php?p_Type='+p_Type+'&barcode_start='+barcode_start+'&barcode_end='+barcode_end,'','toolbar=no,menubar=no,resizable=no,scrollbars=yes,status=no,location=no,width=750,height=300');
 		}
 	});
 

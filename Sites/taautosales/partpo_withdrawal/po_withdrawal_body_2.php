@@ -6,10 +6,29 @@ if(!CheckAuth()){
     header("Refresh: 0; url=../index.php");
     exit();
 }
-?>
-<div style="width:870px; overflow-y: hidden; overflow-x: auto; ">
+// ##################### Model ########################
 
-	<table cellpadding="3" cellspacing="1" border="0" width="870" bgcolor="#F0F0F0">
+function get_fuser_fullname($id_user){
+	$fuser_strQuery = "
+		SELECT 
+			fullname
+		FROM 
+			fuser
+		WHERE 
+			id_user = '".$id_user."'
+		ORDER BY fullname
+		;
+	";
+	$fuser_query = @pg_query($fuser_strQuery);
+	while ($fuser_result = @pg_fetch_array($fuser_query)) {
+		return $fuser_result["fullname"];
+	}
+}
+// ################### END Model ######################
+?>
+<div style="width:850px; overflow-y: hidden; overflow-x: auto; ">
+
+	<table cellpadding="3" cellspacing="1" border="0" width="850" bgcolor="#F0F0F0">
 		<tr bgcolor="#D0D0D0" style="font-weight:bold; text-align:center">
 			<td width="80"><b>เลขที่ขอเบิก</b></td>
 			<td width="50"><b>วันที่ขอเบิก</b></td>
@@ -39,8 +58,8 @@ if(!CheckAuth()){
 			<tr>
 				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo $withdrawalParts_result["code"]; ?></a></td>
 				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo $withdrawalParts_result["date"]; ?></a></td>
-				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo $withdrawalParts_result["withdraw_user_id"]; ?></a></td>
-				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo $withdrawalParts_result["user_id"]; ?></a></td>
+				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo get_fuser_fullname($withdrawalParts_result["withdraw_user_id"]); ?></a></td>
+				<td><a href="#" onclick="javascript:ViewWithdrawal('po_withdrawal_view.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><?php echo get_fuser_fullname($withdrawalParts_result["user_id"]); ?></a></td>
 				<td align="center"><img src="../images/close_button.png" border="0" class="btn_cancel" data-withdrawal_code="<?php echo $withdrawalParts_result["code"]; ?>" alt="ยกเลิก" title="ยกเลิก" style="cursor: pointer; "></td>
 			</tr>
 <?php

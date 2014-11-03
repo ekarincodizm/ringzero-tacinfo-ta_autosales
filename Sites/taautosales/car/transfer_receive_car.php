@@ -482,10 +482,25 @@ function chkDate(datetxt){
 	var str = datetxt;
 	var Date_split = str.split("-");
 	var chk = 0;
-	if(Date_split.length!= 3){
-		chk++;
-	}else{
 	
+	if(str == '')
+	{
+		chk++;
+	}
+	else if(str.length != 10)
+	{
+		chk++;
+	}
+	else if(str.substring(4, 5) != "-" || str.substring(7, 8) != "-")
+	{
+		chk++;
+	}
+	else if(Date_split.length!= 3)
+	{
+		chk++;
+	}
+	else
+	{
 		var dtYear = parseInt(Date_split[0]);  
 		var dtMonth = parseInt(Date_split[1]);
 		var dtDay = parseInt(Date_split[2]);

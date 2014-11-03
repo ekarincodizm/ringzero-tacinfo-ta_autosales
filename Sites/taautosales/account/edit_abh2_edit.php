@@ -37,6 +37,7 @@ if($res_1=pg_fetch_array($qry_1)){
         $AcID = $res_2["AcID"];
         $AmtDr = $res_2["AmtDr"];
         $AmtCr = $res_2["AmtCr"];
+		$abd_serial = $res_2["abd_serial"]; // PK ของตาราง
         
         if($AcID == 1999 AND $AmtDr != 0 AND $AmtCr == 0){
             $nub_1999++;
@@ -54,9 +55,9 @@ if($res_1=pg_fetch_array($qry_1)){
 ?>
 <tr bgcolor="#FFFFFF">
     <td align="center">
-    
-    <input type="hidden" name="aid<?php echo $g; ?>" id="aid<?php echo $g; ?>" value="<?php echo "$AcID"; ?>">
-    
+		<input type="hidden" name="aid<?php echo $g; ?>" id="aid<?php echo $g; ?>" value="<?php echo "$AcID"; ?>">
+		<input type="hidden" name="abd_serial<?php echo $g; ?>" id="abd_serial<?php echo $g; ?>" value="<?php echo "$abd_serial"; ?>">
+
         <select name="acid<?php echo $g; ?>" id="acid<?php echo $g; ?>" onchange="javascript:chk4700()">
         <?php
         $qry_4=pg_query("select \"AcID\",\"AcName\" from account.\"AcTable\" ORDER BY \"AcID\" ASC ");

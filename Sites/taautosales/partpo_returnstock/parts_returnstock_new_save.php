@@ -72,7 +72,7 @@
 	$generate_id = @pg_query($generate_id_StrQuery);
 	$gen_parts_no = @pg_fetch_result($generate_id, 0);
 	if(empty($gen_parts_no)){
-	    $txt_error[] = "สร้าง gen_rec_no ไม่สำเร็จ $generate_id_StrQuery";
+		$txt_error[] = "สร้าง gen_rec_no ไม่สำเร็จ $generate_id_StrQuery";
 		$status++;
 	}
 	
@@ -138,159 +138,360 @@
 		    }
 			
 			
-			// ######### INSERT partsStock ##########
-			$partsStock_check_strQuery = "
-				SELECT 
-					parts_code,
-					MAX(stock_lot) AS stock_lot
-				FROM 
-					\"PartsStock\"
-				WHERE 
-					parts_code = '".$parts_code."' 
-				group by parts_code ;
-			";
-			$partsStock_check_query = pg_query($partsStock_check_strQuery);
-			if($partsStock_check_result = pg_fetch_array($partsStock_check_query)){
-				$partsStock_strQuery = "
-					INSERT INTO \"PartsStock\"
-					(
-						parts_code, 
-						stock_lot, 
-						parts_rcvcode, 
-						rcv_date, 
-						rcv_quantity, 
-						costperunit, 
-						stock_remain, 
-						wh_id, 
-						locate_id, 
-						stock_status
-					)
-					VALUES
-					(
-						'{$parts_code}',
-						".($partsStock_check_result["stock_lot"] + 1).",
-						'{$gen_parts_no}',
-						'{$return_date}',
-						'{$quantity_return}',
-						null,
-						'{$quantity_return}',
-						'{$wh_id}',
-						'{$locate_id}',
-						'1'
-					)
-					RETURNING stock_id;
-				";
-			}
-			else{
-				
-				//insert the PartsStock when there are no parts_code in PartsStock
-				$partsStock_strQuery = "
-					INSERT INTO \"PartsStock\"
-					(
-						parts_code, 
-						stock_lot, 
-						parts_rcvcode, 
-						rcv_date, 
-						rcv_quantity, 
-						costperunit, 
-						stock_remain, 
-						wh_id, 
-						locate_id, 
-						stock_status
-					)
-					VALUES
-					(
-						'{$parts_code}',
-						'1',
-						'{$gen_parts_no}',
-						'{$return_date}',
-						'{$quantity_return}',
-						null,
-						'{$quantity_return}',
-						'{$wh_id}',
-						'{$locate_id}',
-						'1'
-					)
-					RETURNING stock_id;
-				";
-			}
-			$partsStock_query = @pg_query($partsStock_strQuery);
+			// ############## Check the parts_type First (is เป็น (รหัสแยกย่อย == 1)) #################
 			
-			// echo $partsStock_strQuery;
-				// pg_query("ROLLBACK");
-				// exit;
-			
-			if($partsStock_result = @pg_fetch_array($partsStock_query)) {
-				$i = 0; //For running number
+			// ################## ไม่มีรหัสแยกย่อย ######################
+			if($parts_type == 0){
 				
-				// Check That, Type PO is 1 or not, if yes, will insert PartsStockDetails each item.
-				if($parts_type == 1){
-					
-					// Check that parts_code is parts.type = 1 or not, if yes, Query Insert PartStockDetails
-					$parts_check_type_strQuery = "
-						SELECT
-							parts.type
-						FROM
-							parts
-						WHERE 
-							parts.code = '{$parts_code}'
-							AND
-							parts.type = 1
+				// ######### INSERT partsStock ##########
+				$partsStock_check_strQuery = "
+					SELECT 
+						parts_code,
+						MAX(stock_lot) AS stock_lot
+					FROM 
+						\"PartsStock\"
+					WHERE 
+						parts_code = '".$parts_code."' 
+					group by parts_code ;
+				";
+				$partsStock_check_query = pg_query($partsStock_check_strQuery);
+				if($partsStock_check_result = pg_fetch_array($partsStock_check_query)){
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStock\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							".($partsStock_check_result["stock_lot"] + 1).",
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'{$wh_id}',
+							'{$locate_id}',
+							'1'
+						)
+						RETURNING stock_id;
 					";
-					$parts_check_type_query = @pg_query($parts_check_type_strQuery);
-					if(@pg_fetch_result($parts_check_type_query, 0) == 1){
-						
-						// insert PartsStockDetails (each row of item)
-						for($i = 0; $i < $rcv_quantity; $i++){
-							$item_count_strQuery = "
-								UPDATE
-									\"parts\"
-								SET
-									\"item_count\" = \"item_count\" + 1
-								WHERE
-									code = '".$parts_code."'
-								RETURNING \"item_count\" ;
-							";
-							$item_count_query = @pg_query($item_count_strQuery);
-							$item_count = pg_fetch_result($item_count_query, 0);
-							
-							//Generate PartsStockDetails : codeid	
-							$codeid = $parts_code.sprintf('%06d', $item_count);
-							
-							$PartsStockDetails_strQuery = "
-								INSERT INTO \"PartsStockDetails\"(
-									codeid, 
-									stock_id, 
-									status, 
-									wh_id, 
-									locate_id, 
-								)
-								VALUES (
-									'{$codeid}', 
-									'".$partsStock_result["stock_id"]."',
-									'1',
-									'',
-									''
-								);
-							";
-							
-							if(!$result=@pg_query($PartsStockDetails_strQuery)){
-						        $txt_error[] = "INSERT PartsStockDetails_strQuery ไม่สำเร็จ $PartsStockDetails_strQuery";
-						        $status++;
-						    }
-						}
-						// END insert PartsStockDetails (each row of item)
-					}
-					//END Check that parts_code is parts.type = 1 or not, if yes, Query Insert PartStockDetails
-		// echo "#########################";
-	// pg_query("ROLLBACK");
-	// exit;
 				}
+				else{
+					
+					//insert the PartsStock when there are no parts_code in PartsStock
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStock\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							'1',
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'{$wh_id}',
+							'{$locate_id}',
+							'1'
+						)
+						RETURNING stock_id;
+					";
+				}
+				$partsStock_query = @pg_query($partsStock_strQuery);
+				
+				if($partsStock_result = @pg_fetch_array($partsStock_query)) {
+					$i = 0; //For running number
+					
+					// Check That, Type PO is 1 or not, if yes, will insert PartsStockDetails each item.
+				}
+				// ######### END INSERT partsStock ##########
+				
+				
+				
+				// ##################### ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ######################
+				
+				// ### Read How many Send_Quantity for that parts_code ###
+				$temp_quantity_return = $quantity_return;
+				$get_SendPartsDetails_strQuery = "
+					SELECT 
+						send_details_id, 
+						send_code,
+						parts_code, 
+						send_quantity
+					FROM 
+						\"SendPartsDetails\"
+					WHERE
+						parts_code = '".$parts_code."'
+					ORDER BY 
+						send_code
+					;
+				";
+				$get_SendPartsDetails_query = @pg_query($get_SendPartsDetails_strQuery);
+				while ($get_SendPartsDetails_result = @pg_fetch_array($get_SendPartsDetails_query)) {
+					
+					if($temp_quantity_return >= $get_SendPartsDetails_result["send_quantity"]){
+						$set_SendPartsDetails_strQuery = "
+							UPDATE 
+								\"SendPartsDetails\"
+							SET 
+								send_quantity = 0
+							WHERE 
+								send_details_id = '".$get_SendPartsDetails_result["send_details_id"]."'
+							;
+						";
+						$temp_quantity_return = $temp_quantity_return - $get_SendPartsDetails_result["send_quantity"];
+						if(!$result=@pg_query($set_SendPartsDetails_strQuery)){
+					        $txt_error[] = "UPDATE reduce SendPartsDetails ไม่สำเร็จ $set_SendPartsDetails_strQuery";
+					        $status++;
+					    }
+					}
+					else{
+						$set_SendPartsDetails_strQuery = "
+							UPDATE 
+								\"SendPartsDetails\"
+							SET 
+								send_quantity = ".($get_SendPartsDetails_result["send_quantity"] - $temp_quantity_return)."
+							WHERE 
+								send_details_id = '".$get_SendPartsDetails_result["send_details_id"]."'
+							;
+						";
+						$set_SendPartsDetails_query = pg_query($set_SendPartsDetails_strQuery);
+						if($sendParts_result = pg_fetch_array($sendParts_query)){
+					        $txt_error[] = "UPDATE reduce SendPartsDetails ไม่สำเร็จ $set_SendPartsDetails_strQuery";
+					        $status++;
+					    }
+						
+						$temp_quantity_return = 0;
+						$send_code = $get_SendPartsDetails_query["send_code"];
+						
+						break;
+					}
+					
+				}
+				// ################### END ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ####################
+				
+				
+				
+				// ##################### Check About ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ######################
+				$get_check_sendParts_strQuery = "
+					SELECT 
+						SUM(send_quantity) AS send_quantity
+					FROM 
+						\"SendPartsDetails\"
+					WHERE
+						parts_code = '".$parts_code."'
+						AND
+						send_code = '".$send_code."'
+					GROUP BY
+						send_code
+					;
+				";
+				$get_check_sendParts_query = @pg_query($get_check_sendParts_strQuery);
+				while ($get_check_sendParts_result = @pg_fetch_array($get_check_sendParts_query)) {
+					
+					if($get_check_sendParts_result["send_quantity"] == 0){
+						// ##################### ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ######################
+						$sendParts_strQuery = "
+							UPDATE 
+								\"SendParts\"
+							SET 
+								status = 0
+							WHERE 
+								send_code = '".$send_code."'
+							;
+						";
+						if(!$result=@pg_query($sendParts_strQuery)){
+					        $txt_error[] = "UPDATE remove SendParts ไม่สำเร็จ $sendParts_strQuery";
+					        $status++;
+					    }
+						// ################### END ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ####################
+					}
+					
+				}
+				if(!$get_check_sendParts_query){
+			        $txt_error[] = "UPDATE remove SendPartsDetails ไม่สำเร็จ $sendParts_strQuery";
+			        $status++;
+				}
+				// ################### END Check About ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ####################
+				
+				
 			}
-			
-			
-			// ######### END INSERT partsStock ##########
-			
+			// ################ END ไม่มีรหัสแยกย่อย ####################
+
+			// ############################### มีรหัสแยกย่อย ###################################
+			elseif($parts_type == 1){
+				$parts_code_detail = $parts_code;
+				$parts_code = substr($parts_code_detail, 0, 7);
+				
+				
+				
+				// ######### INSERT partsStock ##########
+				$partsStock_check_strQuery = "
+					SELECT 
+						parts_code,
+						MAX(stock_lot) AS stock_lot
+					FROM 
+						\"PartsStock\"
+					WHERE 
+						parts_code = '".$parts_code."' 
+					group by parts_code ;
+				";
+				$partsStock_check_query = pg_query($partsStock_check_strQuery);
+				if($partsStock_check_result = pg_fetch_array($partsStock_check_query)){
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStock\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							".($partsStock_check_result["stock_lot"] + 1).",
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'{$wh_id}',
+							'{$locate_id}',
+							'1'
+						)
+						RETURNING stock_id;
+					";
+				}
+				else{
+					
+					//insert the PartsStock when there are no parts_code in PartsStock
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStock\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							'1',
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'{$wh_id}',
+							'{$locate_id}',
+							'1'
+						)
+						RETURNING stock_id;
+					";
+				}
+				$partsStock_query = @pg_query($partsStock_strQuery);
+				
+				if($partsStock_result = @pg_fetch_array($partsStock_query)) {
+					$i = 0; //For running number
+					
+					$PartsStockDetails_strQuery = "
+						INSERT INTO \"PartsStockDetails\"(
+							codeid, 
+							stock_id, 
+							status, 
+							wh_id, 
+							locate_id, 
+						)
+						VALUES (
+							'{$parts_code_detail}', 
+							'".$partsStock_result["stock_id"]."',
+							'1',
+							'',
+							''
+						);
+					";
+					
+					if(!$result=@pg_query($PartsStockDetails_strQuery)){
+				        $txt_error[] = "INSERT PartsStockDetails_strQuery ไม่สำเร็จ $PartsStockDetails_strQuery";
+				        $status++;
+				    }
+				}
+				// ######### END INSERT partsStock ##########
+				
+				
+				// ##################### ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ######################
+				$sendParts_strQuery = "
+					UPDATE 
+						\"SendPartsDetails\"
+					SET 
+						send_quantity = 0
+					WHERE 
+						parts_code = '".$parts_code_detail."'
+					RETURNING
+						send_code
+					;
+				";
+				$sendParts_query = pg_query($sendParts_strQuery);
+				while ($sendParts_result = pg_fetch_array($sendParts_query)) {
+					
+					// ##################### ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ######################
+					$sendParts_strQuery = "
+						UPDATE 
+							\"SendParts\"
+						SET 
+							status = 0
+						WHERE 
+							send_code = '".$sendParts_result["send_code"]."';
+					";
+					if(!$result=@pg_query($sendParts_strQuery)){
+				        $txt_error[] = "UPDATE remove SendParts ไม่สำเร็จ $sendParts_strQuery";
+				        $status++;
+				    }
+					// ################### END ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ####################
+					
+				}
+				if(!$sendParts_query){
+			        $txt_error[] = "UPDATE remove SendPartsDetails ไม่สำเร็จ $sendParts_strQuery";
+			        $status++;
+				}
+				// ################### END ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ####################
+				
+			}
+			// ############################# END มีรหัสแยกย่อย #################################
 		}
 	}
 	// ######################### END คืนของเข้าสต๊อก #########################
@@ -319,7 +520,6 @@
 				'".$return_note."', 
 				'".$nowDateTime."'
 			);
-			
 		";
 		
 		if(!$result=@pg_query($brokenParts_strQuery)){
@@ -358,124 +558,301 @@
 		        $status++;
 		    }
 			
+			// ############## Check the parts_type First (is เป็น (รหัสแยกย่อย == 1)) #################
 			
-			// PartsStockBroken
-			// ######### INSERT partsStock ##########
-			$partsStock_check_strQuery = "
-				SELECT 
-					parts_code,
-					MAX(stock_lot) AS stock_lot
-				FROM 
-					\"PartsStockBroken\"
-				WHERE 
-					parts_code = '".$parts_code."' 
-				group by parts_code ;
-			";
-			$partsStock_check_query = pg_query($partsStock_check_strQuery);
+			// ################## ไม่มีรหัสแยกย่อย ######################
+			if($parts_type == 0){
 			
-			if($partsStock_check_result = pg_fetch_array($partsStock_check_query)){
-				
-				$partsStock_strQuery = "
-					INSERT INTO \"PartsStockBroken\"
-					(
-						parts_code, 
-						stock_lot, 
-						parts_rcvcode, 
-						rcv_date, 
-						rcv_quantity, 
-						costperunit, 
-						stock_remain, 
-						wh_id, 
-						locate_id, 
-						stock_status
-					)
-					VALUES
-					(
-						'{$parts_code}',
-						".($partsStock_check_result["stock_lot"] + 1).",
-						'{$gen_parts_no}',
-						'{$return_date}',
-						'{$quantity_return}',
-						null,
-						'{$quantity_return}',
-						'{$wh_id}',
-						'{$locate_id}',
-						'1'
-					)
-					RETURNING stock_broken_id;
+				// ######### INSERT PartsStockBroken ##########
+				$partsStock_check_strQuery = "
+					SELECT 
+						parts_code,
+						MAX(stock_lot) AS stock_lot
+					FROM 
+						\"PartsStockBroken\"
+					WHERE 
+						parts_code = '".$parts_code."' 
+					group by parts_code ;
 				";
-			}
-			else{
-				//insert the PartsStock when there are no parts_code in PartsStock
-				$partsStock_strQuery = "
-					INSERT INTO \"PartsStockBroken\"
-					(
-						parts_code, 
-						stock_lot, 
-						parts_rcvcode, 
-						rcv_date, 
-						rcv_quantity, 
-						costperunit, 
-						stock_remain, 
-						wh_id, 
-						locate_id, 
-						stock_status
-					)
-					VALUES
-					(
-						'{$parts_code}',
-						'1',
-						'{$gen_parts_no}',
-						'{$return_date}',
-						'{$quantity_return}',
-						null,
-						'{$quantity_return}',
-						'{$wh_id}',
-						'{$locate_id}',
-						'1'
-					)
-					RETURNING stock_broken_id;
-				";
-			}
-			
-			$partsStock_query = @pg_query($partsStock_strQuery);
-			
-			if($partsStock_result = @pg_fetch_array($partsStock_query)) {
-				$i = 0; //For running number
+				$partsStock_check_query = pg_query($partsStock_check_strQuery);
 				
-				// Check That, Type PO is 1 or not, if yes, will insert PartsStockDetails each item.
-				if($parts_type == 1){
+				if($partsStock_check_result = pg_fetch_array($partsStock_check_query)){
 					
-					// Check that parts_code is parts.type = 1 or not, if yes, Query Insert PartStockDetails
-					$parts_check_type_strQuery = "
-						SELECT
-							parts.type
-						FROM
-							parts
-						WHERE 
-							parts.code = '{$parts_code}'
-							AND
-							parts.type = 1
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStockBroken\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							".($partsStock_check_result["stock_lot"] + 1).",
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'{$wh_id}',
+							'{$locate_id}',
+							'1'
+						)
+						RETURNING stock_broken_id;
 					";
-					$parts_check_type_query = @pg_query($parts_check_type_strQuery);
-					if(@pg_fetch_result($parts_check_type_query, 0) == 1){
+				}
+				else{
+					//insert the PartsStock when there are no parts_code in PartsStock
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStockBroken\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							'1',
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'{$wh_id}',
+							'{$locate_id}',
+							'1'
+						)
+						RETURNING stock_broken_id;
+					";
+				}
+				
+				$partsStock_query = @pg_query($partsStock_strQuery);
+				
+				if($partsStock_result = @pg_fetch_array($partsStock_query)) {
+					$i = 0; //For running number
+					
+					// Check That, Type PO is 1 or not, if yes, will insert PartsStockDetails each item.
+				}
+				// ######### END INSERT PartsStockBroken ##########
+				
+				
+				// ##################### ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ######################
+				
+				// ### Read How many Send_Quantity for that parts_code ###
+				$temp_quantity_return = $quantity_return;
+				$get_SendPartsDetails_strQuery = "
+					SELECT 
+						send_details_id, 
+						send_code,
+						parts_code, 
+						send_quantity
+					FROM 
+						\"SendPartsDetails\"
+					WHERE
+						parts_code = '".$parts_code."'
+					ORDER BY 
+						send_code
+					;
+				";
+				$get_SendPartsDetails_query = @pg_query($get_SendPartsDetails_strQuery);
+				while ($get_SendPartsDetails_result = @pg_fetch_array($get_SendPartsDetails_query)) {
+					
+					if($temp_quantity_return >= $get_SendPartsDetails_result["send_quantity"]){
+						$set_SendPartsDetails_strQuery = "
+							UPDATE 
+								\"SendPartsDetails\"
+							SET 
+								send_quantity = 0
+							WHERE 
+								send_details_id = '".$get_SendPartsDetails_result["send_details_id"]."'
+							;
+						";
+						$temp_quantity_return = $temp_quantity_return - $get_SendPartsDetails_result["send_quantity"];
+						if(!$result=@pg_query($set_SendPartsDetails_strQuery)){
+					        $txt_error[] = "UPDATE reduce SendPartsDetails ไม่สำเร็จ $set_SendPartsDetails_strQuery";
+					        $status++;
+					    }
+					}
+					else{
+						$set_SendPartsDetails_strQuery = "
+							UPDATE 
+								\"SendPartsDetails\"
+							SET 
+								send_quantity = ".($get_SendPartsDetails_result["send_quantity"] - $temp_quantity_return)."
+							WHERE 
+								send_details_id = '".$get_SendPartsDetails_result["send_details_id"]."'
+							;
+						";
+						$set_SendPartsDetails_query = pg_query($set_SendPartsDetails_strQuery);
+						if($sendParts_result = pg_fetch_array($sendParts_query)){
+					        $txt_error[] = "UPDATE reduce SendPartsDetails ไม่สำเร็จ $set_SendPartsDetails_strQuery";
+					        $status++;
+					    }
 						
+						$temp_quantity_return = 0;
+						$send_code = $get_SendPartsDetails_query["send_code"];
+						
+						break;
+					}
+					
+				}
+				// ################### END ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ####################
+				
+				
+				
+				// ##################### Check About ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ######################
+				$get_check_sendParts_strQuery = "
+					SELECT 
+						--send_code,
+						SUM(send_quantity) AS send_quantity
+					FROM 
+						\"SendPartsDetails\"
+					WHERE
+						parts_code = '".$parts_code."'
+						AND
+						send_code = '".$send_code."'
+					GROUP BY
+						send_code
+					;
+				";
+				$get_check_sendParts_query = @pg_query($get_check_sendParts_strQuery);
+				while ($get_check_sendParts_result = @pg_fetch_array($get_check_sendParts_query)) {
+					
+					if($get_check_sendParts_result["send_quantity"] == 0){
+						// ##################### ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ######################
+						$sendParts_strQuery = "
+							UPDATE 
+								\"SendParts\"
+							SET 
+								status = 0
+							WHERE 
+								send_code = '".$send_code."'
+							;
+						";
+						if(!$result=@pg_query($sendParts_strQuery)){
+					        $txt_error[] = "UPDATE remove SendParts ไม่สำเร็จ $sendParts_strQuery";
+					        $status++;
+					    }
+						// ################### END ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ####################
+					}
+					
+				}
+				if(!$get_check_sendParts_query){
+			        $txt_error[] = "UPDATE remove SendPartsDetails ไม่สำเร็จ $sendParts_strQuery";
+			        $status++;
+				}
+				// ################### END Check About ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ####################
+				
+			}
+			// ################ END ไม่มีรหัสแยกย่อย ####################
+			
+			// ############################### มีรหัสแยกย่อย ###################################
+			elseif($parts_type == 1){
+				$parts_code_detail = $parts_code;
+				$parts_code = substr($parts_code_detail, 0, 7);
+				
+				
+				// ######### INSERT PartsStockBroken ##########
+				$partsStock_check_strQuery = "
+					SELECT 
+						parts_code,
+						MAX(stock_lot) AS stock_lot
+					FROM 
+						\"PartsStockBroken\"
+					WHERE 
+						parts_code = '".$parts_code."' 
+					group by parts_code ;
+				";
+				
+				$partsStock_check_query = pg_query($partsStock_check_strQuery);
+				
+				if($partsStock_check_result = pg_fetch_array($partsStock_check_query)){
+					
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStockBroken\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							".($partsStock_check_result["stock_lot"] + 1).",
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'{$wh_id}',
+							'{$locate_id}',
+							'1'
+						)
+						RETURNING stock_broken_id;
+					";
+				}
+				else{
+					//insert the PartsStock when there are no parts_code in PartsStock
+					$partsStock_strQuery = "
+						INSERT INTO \"PartsStockBroken\"
+						(
+							parts_code, 
+							stock_lot, 
+							parts_rcvcode, 
+							rcv_date, 
+							rcv_quantity, 
+							costperunit, 
+							stock_remain, 
+							wh_id, 
+							locate_id, 
+							stock_status
+						)
+						VALUES
+						(
+							'{$parts_code}',
+							'1',
+							'{$gen_parts_no}',
+							'{$return_date}',
+							'{$quantity_return}',
+							null,
+							'{$quantity_return}',
+							'".$wh_id."',
+							'".$locate_id."',
+							'1'
+						)
+						RETURNING stock_broken_id;
+					";
+				}
+				
+				$partsStock_query = @pg_query($partsStock_strQuery);
+				
+				if($partsStock_result = @pg_fetch_array($partsStock_query)) {
+					$i = 0; //For running number
+					
+					// Check That, Type PO is 1 or not, if yes, will insert PartsStockDetails each item.
 						// insert PartsStockDetails (each row of item)
-						for($i = 0; $i < $rcv_quantity; $i++){
-							$item_count_strQuery = "
-								UPDATE
-									\"parts\"
-								SET
-									\"item_count\" = \"item_count\" + 1
-								WHERE
-									code = '".$parts_code."'
-								RETURNING \"item_count\" ;
-							";
-							$item_count_query = @pg_query($item_count_strQuery);
-							$item_count = pg_fetch_result($item_count_query, 0);
-							
-							//Generate PartsStockDetails : codeid	
-							$codeid = $parts_code.sprintf('%06d', $item_count);
 							
 							$PartsStockDetails_strQuery = "
 								INSERT INTO \"PartsStockBrokenDetails\"(
@@ -483,14 +860,14 @@
 									stock_broken_id, 
 									status, 
 									wh_id, 
-									locate_id, 
+									locate_id 
 								)
 								VALUES (
-									'{$codeid}', 
-									'".$partsStock_result["stock_id"]."',
+									'{$parts_code_detail}', 
+									'".$partsStock_result["stock_broken_id"]."',
 									'1',
-									'',
-									''
+									'{$wh_id}',
+									'{$locate_id}'
 								);
 							";
 							
@@ -498,12 +875,51 @@
 						        $txt_error[] = "INSERT PartsStockDetails_strQuery ไม่สำเร็จ $PartsStockDetails_strQuery";
 						        $status++;
 						    }
-						}
 						// END insert PartsStockDetails (each row of item)
-					}
 					//END Check that parts_code is parts.type = 1 or not, if yes, Query Insert PartStockDetails
 				}
+				// ######### END INSERT partsStockBroken ##########
+				
+				
+				// ##################### ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ######################
+				$sendParts_strQuery = "
+					UPDATE 
+						\"SendPartsDetails\"
+					SET 
+						send_quantity = 0
+					WHERE 
+						parts_code = '".$parts_code_detail."'
+					RETURNING
+						send_code
+					;
+				";
+				$sendParts_query = pg_query($sendParts_strQuery);
+				while ($sendParts_result = pg_fetch_array($sendParts_query)) {
+					
+					// ##################### ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ######################
+					$sendParts_strQuery = "
+						UPDATE 
+							\"SendParts\"
+						SET 
+							status = 0
+						WHERE 
+							send_code = '".$sendParts_result["send_code"]."';
+					";
+					if(!$result=@pg_query($sendParts_strQuery)){
+				        $txt_error[] = "UPDATE remove SendParts ไม่สำเร็จ $sendParts_strQuery";
+				        $status++;
+				    }
+					// ################### END ทำการลดค่าใน SendParts (ลดจำนวนที่จะส่ง) ####################
+					
+				}
+				if(!$sendParts_query){
+			        $txt_error[] = "UPDATE remove SendPartsDetails ไม่สำเร็จ $sendParts_strQuery";
+			        $status++;
+				}
+				// ################### END ทำการลดค่าใน SendPartsDetails (ลดจำนวนที่จะส่ง) ####################
+				
 			}
+			// ############################# END มีรหัสแยกย่อย #################################
 		}
 	}
 	// ###################### END คืนเป็นของเสีย ##########################
@@ -538,16 +954,10 @@
     }
 	
 	
-	// echo $ApproveParts_forReturn_strQuery;
-	// echo $status;
-	// pg_query("ROLLBACK");
-	// exit;
-		
-	
 	// Check Is Query or Not?
 	if($status == 0){
-        pg_query("ROLLBACK");
-        // pg_query("COMMIT");
+        // pg_query("ROLLBACK");
+        pg_query("COMMIT");
         $data['success'] = true;
         $data['parts_pocode'] = $gen_parts_no;
     }else{

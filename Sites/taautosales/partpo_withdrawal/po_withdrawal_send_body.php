@@ -53,17 +53,17 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 				<select name="withdrawal_type" id="withdrawal_type" disabled="disabled">
 					<option value="" >เลือกจุดประสงค์</option>
 					<option value="1" <?php 
-						if($withdrawalParts_result["type"] == 1){
+						if($withdrawalParts_type == 1){
 							?>selected="selected"<?php
 						}
 					?>>เบิกขายซ่อม</option>
 					<option value="2" <?php 
-						if($withdrawalParts_result["type"] == 2){
+						if($withdrawalParts_type == 2){
 							?>selected="selected"<?php
 						}
 					?>>เบิกประกอบชิ้นงาน</option>
 					<option value="3"  <?php 
-						if($withdrawalParts_result["type"] == 3){
+						if($withdrawalParts_type == 3){
 							?>selected="selected"<?php
 						}
 					?>>เบิกของเสีย</option>

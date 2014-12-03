@@ -68,8 +68,8 @@ while($res = pg_fetch_array($qry)){
     </td>
 </tr>
 <tr>
-    <td>เลขถัง</td><td><input type="text" name="txt_carnum" id="txt_carnum" onkeyup="check_car_mar_num();" onkeypress="check_car_mar_num();"></td>
-    <td>เลขเครื่อง</td><td><input type="text" name="txt_marnum" id="txt_marnum" onkeyup="check_car_mar_num();" onkeypress="check_car_mar_num();"></td>
+    <td>เลขถัง</td><td><input type="text" name="txt_carnum" id="txt_carnum"/></td>
+    <td>เลขเครื่อง</td><td><input type="text" name="txt_marnum" id="txt_marnum"/></td>
 </tr>
 <tr>
     <td>ปีรถ</td><td><input type="text" name="txt_caryear" id="txt_caryear" size="10"></td>
@@ -104,7 +104,7 @@ while($res = pg_fetch_array($qry)){
 </div>
 
 <div style="margin-top:10px; text-align:right">
-<input type="button" name="btnSave" id="btnSave" value="บันทึก">
+<input type="button" name="btnSave" id="btnSave" value="บันทึก" style="cursor:pointer;"/>
 <input type="hidden" name="chk_car_mar" id="chk_car_mar" >
 </div>
 
@@ -135,11 +135,6 @@ $('#btnSave').click(function(){
         alert('กรุณาเลือก สีรถ !');
         return false;
     }
-	
-	if($('#chk_car_mar').val() == '0'){
-		alert('กรุณาตรวจสอบเลขเครื่องหรือเลขตัวถังซ้ำ');
-		return false;
-	}
 	
     $.post('deposit_car_taken_api.php',{
         cmd: 'save',
@@ -173,19 +168,6 @@ function changeProduct(){
         $('#txt_other_product').val('');
         $('#div_other_product').hide('fast');
     }
-}
-function check_car_mar_num(){
-	$.post('chkdata.php',{
-		txtcarnum: $('#txt_carnum').val(),
-		txtmarnum: $('#txt_marnum').val(),
-		cmd:'taken'
-	},function(data){
-		if(data == 't'){
-			$('#chk_car_mar').val('1');
-		}else if(data == 'f'){
-			$('#chk_car_mar').val('0');
-		}
-	});
 }
 </script>
 

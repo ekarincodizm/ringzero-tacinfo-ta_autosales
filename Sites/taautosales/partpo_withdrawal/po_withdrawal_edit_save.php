@@ -7,11 +7,15 @@
 	
 	$withdrawal_code = pg_escape_string($_POST["withdrawal_code"]);
 	
-	// $withdrawal_type = pg_escape_string($_POST["withdrawal_type"]);
+	$withdrawal_type = pg_escape_string($_POST["withdrawal_type"]);
 	$withdrawal_user_id = pg_escape_string($_POST["withdrawal_user_id"]);
 	$withdrawal_withdraw_user_id = pg_escape_string($_POST["withdrawal_withdraw_user_id"]);
 	$withdrawal_date = date("Y-m-d", strtotime(pg_escape_string($_POST['withdrawal_date'])));
 	$withdrawal_usedate = date("Y-m-d", strtotime(pg_escape_string($_POST["withdrawal_usedate"])));
+	
+	$project_id = pg_escape_string($_POST["project_id"]);
+	$project_quantity = pg_escape_string($_POST["project_quantity"]);
+	
 	$withdrawal_details_array = json_decode(stripcslashes(pg_escape_string($_POST["withdrawal_details_array"])));
 	$withdrawal_note = pg_escape_string($_POST["withdrawal_note"]);
 	
@@ -43,6 +47,17 @@
 			date='{$withdrawal_date}',
 			usedate='{$withdrawal_usedate}',
 			status=1
+	";
+	
+	if($withdrawal_type == 2){
+		
+		$withdrawalParts_strQuery .= "
+			,
+			project_quantity = {$project_quantity}
+		";
+	}
+			
+	$withdrawalParts_strQuery .= "
 		WHERE 
 			code='{$withdrawal_code}';
 	";

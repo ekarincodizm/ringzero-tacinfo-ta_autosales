@@ -65,31 +65,23 @@ foreach ($purchaseOrderPart as $purchaseOrderPart_result) {
 		
 		<script>
 			var PurchaseOrderPart = new Array();
-		<?php 
-			$strQuery_PurchaseOrderPart = "
-				SELECT 
-					\"parts_pocode\"
-				FROM
-					\"PurchaseOrderPart\"
-			";
-			$query_PurchaseOrderPart = @pg_query($strQuery_PurchaseOrderPart);
-			$numrows_parts = pg_num_rows($query_PurchaseOrderPart);
-			while($result_PurchaseOrderPart = @pg_fetch_array($query_PurchaseOrderPart)){
+<?php 
+			foreach ($class->get_all_purchaseOrderPart() as $result_PurchaseOrderPart) {
 				$dt["value"] = $result_PurchaseOrderPart["parts_pocode"];
 				$dt["label"] = $result_PurchaseOrderPart["parts_pocode"];
 				$parts_pocode_matches[] = $dt;
-		?>
+?>
 				PurchaseOrderPart.push(["<?php echo $result_PurchaseOrderPart['parts_pocode']; ?>"]);
-		<?php
+<?php
 			}
-		?>
+?>
 		</script>
-		<?php
+<?php
 			if($numrows_parts == 0){
 		        $parts_pocode_matches[] = "ไม่พบข้อมูล";
 		    }
 			$parts_pocode_matches = array_slice($parts_pocode_matches, 0, 100);
-		?>
+?>
 		
 		<div>
 			<div style="width: 40%; float: left; text-align: right; margin-right: 2%; margin-top: 0.4%;">
@@ -137,8 +129,7 @@ foreach ($purchaseOrderPart as $purchaseOrderPart_result) {
 			</div>
 			<div style="width: 58%; float: left;">
 <?php
-				$qry = pg_query("SELECT * FROM \"VVenders\" WHERE type_ven = 'M' or type_ven='B' ORDER BY pre_name,cus_name ASC");
-				while( $res = pg_fetch_array($qry) ){
+				foreach ($class->get_VVenders() as $res) {
 				    $vender_id = $res['vender_id'];
 					if($vender_id == $purchaseOrderPart_result["vender_id"]){
 					    $pre_name = trim($res['pre_name']);
@@ -224,31 +215,8 @@ foreach ($purchaseOrderPart as $purchaseOrderPart_result) {
 						<td width="5%">ชั้นวาง</td>
 					</tr>
 <?php
-					// $warehouses_result = $class->get_Warehouses();
-					// $locate_result = $class->get_Locate();
-					
-					$warehouses_strQuery = "
-						SELECT 
-							\"wh_id\",
-							\"wh_name\"
-						FROM
-							\"Warehouses\"
-						WHERE
-							wh_group = 1
-					";
-					$warehouses_query = pg_query($warehouses_strQuery);
-					$warehouses_result = pg_fetch_all($warehouses_query);
-					
-					$locate_strQuery = "
-						SELECT 
-							\"locate_id\",
-							\"locate_name\"
-						FROM
-							\"Locate\"
-					";
-					$locate_query = pg_query($locate_strQuery);
-					$locate_result = pg_fetch_all($locate_query);
-					
+					$warehouses_result = $class->get_Warehouses();
+					$locate_result = $class->get_Locate();
 					
 					//initial value
 					$dsubtotal = 0.0;
@@ -258,139 +226,106 @@ foreach ($purchaseOrderPart as $purchaseOrderPart_result) {
 					$pcvat = $purchaseOrderPart_result["pcvat"];
 					$vat = 0.0;
 					$nettotal = 0.0;
-										
-					$purchaseOrderPartsDetails_strQuery = "
-						SELECT
-							\"idno\",
-							\"parts_code\",
-							\"quantity\",
-							\"unit\",
-							\"costperunit\",
-							\"total\"
-						FROM
-							\"PurchaseOrderPartsDetails\"
-						WHERE 
-							\"parts_pocode\" = '{$parts_pocode}'; 
-					";
-					$purchaseOrderPartsDetails_query = pg_query($purchaseOrderPartsDetails_strQuery);
-					$purchaseOrderPartsDetails_numrows = pg_num_rows($purchaseOrderPartsDetails_query);
-					while ($purchaseOrderPartsDetails_result = pg_fetch_array($purchaseOrderPartsDetails_query)) {
+					
+					$purchaseOrderPartsDetails = $class->get_purchaseOrderPartsDetails();
+					$purchaseOrderPartsDetails_numrows = $purchaseOrderPartsDetails["numrow"];
+					
+					foreach ($purchaseOrderPartsDetails["result"] as $purchaseOrderPartsDetails_result) {
+					
 						$idno = $purchaseOrderPartsDetails_result["idno"];
+						
+						// Get the Used Quantity
+						$rcv_quantity_count = 0;
 ?>
-						<tr bgcolor="#FFFFFF" class="parts_code_row" id="parts_code_row<?php echo $idno; ?>">
-							<td>
-								<a href="#" class="del_parts_code" data-code_id="<?php echo $idno; ?>"><img src="../images/close_button.png" /></a>
-							</td>
-							<td>
-								<?php echo $idno; ?>.
-							</td>
-							<td>
-								<span id="parts_code<?php echo $idno; ?>"><?php echo $purchaseOrderPartsDetails_result["parts_code"]; ?></span>
-								<input type="hidden"  name="parts_code<?php echo $idno; ?>" class="parts_code" data-code_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["parts_code"]; ?>" />
-							</td>
-							
-							<td>
-								<span id="parts_name<?php echo $idno; ?>" class="parts_name"><?php echo $class->find_Parts_value($purchaseOrderPartsDetails_result["parts_code"], "name"); ?></span>
-								<input type="hidden" name="parts_name<?php echo $idno; ?>" class="parts_name" value="<?php echo $class->find_Parts_value($purchaseOrderPartsDetails_result["parts_code"], "name"); ?>" />
-							</td>
-							<td>
-								<span id="parts_detail<?php echo $idno; ?>" class="parts_detail"><?php echo $class->find_Parts_value($purchaseOrderPartsDetails_result["parts_code"], "details"); ?></span>
-							</td>
-							<td align="center">
-<?php
-								// Get the Used Quantity
-								$rcv_quantity_count = 0;
-						    	$received_quantity_strQuery = "
-									select 
-										parts_code,
-										SUM(rcv_quantity) AS rcv_quantity_count
-									from 
-										\"PartsReceivedDetails\" 
-									where 
-										parts_rcvcode IN 
-										(
-											select parts_rcvcode 
-											from \"PartsReceived\" 
-											where parts_pocode = '".$purchaseOrderPart_result["parts_pocode"]."'
-										) 
-										AND
-										parts_code = '".$purchaseOrderPartsDetails_result['parts_code']."'
-									group by parts_code ;
-								";
-								$received_quantity_query = pg_query($received_quantity_strQuery);
-				    			while($received_quantity_result = pg_fetch_array($received_quantity_query)){
-				    				$rcv_quantity_count = $received_quantity_result["rcv_quantity_count"];
-								}
-?>
-								<input type="hidden" name="quantity<?php echo $idno; ?>" id="quantity<?php echo $idno; ?>" class="quantity" data-quantity_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?>" />
-								<span id="quantity<?php echo $idno; ?>" class="quantity" ><?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?></span>
-							</td>
-							<td align="center">
-								<input type="hidden" name="unit<?php echo $idno; ?>" class="unit" value="<?php echo $purchaseOrderPartsDetails_result["unit"]; ?>" />
-								<span id="unit<?php echo $idno; ?>" class="unit"><?php echo $class->find_Parts_unit_value($purchaseOrderPartsDetails_result["unit"]); ?></span>
-							</td>
-							<td>
-<?php
-								if($type_is_assembly == FALSE){
-?>
-									<input type="text" name="costperunit<?php echo $idno; ?>" id="costperunit<?php echo $idno; ?>" class="costperunit" data-costperunit_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["costperunit"] ; ?>" style="width:80px; text-align:right" />
-<?php
-								}
-								else{
-									echo $purchaseOrderPartsDetails_result["costperunit"];
-?>
-									<input type="hidden" name="costperunit<?php echo $idno; ?>" id="costperunit<?php echo $idno; ?>" class="costperunit" data-costperunit_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["costperunit"] ; ?>" style="width:80px; text-align:right" />
-<?php
-								}
-?>
-							</td>
-							<td align="right">
-<?php
-								if($type_is_assembly == FALSE){
-?>
-									<input type="text" name="rcv_quantity<?php echo $idno; ?>" id="rcv_quantity<?php echo $idno; ?>" data-rcv_quantity_id="<?php echo $idno; ?>" class="rcv_quantity" value="<?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?>" style="width:40px; text-align:right; " />
-<?php
-								}
-								else{
-									echo $purchaseOrderPartsDetails_result["costperunit"];
-?>
-									<input type="hidden" name="rcv_quantity<?php echo $idno; ?>" id="rcv_quantity<?php echo $idno; ?>" data-rcv_quantity_id="<?php echo $idno; ?>" class="rcv_quantity" value="<?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?>" style="width:40px; text-align:right; " />
-<?php
-								}
-?>
-							</td>
-							<td align="right">
-								<span id="total<?php echo $idno; ?>" class="total" style="font-weight:bold"><?php 
-									echo number_format(($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count), 2);
-									//echo number_format($purchaseOrderPartsDetails_result["total"], 2); 
-								?></span>
-								<input type="hidden" name="total<?php echo $idno; ?>" class="total" value="<?php echo ($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count); ?>" />
-							</td>
-							<td>
-								<select name="wh_id<?php echo $idno; ?>" id="wh_id<?php echo $idno; ?>" class="wh_id">
-									<option value="">โปรดเลือกคลัง</option>
-<?php
-									foreach ($warehouses_result as $warehouses_data) {
-										?><option value="<?php echo $warehouses_data["wh_id"] ?>"><?php echo $warehouses_data["wh_name"] ?></option><?php
+							<tr bgcolor="#FFFFFF" class="parts_code_row" id="parts_code_row<?php echo $idno; ?>">
+								<td>
+									<a href="#" class="del_parts_code" data-code_id="<?php echo $idno; ?>"><img src="../images/close_button.png" /></a>
+								</td>
+								<td>
+									<?php echo ++$i; ?>.
+								</td>
+								<td>
+									<span id="parts_code<?php echo $idno; ?>"><?php echo $purchaseOrderPartsDetails_result["parts_code"]; ?></span>
+									<input type="hidden"  name="parts_code<?php echo $idno; ?>" class="parts_code" data-code_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["parts_code"]; ?>" />
+								</td>
+								
+								<td>
+									<span id="parts_name<?php echo $idno; ?>" class="parts_name"><?php echo $class->find_Parts_value($purchaseOrderPartsDetails_result["parts_code"], "name"); ?></span>
+									<input type="hidden" name="parts_name<?php echo $idno; ?>" class="parts_name" value="<?php echo $class->find_Parts_value($purchaseOrderPartsDetails_result["parts_code"], "name"); ?>" />
+								</td>
+								<td>
+									<span id="parts_detail<?php echo $idno; ?>" class="parts_detail"><?php echo $class->find_Parts_value($purchaseOrderPartsDetails_result["parts_code"], "details"); ?></span>
+								</td>
+								<td align="center">
+									<input type="hidden" name="quantity<?php echo $idno; ?>" id="quantity<?php echo $idno; ?>" class="quantity" data-quantity_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?>" />
+									<span id="quantity<?php echo $idno; ?>" class="quantity" ><?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?></span>
+								</td>
+								<td align="center">
+									<input type="hidden" name="unit<?php echo $idno; ?>" class="unit" value="<?php echo $purchaseOrderPartsDetails_result["unit"]; ?>" />
+									<span id="unit<?php echo $idno; ?>" class="unit"><?php echo $class->find_Parts_unit_value($purchaseOrderPartsDetails_result["unit"]); ?></span>
+								</td>
+								<td>
+	<?php
+									if($type_is_assembly == FALSE){
+	?>
+										<input type="text" name="costperunit<?php echo $idno; ?>" id="costperunit<?php echo $idno; ?>" class="costperunit" data-costperunit_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["costperunit"] ; ?>" style="width:80px; text-align:right" />
+	<?php
 									}
-?>
-								</select>
-							</td>
-							<td>
-								<select name="locate_id<?php echo $idno; ?>" id="locate_id<?php echo $idno; ?>" class="locate_id">
-									<option value="">โปรดเลือกชั้นวาง</option>
-<?php
-									foreach ($locate_result as $locate_data) {
-										?><option value="<?php echo $locate_data["locate_id"] ?>"><?php echo $locate_data["locate_name"] ?></option><?php
+									else{
+										echo $purchaseOrderPartsDetails_result["costperunit"];
+	?>
+										<input type="hidden" name="costperunit<?php echo $idno; ?>" id="costperunit<?php echo $idno; ?>" class="costperunit" data-costperunit_id="<?php echo $idno; ?>" value="<?php echo $purchaseOrderPartsDetails_result["costperunit"] ; ?>" style="width:80px; text-align:right" />
+	<?php
 									}
-?>
-								</select>
-							</td>
-						</tr>
+	?>
+								</td>
+								<td align="right">
+	<?php
+									if($type_is_assembly == FALSE){
+	?>
+										<input type="text" name="rcv_quantity<?php echo $idno; ?>" id="rcv_quantity<?php echo $idno; ?>" data-rcv_quantity_id="<?php echo $idno; ?>" class="rcv_quantity" value="<?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?>" style="width:40px; text-align:right; " />
+	<?php
+									}
+									else{
+										echo $purchaseOrderPartsDetails_result["costperunit"];
+	?>
+										<input type="hidden" name="rcv_quantity<?php echo $idno; ?>" id="rcv_quantity<?php echo $idno; ?>" data-rcv_quantity_id="<?php echo $idno; ?>" class="rcv_quantity" value="<?php echo $purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count; ?>" style="width:40px; text-align:right; " />
+	<?php
+									}
+	?>
+								</td>
+								<td align="right">
+									<span id="total<?php echo $idno; ?>" class="total" style="font-weight:bold"><?php 
+										echo number_format(($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count), 2);
+										//echo number_format($purchaseOrderPartsDetails_result["total"], 2); 
+									?></span>
+									<input type="hidden" name="total<?php echo $idno; ?>" class="total" value="<?php echo ($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count); ?>" />
+								</td>
+								<td>
+									<select name="wh_id<?php echo $idno; ?>" id="wh_id<?php echo $idno; ?>" class="wh_id">
+										<option value="">โปรดเลือกคลัง</option>
+	<?php
+										foreach ($warehouses_result as $warehouses_data) {
+											?><option value="<?php echo $warehouses_data["wh_id"] ?>"><?php echo $warehouses_data["wh_name"] ?></option><?php
+										}
+	?>
+									</select>
+								</td>
+								<td>
+									<select name="locate_id<?php echo $idno; ?>" id="locate_id<?php echo $idno; ?>" class="locate_id">
+										<option value="">โปรดเลือกชั้นวาง</option>
+	<?php
+										foreach ($locate_result as $locate_data) {
+											?><option value="<?php echo $locate_data["locate_id"] ?>"><?php echo $locate_data["locate_name"] ?></option><?php
+										}
+	?>
+									</select>
+								</td>
+							</tr>
 <?php
 						$dsubtotal += ($purchaseOrderPartsDetails_result["costperunit"])*($purchaseOrderPartsDetails_result["quantity"] - $rcv_quantity_count);
-						
 					}
+					unset($i);
 ?>
 				</table>
 				
@@ -926,6 +861,8 @@ foreach ($purchaseOrderPart as $purchaseOrderPart_result) {
 			}
 			
 		}
+		
+		console.log("counter = "+counter);
 		
 		$("#dsubtotal").html(numberWithCommas(dsubtotal_value));
 		dsubtotal = dsubtotal_value;

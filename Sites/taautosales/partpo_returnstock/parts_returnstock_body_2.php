@@ -18,7 +18,7 @@ $function = new Return_stock_body2();
 			<td width="50"><b>วันที่ขอเบิก</b></td>
 			<td width="50"><b>ผู้ขอเบิก</b></td>
 			<td width="50"><b>ผู้ทำรายการ</b></td>
-			<!-- <td width="50"><b>ยกเลิก</b></td> -->
+			<td width="50"><b>ยกเลิก</b></td>
 		</tr>
 <?php
 		$BrokenParts = $function->get_BrokenParts();
@@ -28,9 +28,9 @@ $function = new Return_stock_body2();
 				<tr>
 					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["broken_code"]; ?>', 'broken'); " ><?php echo $withdrawalParts_result["broken_code"]; ?></a></td>
 					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["broken_code"]; ?>', 'broken'); " ><?php echo $withdrawalParts_result["date"]; ?></a></td>
-					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["broken_code"]; ?>', 'broken'); " ><?php echo get_fuser_fullname($withdrawalParts_result["broken_user_id"]); ?></a></td>
-					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["broken_code"]; ?>', 'broken'); " ><?php echo get_fuser_fullname($withdrawalParts_result["user_id"]); ?></a></td>
-					<!-- <td align="center"><img src="../images/close_button.png" border="0" class="btn_cancel" data-withdrawal_code="<?php echo $withdrawalParts_result["code"]; ?>" alt="ยกเลิก" title="ยกเลิก" style="cursor: pointer; "></td> -->
+					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["broken_code"]; ?>', 'broken'); " ><?php echo $function->get_fuser_fullname($withdrawalParts_result["broken_user_id"]); ?></a></td>
+					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["broken_code"]; ?>', 'broken'); " ><?php echo $function->get_fuser_fullname($withdrawalParts_result["user_id"]); ?></a></td>
+					<td align="center"><img src="../images/close_button.png" border="0" class="btn_cancel" data-return_code="<?php echo $withdrawalParts_result["broken_code"]; ?>" alt="ยกเลิก" title="ยกเลิก" style="cursor: pointer; "></td>
 				</tr>
 	<?php
 			}
@@ -46,19 +46,18 @@ $function = new Return_stock_body2();
 	</table>
 </div>
 <script>
-	/*
 	$(".btn_cancel").click(function(){
-		var _withdrawal_code = $(this).data("withdrawal_code");
+		var _return_code = $(this).data("return_code");
 		
-		if(!confirm('คุณต้องการที่จะยืนยันการยกเลิกการเบิกหรือไม่')){
+		if(!confirm('คุณต้องการที่จะยกเลิกการคืนหรือไม่')){
 			return false;
 		}
 		else{
 			$.post(
-				'po_withdrawal_body_save.php',
+				'parts_returnstock_delete_save.php',
 				{
-					withdrawal_code : _withdrawal_code,
-					set_status: 0,
+					return_code : _return_code,
+					type : "broken",
 				},
 				function(data){
 					if(data.success){
@@ -76,7 +75,6 @@ $function = new Return_stock_body2();
 			);
 		}
 	});
-	*/
 	
 	function ViewWithdrawal(url, code, return_type){
 	    $('body').append('<div id="divdialogadd"></div>');

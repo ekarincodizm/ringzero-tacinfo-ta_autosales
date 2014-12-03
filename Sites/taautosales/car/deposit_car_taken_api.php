@@ -2,7 +2,7 @@
 include_once("../include/config.php");
 include_once("../include/function.php");
 
-$cmd = $_REQUEST['cmd'];
+$cmd = pg_escape_string($_REQUEST['cmd']);
 
 if($cmd == "showFinance"){
 
@@ -203,9 +203,8 @@ elseif($cmd == "save"){
 	$sql = pg_query("SELECT car_id FROM \"Cars\" where \"car_num\" = '$txt_carnum' or \"mar_num\" = '$txt_marnum' ");						 
 	$row = pg_num_rows($sql);
 	
-	//
 	if($row>0){
-		 $qry = "UPDATE \"Cars\" set \"car_year\"=$txt_caryear,\"color\"=$txt_carcolor,\"license_plate\"=$txt_license_plate,\"regis_by\"=$txt_regis_date,\"radio_id\"=$txt_radio_id,\"product_id\"='$arr_cb_product[0]',\"car_idno\"='$ds_id',\"res_id\"='Seize Car',car_status='Y',car_type_id='6' where \"car_num\" = '$txt_carnum' and \"mar_num\" = '$txt_marnum' returning car_id";
+		 $qry = "UPDATE \"Cars\" set \"car_year\"=$txt_caryear,\"color\"=$txt_carcolor,\"license_plate\"=$txt_license_plate,\"regis_by\"=$txt_regis_by,\"regis_date\"=$txt_regis_date,\"radio_id\"=$txt_radio_id,\"product_id\"='$arr_cb_product[0]',\"car_idno\"='$ds_id',\"res_id\"='Seize Car',car_status='Y',car_type_id='6' where \"car_num\" = '$txt_carnum' or \"mar_num\" = '$txt_marnum' returning car_id";
 		if(!$res=@pg_query($qry)){
 			$txt_error  .= "Update Cars ไม่สำเร็จ $qry";
 			$status++;
@@ -228,6 +227,25 @@ elseif($cmd == "save"){
 	
 	//เช็คว่ามีรถจอดอยู่ในคลังอยู่แล้วหรือไม่ ป้องกันข้อมูลซ้ำ
 	if($num_carmove == 0){
+		$qry = "INSERT INTO \"CarMove\" (\"car_id\",\"color\",\"wh_id\",\"date_in\") VALUES 
+		('$car_id',$txt_carcolor,'$cb_warehouse','$nowdate')";
+		if(!$res=@pg_query($qry)){
+			$txt_error .= "INSERT CarMove ไม่สำเร็จ $qry";
+			$status++;
+		}
+	}else{
+		$qry = "UPDATE
+					\"CarMove\"
+				SET
+					\"target_go\" = '$cb_warehouse',
+					\"date_out\" = '$nowdate'
+				WHERE
+					\"car_id\" = '$car_id'";
+		if(!$res=@pg_query($qry)){
+			$txt_error .= "UPDATE CarMove ไม่สำเร็จ $qry";
+			$status++;
+		}
+		
 		$qry = "INSERT INTO \"CarMove\" (\"car_id\",\"color\",\"wh_id\",\"date_in\") VALUES 
 		('$car_id',$txt_carcolor,'$cb_warehouse','$nowdate')";
 		if(!$res=@pg_query($qry)){

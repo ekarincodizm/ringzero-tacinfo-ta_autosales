@@ -145,12 +145,12 @@
 	);
 	
 	if($isConcurrency == "isConcurrency"){
-		$txt_error[] = "สร้างใบรับไม่ได้ เนื่องจากมีคนก่อนหน้านี้สร้างใบแล้ว";
+		$txt_error[] = "กรุณาตรวจสอบข้อมูล";
 		$status++;
 	}
 	
 	elseif($isConcurrency == "noRecord"){
-		$txt_error[] = "สร้างใบรับไม่ได้ ขณะนี้ข้อมูลไม่มีในระบบแล้ว";
+		$txt_error[] = "ขณะนี้ข้อมูลไม่มีในระบบแล้ว";
 		$status++;
 	}
 	
@@ -584,7 +584,7 @@
     }else{
         pg_query("ROLLBACK");
         $data['success'] = false;
-        $data['message'] = "ไม่สามารถบันทึกได้! $txt_error[0]";
+        $data['message'] = "ไม่สามารถทำรายการได้ $txt_error[0]";
     }
 	
 	echo json_encode($data);

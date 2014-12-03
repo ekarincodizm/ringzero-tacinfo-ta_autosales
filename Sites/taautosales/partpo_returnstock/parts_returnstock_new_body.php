@@ -43,15 +43,8 @@
 			<div style="width: 58%; float: left;">
 				<select name="return_return_user_id" id="return_return_user_id">
 <?php
-					$fuser_strQuery = "
-						SELECT 
-							fullname, id_user
-						FROM fuser
-						ORDER BY fullname;
-					";
-					$fuser_query = @pg_query($fuser_strQuery);
-					while ($fuser_result = @pg_fetch_array($fuser_query)) {
-						?>
+					foreach ($function->get_fuser_list_fullname() as $fuser_result) {
+?>
 						<option value="<?php echo $fuser_result["id_user"]; ?>" <?php
 							if($fuser_result["id_user"] == $_SESSION["ss_iduser"]){
 								echo "selected=\"selected\"";
@@ -215,18 +208,7 @@
 	
 	// ######################## Initial => projectDetail ########################
 <?php
-	$projectDetailCount_strQuery = "
-		SELECT 
-			project_id,
-			count(project_id) AS count
-		FROM 
-			\"ProjectDetails\"
-		WHERE
-			cancel = FALSE
-		group by project_id; 
-	;";
-	$projectDetailCount_query = @pg_query($projectDetailCount_strQuery);
-	while($projectDetailCount_result = @pg_fetch_array($projectDetailCount_query)){
+	foreach ($function->get_projectDetailCount() as $projectDetailCount_result) {
 ?>
 		projectDetailCount.push([
 			"<?php echo $projectDetailCount_result["project_id"]; ?>",
@@ -234,19 +216,8 @@
 		]);
 <?php
 	}
-	$projectDetail_strQuery = "
-		SELECT 
-			project_id,
-			material_id, 
-			use_unit
-		FROM 
-			\"ProjectDetails\"
-		WHERE
-			cancel = FALSE 
-	;";
-	$projectDetail_query = @pg_query($projectDetail_strQuery);
-
-	while ($projectDetail_result = @pg_fetch_array($projectDetail_query)) {
+	
+	foreach ($function->get_projectDetail() as $projectDetail_result) {
 ?>
 		projectDetail.push([
 			"<?php echo $projectDetail_result["project_id"]; ?>",

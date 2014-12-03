@@ -1,4 +1,6 @@
 <?php
+$class = new Model_po_receive();
+
 if(isset($_POST["display_type"])){
 	$display_type = pg_escape_string($_POST["display_type"]);
 }
@@ -99,20 +101,20 @@ elseif($display_type == 3){
 		$j = 0;
 		
 		if($display_type == 1){
-			$purchaseOrderPart = get_purchaseOrderPart($display_type);
+			$purchaseOrderPart = $class->get_purchaseOrderPart($display_type);
 		}
 		elseif($display_type == 2){
-			$purchaseOrderPart = get_purchaseOrderPart($display_type, $display_type2);
+			$purchaseOrderPart = $class->get_purchaseOrderPart($display_type, $display_type2);
 		}
 		elseif($display_type == 3){
-			$purchaseOrderPart = get_purchaseOrderPart($display_type, '', $po_id);
+			$purchaseOrderPart = $class->get_purchaseOrderPart($display_type, '', $po_id);
 		}
 		
 		if($purchaseOrderPart != ""){
 			foreach ($purchaseOrderPart as $purchaseOrderPart_result) {
 				
 				// Check Received Quantity Count
-				if(received_quantity_check($purchaseOrderPart_result["parts_pocode"]) == 0){
+				if($class->received_quantity_check($purchaseOrderPart_result["parts_pocode"]) == TRUE){
 	?>
 					<tr bgcolor="#E1F0FF" style="font-weight:bold">
 					    <td><?php echo $purchaseOrderPart_result["parts_pocode"]; ?></td>
@@ -133,12 +135,12 @@ elseif($display_type == 3){
 					    </td>
 					</tr>
 	<?php
-					$purchaseOrderPartsDetails = get_purchaseOrderPartsDetails($purchaseOrderPart_result["parts_pocode"]);
+					$purchaseOrderPartsDetails = $class->get_purchaseOrderPartsDetails($purchaseOrderPart_result["parts_pocode"]);
 					foreach ($purchaseOrderPartsDetails as $purchaseOrderPartsDetails_result) {
 				    	
 				    	$j++;
 						
-						$received_quantity = get_received_quantity(
+						$received_quantity = $class->get_received_quantity(
 							$purchaseOrderPart_result["parts_pocode"],
 							$purchaseOrderPartsDetails_result['parts_code']
 						);
@@ -158,7 +160,7 @@ elseif($display_type == 3){
 						    <td><?php echo $purchaseOrderPartsDetails_result['name']; ?></td>
 						    <td><?php echo $purchaseOrderPartsDetails_result['details']; ?></td>
 						    <td><?php echo $purchaseOrderPartsDetails_result['quantity']; ?></td>
-						    <td><?php echo read_Parts_Unit($purchaseOrderPartsDetails_result['unit']); ?></td>
+						    <td><?php echo $class->read_Parts_Unit($purchaseOrderPartsDetails_result['unit']); ?></td>
 						    <!-- <td><?php echo number_format($purchaseOrderPartsDetails_result['costperunit'], 2); ?></td> -->
 						    <!-- <td><?php echo number_format($purchaseOrderPartsDetails_result['total'], 2); ?></td> -->
 						    

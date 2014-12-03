@@ -13,18 +13,39 @@
 	
 	if($set_status == 0){
 		
-		//Query PartsReceived
-		$withdrawalParts_strQuery = "
-			UPDATE 
+		// Check Concurrency
+		$withdrawalParts_isConcurrency_strQuery = "
+			SELECT
+				code
+			FROM
 				\"WithdrawalParts\"
-			SET 
-				status = ".$set_status."
-			WHERE code = '".$withdrawal_code."';
+			WHERE
+				code = '".$withdrawal_code."'
+				AND
+				status = ".$set_status.";
 		";
-		if(!$result=@pg_query($withdrawalParts_strQuery)){
-	        $txt_error[] = "UPDATE withdrawalParts ไม่สำเร็จ $withdrawalParts_strQuery";
+		$withdrawalParts_isConcurrency_query = @pg_query($withdrawalParts_isConcurrency_strQuery);
+		$withdrawalParts_isConcurrency_numrow = @pg_num_rows($withdrawalParts_isConcurrency_query);
+		if($withdrawalParts_isConcurrency_result = @pg_fetch_array($withdrawalParts_isConcurrency_query)){
+			$txt_error[] = "รายการนี้ได้ถูกทำรายการไปแล้ว ไม่สามารถทำรายการนี้ได้";
 	        $status++;
-	    }
+		}
+		elseif($withdrawalParts_isConcurrency_numrow == 0){
+		
+			//Query PartsReceived
+			$withdrawalParts_strQuery = "
+				UPDATE 
+					\"WithdrawalParts\"
+				SET 
+					status = ".$set_status."
+				WHERE code = '".$withdrawal_code."';
+			";
+			if(!$result=@pg_query($withdrawalParts_strQuery)){
+		        $txt_error[] = "UPDATE withdrawalParts ไม่สำเร็จ $withdrawalParts_strQuery";
+		        $status++;
+		    }
+			
+		}
 		
 	}
 	else{
@@ -41,6 +62,7 @@
 				status = ".$set_status.";
 		";
 		$withdrawalParts_isConcurrency_query = @pg_query($withdrawalParts_isConcurrency_strQuery);
+		$withdrawalParts_isConcurrency_numrow = @pg_num_rows($withdrawalParts_isConcurrency_query);
 		if($withdrawalParts_isConcurrency_result = @pg_fetch_array($withdrawalParts_isConcurrency_query)){
 			$txt_error[] = "รายการนี้ได้ถูกทำรายการไปแล้ว ไม่สามารถทำรายการนี้ได้";
 	        $status++;
@@ -73,7 +95,7 @@
     }else{
         pg_query("ROLLBACK");
         $data['success'] = false;
-        $data['message'] = "ไม่สามารถบันทึกได้! $txt_error[0]";
+        $data['message'] = "$txt_error[0]";
     }
 	
 	echo json_encode($data);

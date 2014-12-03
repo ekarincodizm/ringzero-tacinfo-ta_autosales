@@ -1,7 +1,9 @@
 <?php
 	include_once("../include/config.php");
 	include_once("../include/function.php");
-	include_once("po_buy_api_webservice.php");
+	include_once("po_buy_api_controller.php");
+	
+	$data = new Controller_po_buy();
 ?>
 <div>
 	<!-- PO type -->
@@ -48,7 +50,7 @@
 </div>
 <script>
 <?php
-	$parts_pocode_matches = get_PurchaseOrderPart();
+	$parts_pocode_matches = $data->get_PurchaseOrderPart();
 ?>
 	var PurchaseOrderPart = <?php echo json_encode($parts_pocode_matches["result"]); ?>;
 </script>
@@ -126,7 +128,7 @@
 	<div style="width: 78%; float: left;">
 		<select name="vender_id" id="vender_id">
 <?php
-		$VVenders = get_view_VVenders();
+		$VVenders = $data->get_view_VVenders();
 		foreach ($VVenders as $value) {
 ?>
 		    <option value="<?php echo $value["vender_id"]; ?>"><?php echo $value["pre_name"]." ".$value["cus_name"]." ".$value["surname"];
@@ -595,7 +597,7 @@
 	
 	var parts_unit = new Array();
 <?php
-	$parts_unit_data = get_parts_unit();
+	$parts_unit_data = $data->get_parts_unit();
 	foreach ($parts_unit_data as $value) {
 ?>
 		parts_unit.push(["<?php echo $value['unitid']; ?>", "<?php echo $value['unitname']; ?>"]);
@@ -606,7 +608,7 @@
 	
 	var parts = new Array();
 <?php
-	$parts_matches = get_parts();
+	$parts_matches = $data->get_parts();
 	foreach ($parts_matches["result"] as $value) {
 ?>
 		parts.push(["<?php echo $value['code']; ?>", "<?php echo $value['name']; ?>", "<?php echo $value['unitid']; ?>", "<?php echo $value['details']; ?>"]);
@@ -921,9 +923,9 @@
 	//pcdiscount
 	//%ส่วนลด
 	//dsubtotal * pcdiscount = discount
-	$("#pcdiscount").live("keyup", function(){
+	$("#pcdiscount").live("change", function(){
 		pcdiscount = ($(this).val()/100.0);
-		discount = dsubtotal * (pcdiscount); 
+		discount = dsubtotal * (pcdiscount * 100.0); 
 		
 		console.log("discount = " + discount);
 		
@@ -946,6 +948,7 @@
 		console.log("pcdiscount = " + pcdiscount);
 		
 		$("#pcdiscount").val((pcdiscount*100.0));
+		
 		calculate_total();
 	});
 	
@@ -991,6 +994,8 @@
 		console.log("pcdiscount = " + pcdiscount);
 		console.log("################$$$$$$$$$$$$$$$$");
 		
+		$("#pcdiscount").val((pcdiscount*100.0));
+		
 		//pcdiscount
 		//%ส่วนลด
 		//dsubtotal * pcdiscount = discount
@@ -1028,6 +1033,8 @@
 		console.log("pcvat = "+pcvat);
 		console.log("vat = "+vat);
 		console.log("nettotal = "+nettotal);
+		
+		console.log("### ###");
 	}
 	
 	function numberWithCommas(x) {

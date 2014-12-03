@@ -15,7 +15,8 @@ $page_title = "เบิกสินค้าออกสต๊อก";
     <LINK href="../images/styles.css" type=text/css rel=stylesheet>
 
     <link type="text/css" href="../images/jqueryui/css/redmond/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
-    <script type="text/javascript" src="../images/jqueryui/js/jquery-1.6.2.min.js"></script>
+    <!-- <script type="text/javascript" src="../images/jqueryui/js/jquery-1.6.2.min.js"></script> -->
+    <script type="text/javascript" src="../images/jqueryui/js/jquery-1.6.2.js"></script>
     <script type="text/javascript" src="../images/jqueryui/js/jquery-ui-1.8.16.custom.min.js"></script>
 
 </head>

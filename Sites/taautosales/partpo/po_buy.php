@@ -20,7 +20,7 @@ $page_title = "สั่งซื้ออะไหล่/อุปกรณ์"
     <script type="text/javascript" src="../images/jqueryui/js/jquery-1.6.2.min.js"></script>
     <script type="text/javascript" src="../images/jqueryui/js/jquery-ui-1.8.16.custom.min.js"></script>
     <style>
-    	.ui-autocomplete { 
+    	.ui-autocomplete {
     		height: 400px; overflow-y: scroll; overflow-x: hidden;
     	}
     </style>

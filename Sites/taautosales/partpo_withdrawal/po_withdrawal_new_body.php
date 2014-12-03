@@ -3,6 +3,9 @@
 // ini_set('display_errors',1);
 // error_reporting(-1);
 
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+
 $function = new Withdrawal_new_body();
 ?>
 <br />
@@ -250,6 +253,7 @@ $function = new Withdrawal_new_body();
 		]);
 <?php
 	}
+	
 	// ###################### END Initial => projectDetail ######################
 ?>
 	
@@ -265,7 +269,6 @@ $function = new Withdrawal_new_body();
 <?php
 	$parts_detail = $function->get_parts_details();
 	$numrows_parts = $parts_detail["numrow"];
-	
 	foreach ($parts_detail["result"] as $res_parts) {
 		
 		// $parts_data[] = $res_parts;
@@ -338,14 +341,14 @@ $function = new Withdrawal_new_body();
 	
 	var broken_parts = new Array();
 <?php
-	$parts_detail = $function->get_broken_parts_details();
-	$numrows_parts = $parts_detail["numrow"];
+	$partsBroken_detail = $function->get_broken_parts_details();
+	$numrows_partsBroken = $partsBroken_detail["numrow"];
 	
 	?>
-	console.log(<?php echo json_encode($parts_detail); ?>);
+	console.log(<?php echo json_encode($partsBroken_detail); ?>);
 	<?php
 	
-	foreach ($parts_detail["result"] as $res_parts) {
+	foreach ($partsBroken_detail["result"] as $res_parts) {
 		
 		// $parts_data[] = $res_parts;
 		$dt['value'] = $res_parts['code'];
@@ -386,7 +389,7 @@ $function = new Withdrawal_new_body();
 			]);
 <?php
 	}
-	if($numrows_parts == 0){
+	if($numrows_partsBroken == 0){
         $broken_parts_matches[] = "ไม่พบข้อมูล";
     }
 	
@@ -421,6 +424,25 @@ $function = new Withdrawal_new_body();
 			// ### Enable the buttons ###
 			$("#btn_add").prop("disabled", false);
 			$("#btn_del").prop("disabled", false);
+			$("#parts_code1").prop("disabled", true);
+			$("#parts_code1").val("");
+			$("#parts_name1").html("");
+			$(".parts_name[name=parts_name1]").val("");
+			$("#parts_detail1").html("");
+			$("#quantity1").html("");
+			$(".quantity[name=quantity1]").val("");
+			$("#quantity_withdrawal1").val("");
+			$("#quantity_withdrawal1").prop("disabled", true);
+			$("#TextBoxesGroup").html("");
+			counter = 1;
+			$("#TextBoxesGroup").html("");
+		}
+		else if(withdrawal_type_value == 1){
+			$(".withdrawal_type_2").html("");
+			
+			// ### Enable the buttons ###
+			$("#btn_add").prop("disabled", false);
+			$("#btn_del").prop("disabled", false);
 			$("#parts_code1").prop("disabled", false);
 			$("#parts_code1").val("");
 			$("#parts_name1").html("");
@@ -433,7 +455,6 @@ $function = new Withdrawal_new_body();
 			$("#TextBoxesGroup").html("");
 			counter = 1;
 			$("#TextBoxesGroup").html("");
-			$("#parts_code1").prop("disabled", true);
 		}
 		else if(withdrawal_type_value == 2){
 			
@@ -472,7 +493,7 @@ $function = new Withdrawal_new_body();
 			+'		<b> ต้องการผลิตเป็นสินค้าจำนวน :</b>'
 			+'	</div>'
 			+'	<div style="width: 58%; float: left;">'
-			+'		<input type="text" name="project_quantity" class="project_quantity" value="" />'
+			+'		<input type="text" name="project_quantity" class="project_quantity" value="" disabled="disabled" />'
 			+'	</div>'
 			;
 			
@@ -485,27 +506,6 @@ $function = new Withdrawal_new_body();
 			$("#parts_code1").prop("disabled", true);
 			counter = 1;
 			$("#TextBoxesGroup").html("");
-			$("#parts_code1").prop("disabled", false);
-		}
-		else if(withdrawal_type_value == 1){
-			$(".withdrawal_type_2").html("");
-			
-			// ### Enable the buttons ###
-			$("#btn_add").prop("disabled", false);
-			$("#btn_del").prop("disabled", false);
-			$("#parts_code1").prop("disabled", false);
-			$("#parts_code1").val("");
-			$("#parts_name1").html("");
-			$(".parts_name[name=parts_name1]").val("");
-			$("#parts_detail1").html("");
-			$("#quantity1").html("");
-			$(".quantity[name=quantity1]").val("");
-			$("#quantity_withdrawal1").val("");
-			$("#quantity_withdrawal1").prop("disabled", true);
-			$("#TextBoxesGroup").html("");
-			counter = 1;
-			$("#TextBoxesGroup").html("");
-			$("#parts_code1").prop("disabled", false);
 		}
 		else if(withdrawal_type_value == 3){
 			
@@ -526,120 +526,126 @@ $function = new Withdrawal_new_body();
 			$("#TextBoxesGroup").html("");
 			counter = 1;
 			$("#TextBoxesGroup").html("");
-			$("#parts_code1").prop("disabled", false);
 		}
 	});
 	
-
 	$(".project_id").live("change", function(){
 		var project_id = $(this).val();
 		var temp_project_detail = new Array();
 		
-		// แสดงค่า ในช่อง -> ต้องการผลิตเป็นสินค้าจำนวน
-		$(".project_quantity").val("1");
 		
-		// Count how many of parts do they have in that project
-		var this_count_project = 0;
-		for(var i = 0; i < projectDetailCount.length; i++){
-			if($.inArray(project_id , projectDetailCount[i]) == 0){
-				this_count_project = projectDetailCount[i][1];
-			}
-		}
-		
-		// ### Clear List of Parts Data (Body Table)
-		counter = 1;
-		$("#TextBoxesGroup").html("");
-		$(".parts_code#parts_code1").val("");
-		$(".parts_name#parts_name1").val("");
-		$(".parts_name[name=parts_name1]").html("");
-		$(".parts_detail#parts_detail1").val("");
-		$(".quantity#quantity1").html("");
-		$(".quantity[name=quantity1]").val("");
-		$(".quantity_withdrawal#quantity_withdrawal1").val("");
-		$(".quantity_withdrawal#quantity_withdrawal1").prop("disabled", true);
-		
-		
-		// find the real parts for that project
-		for(var i = 0; i < projectDetail.length; i++){
-			
-			// if project_id is in Table : projectDetail
-			if($.inArray(project_id , projectDetail[i]) == 0){
-				$("#btn_add").click();
-				
-				temp_project_detail.push([
-					projectDetail[i][0],
-					projectDetail[i][1],
-					projectDetail[i][2],
-				]);
-			}
-		}
-		$("#btn_del").click();
-		
-		// console.log(temp_project_detail);
-		
-		for(var i = 0; i < counter; i++){
-			// console.log(i);
-			// if(i == 0){
-				// $(".parts_code#parts_code1").val(temp_project_detail[i][1]);
-				// // $(".parts_name#parts_name1").val("");
-				// // $(".parts_name[name=parts_name1]").html("");
-				// // $(".parts_detail#parts_detail1").val("");
-				// // $(".quantity#quantity1").html("");
-				// // $(".quantity[name=quantity1]").val("");
-				// $(".quantity_withdrawal#quantity_withdrawal1").prop("disabled", false);
-				// $(".quantity_withdrawal#quantity_withdrawal1").val(temp_project_detail[i][2]);
-			// }
-			// else{
-				
-				// ใส่ค่า Parts Code
-				$(".parts_code#parts_code"+(i+1)).val(temp_project_detail[i][1]);
-				
-				// Enable Text Fields
-				$("#parts_code"+(i+1)).prop("disabled", false);
-				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).prop("disabled", false);
-				
-				// เพิ่มค่า Name, Detail
-				$(".parts_code#parts_code"+(i+1)).focus();
-				$(".parts_code#parts_code"+(i+1)).blur();
-				
-				// ใส่ค่า quantity_withdrawal
-				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val(temp_project_detail[i][2]);
-				
-				// Disable Text Fields
-				$("#parts_code"+(i+1)).prop("disabled", true);
-				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).prop("disabled", true);
-			// }
-		}
-		
-		//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
-		// Check ค่าก่อน
-		var _project_quantity = 1;
-		var status_proeject_quantity = 0;
-		for(var i = 0; i < counter; i++){
-			
-			console.log($(".quantity[name=quantity"+(i+1)+"]").val());
-			// console.log(((temp_project_detail[i][2])*_project_quantity));
-			
-			// quantity
-			if($(".quantity[name=quantity"+(i+1)+"]").val() < ((temp_project_detail[i][2])*_project_quantity) ){
-				status_proeject_quantity++;
-			}
-		}
-		
-		//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
-		if(status_proeject_quantity > 0){
-			alert("จำนวนที่เบิกได้สูงสุด เกินกว่า ที่มีอยู่");
-			for(var i = 0; i < counter; i++){
-				$(".project_quantity").val("0");
-				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*0) );
-			}
+		if(project_id == ""){
+			$(".project_quantity").prop("disabled", true);
 		}
 		else{
+			$(".project_quantity").prop("disabled", false);
+			
+			
+			// แสดงค่า ในช่อง -> ต้องการผลิตเป็นสินค้าจำนวน
+			$(".project_quantity").val("1");
+			
+			// Count how many of parts do they have in that project
+			var this_count_project = 0;
+			for(var i = 0; i < projectDetailCount.length; i++){
+				if($.inArray(project_id , projectDetailCount[i]) == 0){
+					this_count_project = projectDetailCount[i][1];
+				}
+			}
+			
+			// ### Clear List of Parts Data (Body Table)
+			counter = 1;
+			$("#TextBoxesGroup").html("");
+			$(".parts_code#parts_code1").val("");
+			$(".parts_name#parts_name1").val("");
+			$(".parts_name[name=parts_name1]").html("");
+			$(".parts_detail#parts_detail1").val("");
+			$(".quantity#quantity1").html("");
+			$(".quantity[name=quantity1]").val("");
+			$(".quantity_withdrawal#quantity_withdrawal1").val("");
+			$(".quantity_withdrawal#quantity_withdrawal1").prop("disabled", true);
+			
+			
+			// find the real parts for that project
+			for(var i = 0; i < projectDetail.length; i++){
+				
+				// if project_id is in Table : projectDetail
+				if($.inArray(project_id , projectDetail[i]) == 0){
+					$("#btn_add").click();
+					
+					temp_project_detail.push([
+						projectDetail[i][0],
+						projectDetail[i][1],
+						projectDetail[i][2],
+					]);
+				}
+			}
+			$("#btn_del").click();
+			
+			// console.log(temp_project_detail);
+			
 			for(var i = 0; i < counter; i++){
-				$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*_project_quantity) );
+				// console.log(i);
+				// if(i == 0){
+					// $(".parts_code#parts_code1").val(temp_project_detail[i][1]);
+					// // $(".parts_name#parts_name1").val("");
+					// // $(".parts_name[name=parts_name1]").html("");
+					// // $(".parts_detail#parts_detail1").val("");
+					// // $(".quantity#quantity1").html("");
+					// // $(".quantity[name=quantity1]").val("");
+					// $(".quantity_withdrawal#quantity_withdrawal1").prop("disabled", false);
+					// $(".quantity_withdrawal#quantity_withdrawal1").val(temp_project_detail[i][2]);
+				// }
+				// else{
+					
+					// ใส่ค่า Parts Code
+					$(".parts_code#parts_code"+(i+1)).val(temp_project_detail[i][1]);
+					
+					// Enable Text Fields
+					$("#parts_code"+(i+1)).prop("disabled", false);
+					$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).prop("disabled", false);
+					
+					// เพิ่มค่า Name, Detail
+					$(".parts_code#parts_code"+(i+1)).focus();
+					$(".parts_code#parts_code"+(i+1)).blur();
+					
+					// ใส่ค่า quantity_withdrawal
+					$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val(temp_project_detail[i][2]);
+					
+					// Disable Text Fields
+					$("#parts_code"+(i+1)).prop("disabled", true);
+					$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).prop("disabled", true);
+				// }
+			}
+			
+			//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
+			// Check ค่าก่อน
+			var _project_quantity = 1;
+			var status_proeject_quantity = 0;
+			for(var i = 0; i < counter; i++){
+				
+				console.log($(".quantity[name=quantity"+(i+1)+"]").val());
+				// console.log(((temp_project_detail[i][2])*_project_quantity));
+				
+				// quantity
+				if($(".quantity[name=quantity"+(i+1)+"]").val() < ((temp_project_detail[i][2])*_project_quantity) ){
+					status_proeject_quantity++;
+				}
+			}
+			
+			//เปลี่ยนแปลงค่า ใน Withdrawal_quantity
+			if(status_proeject_quantity > 0){
+				alert("จำนวนที่เบิกได้สูงสุด เกินกว่า ที่มีอยู่");
+				for(var i = 0; i < counter; i++){
+					$(".project_quantity").val("0");
+					$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*0) );
+				}
+			}
+			else{
+				for(var i = 0; i < counter; i++){
+					$(".quantity_withdrawal#quantity_withdrawal"+(i+1)).val( ((temp_project_detail[i][2])*_project_quantity) );
+				}
 			}
 		}
-		
 	});
 	
 	$(".project_quantity").live("keyup", function(){

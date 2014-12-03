@@ -111,6 +111,8 @@ $('#btn_list_add.add').live("click", function(){
     
     // For make the jQuery Chosen for all Option
 	$(".chosen-select").chosen({
+		placeholder_text_single: "เลือก",
+		search_contains: true,
 		no_results_text: "ไม่มีข้อมูล"
 	}); 
 });
@@ -158,6 +160,8 @@ $(".combo_mat_add").live("change", function(){
 $(function() {
 	// For make the jQuery Chosen for all Option
 	$(".chosen-select").chosen({
+		placeholder_text_single: "เลือก",
+		search_contains: true,
 		no_results_text: "ไม่มีข้อมูล"
 	});
 	
@@ -478,7 +482,7 @@ elseif($cmd == "div_edit"){
 		<tr>
 		    <td width="10%"></td>
 		    <td width="40%"></td>
-		    <td width="40%"><b>รหัสสินค้าที่ผูกกับโปรเจค :</b> <input type="text" name="project_edit_exist_parts" id="project_edit_exist_parts" style="width:200px" value="<?php echo $edit_project_result["product_id"]; ?>"></td>
+		    <td width="40%"><b>รหัสสินค้าที่ผูกกับโปรเจค :</b> <input type="text" name="project_edit_exist_parts" id="project_edit_exist_parts" style="width:180px" value="<?php echo $edit_project_result["product_id"]; ?>"></td>
 		    <td width="10%"><input type="button" name="project_add_new_parts" id="project_add_new_parts" value="เพิ่มสินค้า" onclick="javascript:project_add_new_Parts('parts_project_add_product.php'); " ></td>
 		</tr>
 		</table>
@@ -524,7 +528,6 @@ elseif($cmd == "div_edit"){
 					    <td align="center"><?php echo $j; ?>.</td>
 					    <td>
 							<select name="combo_mat_edit1" id="combo_mat_edit1" class="combo_mat_edit chosen-select" data-code_id="1" style="width: 100%">
-					    		<option value="">เลือก</option>
 <?php
 								$parts = get_Parts_type_0();
 ?>
@@ -571,15 +574,15 @@ elseif($cmd == "div_edit"){
 								<td align="center" width="5%"><?php echo $j; ?>.</td>
 								<td width="30%">
 									<select id="combo_mat_edit<?php echo $j; ?>" name="combo_mat_edit<?php echo $j; ?>" class="combo_mat_edit chosen-select" data-code_id="<?php echo $j; ?>" style="width: 100%">
-										<option value="">เลือก</option>
 <?php
 										foreach ($parts as $key => $value){
+											$label = $value["code"]." # ".$value["name"]." # ".$value["details"]." # ".$value["barcode"];
 ?>
 											<option value="<?php echo $value["code"]; ?>" <?php 
 												if($value["code"] == $dt_material_id){
 													?>selected='selected'<?php
 												}
-											?>><?php echo $value["code"]."#".$value["name"]."#".$value["details"]."#".$value["barcode"]; ?></option>
+											?>><?php echo $label; ?></option>
 <?php 
 										}
 ?>
@@ -661,6 +664,8 @@ counter++;
     
     // For make the jQuery Chosen for all Option
 	$(".chosen-select").chosen({
+		placeholder_text_single: "เลือก",
+		search_contains: true,
 		no_results_text: "ไม่มีข้อมูล"
 	}); 
 });
@@ -707,6 +712,8 @@ $(".combo_mat_edit").live("change", function(){
 
 function jquery_chosen(){
 	$(".chosen-select").chosen({
+		placeholder_text_single: "เลือก",
+		search_contains: true,
 		no_results_text: "ไม่มีข้อมูล"
 	});
 }
@@ -747,6 +754,7 @@ $(function(){
 
 $('#combo_mat_edit1').trigger('chosen:updated');
 
+
 var parts_code_autocomplete = <?php echo json_encode(get_Parts_autocomplete_type_1()); ?>;
 $("#project_edit_exist_parts").live("focus", function() {
 	$(this).autocomplete({
@@ -780,7 +788,7 @@ $('#btnEditAddMat').click(function(){
 $('#btnSaveMat').click(function(){
 	var new_project_check = 0;
 	var _project_edit_exist_parts = $("#project_edit_exist_parts").val();
-	if(_project_add_exist_parts == ""){
+	if(_project_edit_exist_parts == ""){
 		new_project_check++;
 		alert('กรุณากรอก รหัสสินค้าที่ผูกกับโปรเจค ');
         return false;
@@ -941,6 +949,8 @@ var counter = 1;
 
 // For make the jQuery Chosen for all Option
 $(".chosen-select").chosen({
+	placeholder_text_single: "เลือก",
+	search_contains: true,
 	no_results_text: "ไม่มีข้อมูล"
 }); 
 
@@ -976,6 +986,8 @@ $('#btn_list_add.edit').click(function(){
     
     // For make the jQuery Chosen for all Option
 	$(".chosen-select").chosen({
+		placeholder_text_single: "เลือก",
+		search_contains: true,
 		no_results_text: "ไม่มีข้อมูล"
 	}); 
 });

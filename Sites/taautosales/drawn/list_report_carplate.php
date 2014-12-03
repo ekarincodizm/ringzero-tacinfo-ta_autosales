@@ -14,7 +14,7 @@ $car_plate = pg_escape_string($_GET['car_plate']);
 		$where = "where new_plate='$car_plate'";
 		$param_pdf = "condition=carplate&car_plate=$car_plate";
 	}
-	$qry_list = "SELECT * FROM \"P_NewCarPlate\" $where ORDER BY new_plate ASC";
+	$qry_list = "SELECT * FROM \"P_NewCarPlate\" $where ORDER BY new_plate , date_out , date_return ASC";
 ?>
 <div style="float:right">
 <a href="../report/report_carplate_pdf.php?<?php echo $param_pdf; ?>" target="_blank">

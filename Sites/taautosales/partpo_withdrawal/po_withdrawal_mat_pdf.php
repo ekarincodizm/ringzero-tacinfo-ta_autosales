@@ -41,6 +41,60 @@ if($res = pg_fetch_array($partsReceived_strQuery)){
 	$note = $res["note"];
 }
 
+// ######## จุดประสงค์: เบิกประกอบชิ้นงาน ########
+if($type == 2){
+	
+	// ########### Load WithdrawalParts ###########
+	$withdrawalParts_strQuery = "
+		SELECT 
+			code, type, user_id, withdraw_user_id, date, usedate, status, partstock_code, project_id, project_quantity
+		FROM 
+			\"WithdrawalParts\"
+		WHERE
+			code = '".$withdrawal_code."' ;
+	";
+	$withdrawalParts_query = pg_query($withdrawalParts_strQuery);
+	if($res = pg_fetch_array($withdrawalParts_query)){
+		$withdrawalParts_project_id = $res["project_id"];
+		$withdrawalParts_project_quantity = $res["project_quantity"];
+	}
+	
+	// ########### Load project ###########
+	$project_strQuery = "
+		SELECT 
+			name, product_id
+		FROM 
+			\"Projects\"
+		WHERE 
+			project_id = '".$withdrawalParts_project_id."'
+			AND
+			cancel = FALSE
+		;
+	";
+	$project_query = pg_query($project_strQuery);
+	if($res = pg_fetch_array($project_query)){
+		$project_product_id = $res["product_id"];
+		$project_name = $res["name"];
+	}
+	
+	// ########### Load parts ###########
+	$parts_strQuery = "
+		SELECT 
+			name, details
+		FROM 
+			parts
+		WHERE 
+			code = '".$project_product_id."'
+		;
+	";
+	$parts_query = pg_query($parts_strQuery);
+	if($res = pg_fetch_array($parts_query)){
+		$parts_name = $res["name"];
+		$parts_details = $res["details"];
+	}
+}
+// ###### END จุดประสงค์: เบิกประกอบชิ้นงาน ######
+
 
 // ########### Load name of doing job ###########
 $fname_userid_strQuery = "
@@ -244,32 +298,53 @@ $save_data[$m] .= '
 </tr>
 ';
 
-$purchaseOrderPartsDetails_qry = pg_query("
+// ######## จุดประสงค์: !เบิกประกอบชิ้นงาน ########
+if($type != 2){
 
-	SELECT 
-		--send_details_id, send_code, 
-		idno, parts_code, send_quantity
-	FROM 
-		\"SendPartsDetails\"
-	WHERE
-		send_code = '".$po_id."'
-	;
-");
-while($res = pg_fetch_array($purchaseOrderPartsDetails_qry)){
+	$purchaseOrderPartsDetails_qry = pg_query("
 	
-	$idno = $res["idno"];
-	$parts_code = $res['parts_code'];
-	$send_quantity = $res['send_quantity'];
-	
-    $save_data[$m] .= '
-    <tr>
-        <td>'.$idno.'</td>
-        <td>'.$parts_code.'</td>
-        <td>'.call_parts($parts_code, "name").'</td>
-        <td>'.call_parts($parts_code, "details").'</td>
-		<td>'.$send_quantity.'</td>
-    </tr>';
+		SELECT 
+			--send_details_id, send_code, 
+			idno, parts_code, send_quantity
+		FROM 
+			\"SendPartsDetails\"
+		WHERE
+			send_code = '".$po_id."'
+		;
+	");
+	while($res = pg_fetch_array($purchaseOrderPartsDetails_qry)){
+		
+		$idno = $res["idno"];
+		$parts_code = $res['parts_code'];
+		$send_quantity = $res['send_quantity'];
+		
+	    $save_data[$m] .= '
+	    <tr>
+	        <td>'.$idno.'</td>
+	        <td>'.$parts_code.'</td>
+	        <td>'.call_parts($parts_code, "name").'</td>
+	        <td>'.call_parts($parts_code, "details").'</td>
+			<td>'.$send_quantity.'</td>
+	    </tr>';
+	}
+
 }
+// ###### END จุดประสงค์: !เบิกประกอบชิ้นงาน ######
+
+
+// ######## จุดประสงค์: เบิกประกอบชิ้นงาน ########
+elseif($type == 2){
+	$save_data[$m] .= '
+		<tr>
+			<td>'.(++$ii).'</td>
+			<td>'.$project_product_id.'</td>
+			<td>'.$parts_name.'</td>
+			<td>'.$parts_details.'</td>
+			<td>'.$withdrawalParts_project_quantity.'</td>
+		</tr>
+	';
+}
+// ###### END จุดประสงค์: เบิกประกอบชิ้นงาน ######
 
 $save_data[$m] .= '
 </table>

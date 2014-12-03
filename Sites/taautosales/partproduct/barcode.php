@@ -1,4 +1,7 @@
 <?php
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+
 include_once ("../include/config.php");
 include_once ("../include/function.php");
 $page_title = "พิมพ์บาร์โค้ดอะไหล่/อุปกรณ์";
@@ -26,6 +29,10 @@ $page_title = "พิมพ์บาร์โค้ดอะไหล่/อุ�
 
 <?php
 include_once ("../include/header_popup.php");
+include_once ("barcode_service.php");
+
+$class = new Model_barcode();
+
 ?>
 
 <div style="text-align:left;">&nbsp;&nbsp;</div>
@@ -77,7 +84,14 @@ include_once ("../include/header_popup.php");
 	
 	$("#p_Type").live("change", function(){
 		var _p_type = $(this).val();
-		if(_p_type == 0){
+		if(_p_type == ""){
+			$("input[name=barcode_start]").val("");
+			$("input[name=barcode_end]").val("");
+			
+			$("input[name=barcode_start]").prop("disabled", true);
+			$("input[name=barcode_end]").prop("disabled", true);
+		}
+		else if(_p_type == 0){
 			$("input[name=barcode_start]").prop("disabled", false);
 			$("input[name=barcode_end]").prop("disabled", false);
 			
@@ -108,22 +122,11 @@ include_once ("../include/header_popup.php");
 	// ###################################### Load All Parts ##############################################
 	var parts_type0 = new Array();
 <?php
-	$strQuery_parts_type0 = "
-		SELECT 
-			code,
-			name,
-			details,
-			type
-		FROM
-			\"parts\"
-		WHERE
-			type = 0
-		ORDER by code;
-	";
-	$qry_parts_type0=@pg_query($strQuery_parts_type0);
-	$numrows_parts_type0 = pg_num_rows($qry_parts_type0);
-	// $parts_data = array();
-	while($res_parts=@pg_fetch_array($qry_parts_type0)){
+
+
+	$parts_type0 = $class->get_parts_type0();
+	$numrows_parts_type0 = $parts_type0["numrow"];
+	foreach ($parts_type0["result"] as $res_parts) {
 		
 		// $parts_data[] = $res_parts;
 		$dt['value'] = $res_parts['code'];
@@ -164,42 +167,11 @@ include_once ("../include/header_popup.php");
 	// #################################### Load All Parts Detail ############################################
 	var parts = new Array();
 <?php
-	$strQuery_parts = "
-		(
-			SELECT 
-				code,
-				name,
-				details,
-				type
-			FROM
-				\"parts\"
-		)
-		UNION
-		(
-			SELECT 
-				\"PartsStockDetails\".codeid AS code,
-				parts.name,
-				parts.details,
-				'3' AS type
-			FROM
-				\"parts\"
-			JOIN
-				\"PartsStock\" 
-			ON 
-				\"PartsStock\".parts_code = parts.code
-				
-			LEFT JOIN 
-				\"PartsStockDetails\"
-			ON 
-				 \"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
-		)
-		ORDER BY code;
-	";
-	$qry_parts=@pg_query($strQuery_parts);
-	$numrows_parts = pg_num_rows($qry_parts);
-	// $parts_data = array();
-	while($res_parts=@pg_fetch_array($qry_parts)){
-		// $parts_data[] = $res_parts;
+	$parts = $class->get_parts();
+	$numrows_parts = $parts["numrow"];
+	
+	foreach ($parts["result"] as $res_parts) {
+		
 		$dt['value'] = $res_parts['code'];
 		$dt['label'] = $res_parts["code"]." # ".$res_parts["name"]." # ".$res_parts["details"];
 		$dt['type'] = $res_parts["type"];
@@ -209,16 +181,9 @@ include_once ("../include/header_popup.php");
 		
 		// ## Check Stock_remain ##
 		if($res_parts["type"] == 0 || $res_parts["type"] == 1){
-			$v_parts_stock__count_per_parts_code_strQuery = "
-				SELECT 
-					stock_remain
-				FROM 
-					v_parts_stock__count_per_parts_code
-				WHERE
-					parts_code = '".$res_parts["code"]."'
-			";
-			$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-			$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
+			
+			$stock_remain = $class->get_v_parts_stock__count_per_parts_code($res_parts["code"]);
+			
 		}
 		elseif($res_parts["type"] == 3){
 			$stock_remain = 1;
@@ -231,24 +196,7 @@ include_once ("../include/header_popup.php");
 		
 		
 		// ## Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
-		$v_parts_withdrawal_quantity3_strQuery = "
-			SELECT 
-				sum(withdrawal_quantity) AS sum_withdrawal_quantity
-			FROM 
-				v_parts_withdrawal_quantity3
-			WHERE 
-				withdrawal_status IN (1,2,3)
-				AND 
-				withdrawal_detail_status = 1
-				AND
-				parts_code = '".$res_parts["code"]."'
-			GROUP BY parts_code ;
-		";
-		// AND
-			// code <> '".$withdrawalParts_code."'
-		
-		$v_parts_withdrawal_quantity3_query = @pg_query($v_parts_withdrawal_quantity3_strQuery);
-		$sum_withdrawal_quantity = @pg_fetch_result($v_parts_withdrawal_quantity3_query, 0);
+		$sum_withdrawal_quantity = $class->get_v_parts_withdrawal_quantity3($res_parts["code"]);
 		
 		//ถ้า sum_withdrawal_quantity แล้ว ไม่มีค่า ให้ Set เป็นค่า 0 แทนค่า Null
 		if($sum_withdrawal_quantity == ""){
@@ -275,16 +223,8 @@ include_once ("../include/header_popup.php");
 	// Calculate How many Quantity left after already withdrawal the Parts
 	// จำนวนที่ได้กดเบิกออกไปจางคลังแล้ว ==> เอาค่านี้ ไปรวมกับ จำนวนที่เบิกได้ ถึงจะสามารถ นับได้ว่า เราเบิกได้สูงสุด หลังจากที่นับ จากของที่เบิกไปแล้ว
 	$max_send_quantity = 0;
-	$view_withdrawal_quantity_strQuery = "
-		SELECT
-			parts_code,
-			SUM(send_quantity) as send_quantity
-		FROM 
-			v_parts_withdrawal_quantity
-		group by parts_code ;
-	";
-	$view_withdrawal_quantity_query = pg_query($view_withdrawal_quantity_strQuery);
-	while ($view_withdrawal_quantity_result = pg_fetch_array($view_withdrawal_quantity_query)) {
+	foreach ($class->get_view_withdrawal_quantity() as $view_withdrawal_quantity_result) {
+		
 		$max_send_quantity = $view_withdrawal_quantity_result["send_quantity"];
 ?>
 		total_send_quantity_array.push([

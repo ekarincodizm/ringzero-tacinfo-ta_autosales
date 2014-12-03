@@ -1,32 +1,32 @@
 <?php 
-function get_fuser_fullname($id_user = ''){
-	$fuser_strQuery = "
-		SELECT 
-			fullname
-		FROM 
-			fuser
-		WHERE 
-			id_user = '".$id_user."'
-		ORDER BY fullname
-		;
-	";
-	$fuser_query = @pg_query($fuser_strQuery);
-	while ($fuser_result = @pg_fetch_array($fuser_query)) {
-		return $fuser_result["fullname"];
-	}
-}
-
-
 /**
  * 
  */
-class Return_stock_new {
+class Return_stock_default {
 	
 	function __construct($argument = '') {
 		
 	}
 	
-	function get_fuser_fullname($ss_iduser = ''){
+	function get_fuser_fullname($id_user = ''){
+		$fuser_strQuery = "
+			SELECT 
+				fullname
+			FROM 
+				fuser
+			WHERE 
+				id_user = '".$id_user."'
+			ORDER BY fullname
+			;
+		";
+		$fuser_query = @pg_query($fuser_strQuery);
+		while ($fuser_result = @pg_fetch_array($fuser_query)) {
+			return $fuser_result["fullname"];
+		}
+	}
+	
+	function get_fuser_list_fullname(){
+		
 		$fuser_strQuery = "
 			SELECT 
 				fullname, id_user
@@ -34,11 +34,21 @@ class Return_stock_new {
 			ORDER BY fullname;
 		";
 		$fuser_query = @pg_query($fuser_strQuery);
-		while ($fuser_result = @pg_fetch_array($fuser_query)) {
-			if($fuser_result["id_user"] == $ss_iduser){
-				return $fuser_result["fullname"];
-			}
-		}
+		$fuser_result = @pg_fetch_all($fuser_query);
+		return $fuser_result;
+	}
+	
+}
+
+
+
+/**
+ * 
+ */
+class Return_stock_new extends Return_stock_default {
+	
+	function __construct($argument = '') {
+		
 	}
 	
 	function get_all_SendParts_javascript(){
@@ -170,9 +180,44 @@ class Return_stock_new {
 		}
 		return $return;
 	}
+	
+	function get_projectDetailCount(){
+		
+		$projectDetailCount_strQuery = "
+			SELECT 
+				project_id,
+				count(project_id) AS count
+			FROM 
+				\"ProjectDetails\"
+			WHERE
+				cancel = FALSE
+			group by project_id; 
+		;";
+		$projectDetailCount_query = @pg_query($projectDetailCount_strQuery);
+		$projectDetailCount_result = @pg_fetch_all($projectDetailCount_query);
+		return $projectDetailCount_result;
+	}
+	
+	function get_projectDetail(){
+		
+		$projectDetail_strQuery = "
+			SELECT 
+				project_id,
+				material_id, 
+				use_unit
+			FROM 
+				\"ProjectDetails\"
+			WHERE
+				cancel = FALSE 
+		;";
+		$projectDetail_query = @pg_query($projectDetail_strQuery);
+		$projectDetail_result = @pg_fetch_all($projectDetail_query);
+		return $projectDetail_result;
+	}
+	
 }
 
-class Return_stock_body1 {
+class Return_stock_body1 extends Return_stock_default {
 	
 	function __construct($argument = '') {
 		
@@ -204,7 +249,7 @@ class Return_stock_body1 {
 	}
 }
 
-class Return_stock_body2 {
+class Return_stock_body2 extends Return_stock_default {
 	
 	function __construct($argument = '') {
 		
@@ -236,9 +281,9 @@ class Return_stock_body2 {
 	}
 }
 
-class Return_stock_view {
+class Return_stock_view extends Return_stock_default {
 	
-	private $return_type = '';
+	//$return_type = '';
 	private $withdrawalParts_code = '';
 	
 	function __construct(
@@ -247,6 +292,153 @@ class Return_stock_view {
 	) {
 			$this->return_type = $return_type;
 			$this->withdrawalParts_code = $withdrawalParts_code;
+	}
+	
+	function get_PartsApprove(){
+		$appr_strQuery = "
+			SELECT 
+				user_note, appr_note
+			FROM 
+				\"PartsApproved\"
+			WHERE
+				code = '".$this->withdrawalParts_code."' ;
+		";
+		$appr_query = @pg_query($appr_strQuery);
+		$appr_user_note = @pg_fetch_result($appr_query, 0);
+		$appr_appr_note = @pg_fetch_result($appr_query, 1);
+		return 
+			array(
+				"user_note" => $appr_user_note,
+				"appr_note" => $appr_appr_note
+			)
+		;
+	}
+	
+	function call_parts($parts_code, $return){
+		
+		$withdrawalParts_code = pg_escape_string($_GET["code"]);
+		$strQuery_parts = "
+			(
+				SELECT 
+					code,
+					name,
+					details,
+					type
+				FROM
+					\"parts\"
+				WHERE 
+					code = '".$parts_code."'
+			)
+			UNION
+			(
+				SELECT 
+					\"PartsStockDetails\".codeid AS code,
+					parts.name,
+					parts.details,
+					'3' AS type
+				FROM
+					\"parts\"
+				JOIN
+					\"PartsStock\" 
+				ON 
+					\"PartsStock\".parts_code = parts.code
+					
+				LEFT JOIN 
+					\"PartsStockDetails\"
+				ON 
+					\"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
+				WHERE
+					codeid = '".$parts_code."'
+			)
+			ORDER BY code;
+		";
+		$qry_parts=@pg_query($strQuery_parts);
+		$numrows_parts = pg_num_rows($qry_parts);
+		// $parts_data = array();
+		while($res_parts=@pg_fetch_array($qry_parts)){
+			// $parts_data[] = $res_parts;
+			$dt['value'] = $res_parts['code'];
+			$dt['label'] = $res_parts["code"]." # ".$res_parts["name"]." # ".$res_parts["details"];
+			$parts_matches[] = $dt;
+			
+			$stock_remain = "";
+			
+			// ## Check Stock_remain ##
+			if($res_parts["type"] == 0 || $res_parts["type"] == 1){
+				$v_parts_stock__count_per_parts_code_strQuery = "
+					SELECT 
+						stock_remain
+					FROM 
+						v_parts_stock__count_per_parts_code
+					WHERE
+						parts_code = '".$res_parts["code"]."'
+				";
+				$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
+				$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
+			}
+			// elseif($res_parts["type"] == 1){
+				// $v_parts_stock__count_per_parts_code_strQuery = "
+					// SELECT 
+						// stock_status
+					// FROM 
+						// v_parts_stock_detail__count_per_parts_code
+					// WHERE
+						// parts_code = '".$res_parts["code"]."'
+				// ";
+				// $v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
+				// $stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
+			// }
+			elseif($res_parts["type"] == 3){
+				$stock_remain = 1;
+			}
+			
+			if($stock_remain == "" || $stock_remain == NULL){
+				$stock_remain = 0;
+			}
+			// ## End Check Stock_remain ##
+			
+			
+			// ## Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
+			$v_parts_withdrawal_quantity3_strQuery = "
+				SELECT 
+					sum(withdrawal_quantity) AS sum_withdrawal_quantity
+				FROM 
+					v_parts_withdrawal_quantity3
+				WHERE 
+					withdrawal_status IN (1,2,3)
+					AND 
+					withdrawal_detail_status = 1
+					AND
+					parts_code = '".$res_parts["code"]."'
+					AND
+					code <> '".$withdrawalParts_code."'
+				GROUP BY parts_code ;
+			";
+			$v_parts_withdrawal_quantity3_query = @pg_query($v_parts_withdrawal_quantity3_strQuery);
+			$sum_withdrawal_quantity = @pg_fetch_result($v_parts_withdrawal_quantity3_query, 0);
+			$stock_remain_with_withdrawal_value = $stock_remain - $sum_withdrawal_quantity;
+			// ## End Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
+			
+			
+			// ##### return value #####
+			if($return == "code"){
+				return $res_parts['code'];
+			}
+			
+			elseif($return == "name"){
+				return $res_parts['name'];
+			}
+			elseif($return == "details"){
+				return $res_parts['details'];
+			}
+			elseif($return == "stock_remain"){
+				return $stock_remain;
+			}
+			elseif($return == "withdrawal_quantity"){
+				return $stock_remain_with_withdrawal_value;
+			}
+			// ##### End return value #####
+		}
 	}
 	
 	function get_ReturnParts(){
@@ -329,8 +521,8 @@ class Return_stock_view {
 			array(
 				"numrow" => $withdrawalPartsDetails_numrow,
 				"result" => $withdrawalPartsDetails_result
-			);
+			)
+		;
 	}
-	
 }
 ?>

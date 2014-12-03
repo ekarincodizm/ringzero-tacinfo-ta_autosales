@@ -6,21 +6,13 @@ $withdrawalParts_code = pg_escape_string($_GET["code"]);
 
 $function = new Return_stock_view($return_type, $withdrawalParts_code);
 
-$appr_strQuery = "
-	SELECT 
-		user_note, appr_note
-	FROM 
-		\"PartsApproved\"
-	WHERE
-		code = '".$withdrawalParts_code."' ;
-";
-$appr_query = @pg_query($appr_strQuery);
-$appr_user_note = @pg_fetch_result($appr_query, 0);
-$appr_appr_note = @pg_fetch_result($appr_query, 1);
+$PartsApprove = $function->get_PartsApprove();
+$appr_user_note = $PartsApprove["user_note"];
+$appr_appr_note = $PartsApprove["appr_note"];
 
 $ReturnParts = $function->get_ReturnParts();
 
-$withdrawalPar1ts_numrow = $ReturnParts["numrow"];
+$withdrawalParts_numrow = $ReturnParts["numrow"];
 
 foreach ($ReturnParts["result"] as $withdrawalParts_result) {
 ?>
@@ -48,20 +40,7 @@ foreach ($ReturnParts["result"] as $withdrawalParts_result) {
 				<b>เจ้าหน้าที่ผู้ทำรายการ :</b>
 			</div>
 			<div style="width: 48%; float: left;">
-<?php
-				$fuser_strQuery = "
-					SELECT 
-						fullname
-					FROM 
-						fuser
-					WHERE
-						id_user = '{$withdrawalParts_result["user_id"]}' ;
-				";
-				$fuser_query = @pg_query($fuser_strQuery);
-				while ($fuser_result = @pg_fetch_array($fuser_query)) {
-					echo $fuser_result["fullname"];
-				}
-?>
+				<?php echo $function->get_fuser_fullname($withdrawalParts_result["user_id"]); ?>
 			</div>
 			<div style="clear: both;"></div>
 		</div>
@@ -70,19 +49,7 @@ foreach ($ReturnParts["result"] as $withdrawalParts_result) {
 				<b>เจ้าหน้าที่ผู้ขอคืน :</b>
 			</div>
 			<div style="width: 48%; float: left;">
-<?php
-					$fuser_strQuery = "
-						SELECT 
-							fullname
-						FROM fuser
-						WHERE
-							id_user = '{$withdrawalParts_result["broken_user_id"]}' ;
-					";
-					$fuser_query = @pg_query($fuser_strQuery);
-					while ($fuser_result = @pg_fetch_array($fuser_query)) {
-						echo $fuser_result["fullname"];
-					}
-?>
+				<?php echo $function->get_fuser_fullname($withdrawalParts_result["broken_user_id"]); ?>
 			</div>
 			<div style="clear: both;"></div>
 		</div>
@@ -116,132 +83,6 @@ foreach ($ReturnParts["result"] as $withdrawalParts_result) {
 					<td width="15%">จำนวนที่เบิก</td>
 				</tr>
 <?php
-				function call_parts($parts_code, $return){
-					$withdrawalParts_code = pg_escape_string($_GET["code"]);
-					$strQuery_parts = "
-						(
-							SELECT 
-								code,
-								name,
-								details,
-								type
-							FROM
-								\"parts\"
-							WHERE 
-								code = '".$parts_code."'
-						)
-						UNION
-						(
-							SELECT 
-								\"PartsStockDetails\".codeid AS code,
-								parts.name,
-								parts.details,
-								'3' AS type
-							FROM
-								\"parts\"
-							JOIN
-								\"PartsStock\" 
-							ON 
-								\"PartsStock\".parts_code = parts.code
-								
-							LEFT JOIN 
-								\"PartsStockDetails\"
-							ON 
-								\"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
-							WHERE
-								codeid = '".$parts_code."'
-						)
-						ORDER BY code;
-					";
-					$qry_parts=@pg_query($strQuery_parts);
-					$numrows_parts = pg_num_rows($qry_parts);
-					// $parts_data = array();
-					while($res_parts=@pg_fetch_array($qry_parts)){
-						// $parts_data[] = $res_parts;
-						$dt['value'] = $res_parts['code'];
-						$dt['label'] = $res_parts["code"]." # ".$res_parts["name"]." # ".$res_parts["details"];
-						$parts_matches[] = $dt;
-						
-						$stock_remain = "";
-						
-						// ## Check Stock_remain ##
-						if($res_parts["type"] == 0 || $res_parts["type"] == 1){
-							$v_parts_stock__count_per_parts_code_strQuery = "
-								SELECT 
-									stock_remain
-								FROM 
-									v_parts_stock__count_per_parts_code
-								WHERE
-									parts_code = '".$res_parts["code"]."'
-							";
-							$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-							$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-						}
-						// elseif($res_parts["type"] == 1){
-							// $v_parts_stock__count_per_parts_code_strQuery = "
-								// SELECT 
-									// stock_status
-								// FROM 
-									// v_parts_stock_detail__count_per_parts_code
-								// WHERE
-									// parts_code = '".$res_parts["code"]."'
-							// ";
-							// $v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-							// $stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-						// }
-						elseif($res_parts["type"] == 3){
-							$stock_remain = 1;
-						}
-						
-						if($stock_remain == "" || $stock_remain == NULL){
-							$stock_remain = 0;
-						}
-						// ## End Check Stock_remain ##
-						
-						
-						// ## Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
-						$v_parts_withdrawal_quantity3_strQuery = "
-							SELECT 
-								sum(withdrawal_quantity) AS sum_withdrawal_quantity
-							FROM 
-								v_parts_withdrawal_quantity3
-							WHERE 
-								withdrawal_status IN (1,2,3)
-								AND 
-								withdrawal_detail_status = 1
-								AND
-								parts_code = '".$res_parts["code"]."'
-								AND
-								code <> '".$withdrawalParts_code."'
-							GROUP BY parts_code ;
-						";
-						$v_parts_withdrawal_quantity3_query = @pg_query($v_parts_withdrawal_quantity3_strQuery);
-						$sum_withdrawal_quantity = @pg_fetch_result($v_parts_withdrawal_quantity3_query, 0);
-						$stock_remain_with_withdrawal_value = $stock_remain - $sum_withdrawal_quantity;
-						// ## End Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
-						
-						
-						// ##### return value #####
-						if($return == "code"){
-							return $res_parts['code'];
-						}
-						
-						elseif($return == "name"){
-							return $res_parts['name'];
-						}
-						elseif($return == "details"){
-							return $res_parts['details'];
-						}
-						elseif($return == "stock_remain"){
-							return $stock_remain;
-						}
-						elseif($return == "withdrawal_quantity"){
-							return $stock_remain_with_withdrawal_value;
-						}
-						// ##### End return value #####
-					}
-				}
-				
 				$ReturnPartsDetail = $function->get_ReturnPartsDetail();
 				
 				foreach ($ReturnPartsDetail["result"] as $withdrawalPartsDetails_result) {
@@ -255,19 +96,21 @@ foreach ($ReturnParts["result"] as $withdrawalParts_result) {
 						</td>
 						
 						<td>
-							<?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?>
+							<?php echo $function->call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?>
 						</td>	
 						<td>
-							<?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "details"); ?>
+							<?php echo $function->call_parts($withdrawalPartsDetails_result["parts_code"], "details"); ?>
 						</td>
-						<!-- <td>
 							
-						</td>
-						<td>
-							
-						</td> -->
 						<td align="center">
-							<?php echo $withdrawalPartsDetails_result["broken_quantity"]; ?>
+<?php
+							if($return_type == "return"){
+								echo $withdrawalPartsDetails_result["return_quantity"]; 
+							}
+							elseif($return_type == "broken"){
+								echo $withdrawalPartsDetails_result["broken_quantity"]; 
+							}
+?>
 						</td>
 					</tr>
 <?php
@@ -435,11 +278,6 @@ foreach ($ReturnParts["result"] as $withdrawalParts_result) {
 	function numberWithCommas(x) {
 	    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
-	
-	// $("#btnClose").click(function(){
-		// $('#divdialogadd').remove();
-	// });
-	
 	
 	//########## Submit ###########
 	$('#btnSubmit').click(function(){

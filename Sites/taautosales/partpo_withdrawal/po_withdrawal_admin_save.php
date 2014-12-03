@@ -20,7 +20,10 @@
 		FROM
 			\"WithdrawalParts\"
 		WHERE 
-			code = '".$withdrawal_code."';
+			code = '".$withdrawal_code."'
+			AND
+			status = ".$set_status."
+		;
 	";
 	$test_concurrency_query = @pg_query($test_concurrency_strQuery);
 	$test_concurrency_numrow = @pg_num_rows($test_concurrency_query); 

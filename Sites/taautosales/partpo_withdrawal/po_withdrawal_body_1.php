@@ -119,6 +119,7 @@ function get_fuser_fullname($id_user){
 	        height: 600,
 	        close: function(ev, ui){
 	            $('#divdialogadd').remove();
+	            location.reload();
 	        }
 	    });
 	}
@@ -134,6 +135,7 @@ function get_fuser_fullname($id_user){
 	        height: 600,
 	        close: function(ev, ui){
 	            $('#divdialogadd').remove();
+	            location.reload();
 	        }
 	    });
 	}

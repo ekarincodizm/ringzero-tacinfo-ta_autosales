@@ -18,7 +18,6 @@ $function = new Return_stock_body1();
 			<td width="50"><b>ผู้ขอเคืน</b></td>
 			<td width="50"><b>ผู้ทำรายการ</b></td>
 			<td width="50"><b>ยกเลิก</b></td>
-			<td width="50"><b>ส่งรออนุมัติ</b></td>
 		</tr>
 <?php
 		$ReturnParts = $function->get_ReturnParts();
@@ -26,12 +25,11 @@ $function = new Return_stock_body1();
 			foreach ($ReturnParts["result"] as $withdrawalParts_result) {
 	?>
 				<tr>
-					<td><a href="#" onclick="javascript:EditWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo $withdrawalParts_result["return_code"]; ?></a></td>
-					<td><a href="#" onclick="javascript:EditWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo $withdrawalParts_result["date"]; ?></a></td>
-					<td><a href="#" onclick="javascript:EditWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo get_fuser_fullname($withdrawalParts_result["return_user_id"]); ?></a></td>
-					<td><a href="#" onclick="javascript:EditWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo get_fuser_fullname($withdrawalParts_result["user_id"]); ?></a></td>
-					<td align="center"><img src="../images/close_button.png" border="0" class="btn_cancel" data-withdrawal_code="<?php echo $withdrawalParts_result["code"]; ?>" alt="ยกเลิก" title="ยกเลิก" style="cursor: pointer; "></td>
-					<td align="center"><a href="#" onclick="javascript:ConfirmWithdrawal('po_withdrawal_body_1_confirm.php', '<?php echo $withdrawalParts_result["code"]; ?>'); " ><img src="../images/icon-edit.png" border="0" alt="ส่งรออนุมัติ" title="ส่งรออนุมัติ" style="cursor: pointer; " /></a></td>
+					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo $withdrawalParts_result["return_code"]; ?></a></td>
+					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo $withdrawalParts_result["date"]; ?></a></td>
+					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo $function->get_fuser_fullname($withdrawalParts_result["return_user_id"]); ?></a></td>
+					<td><a href="#" onclick="javascript:ViewWithdrawal('parts_returnstock_view.php', '<?php echo $withdrawalParts_result["return_code"]; ?>', 'return'); " ><?php echo $function->get_fuser_fullname($withdrawalParts_result["user_id"]); ?></a></td>
+					<td align="center"><img src="../images/close_button.png" border="0" class="btn_cancel" data-return_code="<?php echo $withdrawalParts_result["return_code"]; ?>" alt="ยกเลิก" title="ยกเลิก" style="cursor: pointer; "></td>
 				</tr>
 	<?php
 			}
@@ -48,17 +46,17 @@ $function = new Return_stock_body1();
 </div>
 <script>
 	$(".btn_cancel").click(function(){
-		var _withdrawal_code = $(this).data("withdrawal_code");
+		var _return_code = $(this).data("return_code");
 		
-		if(confirm('คุณต้องการที่จะยืนยันการยกเลิกการเบิกหรือไม่') == false){
+		if(confirm('คุณต้องการที่จะยกเลิกการคืนหรือไม่') == false){
 			return false;
 		}
 		else{
 			$.post(
-				'po_withdrawal_body_save.php',
+				'parts_returnstock_delete_save.php',
 				{
-					withdrawal_code : _withdrawal_code,
-					set_status: 0,
+					return_code : _return_code,
+					type : "return",
 				},
 				function(data){
 					if(data.success){
@@ -77,11 +75,11 @@ $function = new Return_stock_body1();
 		}
 	});
 	
-	function EditWithdrawal(url, code, return_type){
+	function ViewWithdrawal(url, code, return_type){
 	    $('body').append('<div id="divdialogadd"></div>');
 	    $('#divdialogadd').load(url+'?return_type='+return_type+'&code='+code);
 	    $('#divdialogadd').dialog({
-	        title: 'แก้ไขใบเบิก code : ' + code,
+	        title: 'ดูรายละเอียดใบคืน code : ' + code,
 	        resizable: false,
 	        modal: true,  
 	        width: 1000,

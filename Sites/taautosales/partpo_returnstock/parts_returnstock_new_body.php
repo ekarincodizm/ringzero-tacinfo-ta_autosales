@@ -83,7 +83,7 @@
 		
 		<div style="float:left; margin-top:10px; width:15%">
 			<b>รายการที่คืนสินค้า</b><br />
-			<input type="button" name="btn_add" id="btn_add" value="+ เพิ่ม"><input type="button" name="btn_del" id="btn_del" value="- ลบ">
+			<input type="button" name="btn_add" id="btn_add" value="+ เพิ่ม" disabled="disabled"><input type="button" name="btn_del" id="btn_del" value="- ลบ" disabled="disabled">
 		</div>
 		
 		<div style="float:right; margin-top:10px; width:85%">
@@ -113,7 +113,7 @@
 						<input type="hidden" class="parts_type" name="parts_type1" id="parts_type1" data-id="1" value="" />
 					</td>
 					<td>
-						<input type="text" id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1" />
+						<input type="text" id="parts_code1" name="parts_code1" class="parts_code" data-code_id="1" data-stock_id="" disabled="disabled" />
 					</td>
 					
 					<td>
@@ -129,7 +129,7 @@
 					
 					
 					<td>
-						<select name="wh_id1" id="wh_id1>" class="wh_id">
+						<select name="wh_id1" id="wh_id1" class="wh_id" disabled="disabled">
 							<option value="">โปรดเลือกคลัง</option>
 <?php
 							foreach ($warehouses as $warehouses_data) {
@@ -140,7 +140,7 @@
 						</select>
 					</td>
 					<td>
-						<select name="locate_id1" id="locate_id1" class="locate_id">
+						<select name="locate_id1" id="locate_id1" class="locate_id" disabled="disabled">
 							<option value="">โปรดเลือกชั้นวาง</option>
 <?php
 							foreach ($locate as $locate_data) {
@@ -255,6 +255,7 @@
 	});
 	*/
 	
+	/*
 	$(".parts_code").live("blur", function(){
 		var this_id = $(this).data("code_id");
 		var parts_code = $(".parts_code#parts_code"+this_id).val();
@@ -320,8 +321,9 @@
 		// }
 		
 	});
+	*/
 	
-	var parts_code_autocomplete = <?php echo json_encode($parts_matches); ?>;
+	// var parts_code_autocomplete = <?php // echo json_encode($parts_matches); ?>;
 	
 	//On Key Enter For close Autocomplete
 	$(".parts_code").live("keydown", function(event) {
@@ -333,18 +335,140 @@
 	});
 	
 	$(".parts_code").live("focus", function() {
+		
+		var data_code_id = $(this).data("code_id");
+		
 		$(this).autocomplete({
-	        // source: "po_withdrawal_new_webservice.php",
-	        source: parts_code_autocomplete,
-	        minLength:1,
-	        select: function(event, ui) {
-				if(ui.item.value == 'ไม่พบข้อมูลเก่า'){
+			source: "parts_returnstock_requesturl.php?_function=search_by_stock_code",
+			delay: 500,
+			minLength:1,
+			select: function(event, ui) {
+				var data = $.ajax({
+					type: "POST",
+					url: "parts_returnstock_requesturl.php",
+					data: {
+						_function: "get_parts_detail",
+						_parts_code: ui.item.parts_code
+					},
+					dataType: "json",
+					async:false
+				});
+				data = $.parseJSON(data.responseText);
+				
+				var parts_code = $(".parts_code#parts_code"+data_code_id).val();
+				if(parts_code != ""){
 					
-				}else{
-				   
+					$(".parts_code#parts_code"+data_code_id).data("stock_id", ui.item.stock_id);
+					
+					// alert($(".parts_code#parts_code"+data_code_id).data("stock_id"));
+					
+					$(".parts_type#parts_type"+data_code_id).val(data.type);
+					if(data.type == "0"){
+						$(".parts_type_label#parts_type_label"+data_code_id).text("ไม่มีรหัสแยกย่อย");
+					}
+					else if(data.type == "3"){
+						$(".parts_type_label#parts_type_label"+data_code_id).text("มีรหัสแยกย่อย");
+					}
+					
+					
+					$("#parts_name"+data_code_id).text(data.name);
+					$(".parts_name[name=parts_name"+data_code_id+"]").val(data.name);
+					$("#parts_detail"+data_code_id).text(data.detail);
+					$(".quantity_return#quantity_return"+data_code_id).prop("disabled", false);
+					$(".quantity_return#quantity_return"+data_code_id).val("");
+					$(".wh_id#wh_id"+data_code_id).prop("disabled", false);
+					$(".wh_id#wh_id"+data_code_id).val("");
+					$(".locate_id#locate_id"+data_code_id).prop("disabled", false);
+					$(".locate_id#locate_id"+data_code_id).val("");
+					
 				}
-	        }
-	    });
+				else{
+					$(".parts_code#parts_code"+data_code_id).val("");
+					
+					$(".parts_name#parts_name"+data_code_id).html("");
+					$(".parts_name[name=parts_name"+data_code_id+"]").val("");
+					$(".parts_detail#parts_detail"+data_code_id).html("");
+					
+					$(".quantity_return#quantity_return"+data_code_id).val("");
+					$(".quantity_return#quantity_return"+data_code_id).prop("disabled", true);
+					$(".wh_id#wh_id"+data_code_id).val("");
+					$(".wh_id#wh_id"+data_code_id).prop("disabled", true);
+					$(".locate_id1locate_id"+data_code_id).val("");
+					$(".locate_id1locate_id"+data_code_id).prop("disabled", true);
+					
+				}
+				
+				
+				/*
+				$.post(
+					"../partpo_withdrawal/po_withdrawal_requesturl.php",
+					{
+						_function : "get_stock_detail_by_code",
+						_parts_code : ui.item.code
+					},
+					function(data){
+						var parts_code = $(".parts_code#parts_code"+data_code_id).val();
+						if(parts_code != ""){
+							
+							$("#parts_name"+data_code_id).text(data.name);
+							$(".parts_name[name=parts_name"+data_code_id+"]").val(data.name);
+							$("#parts_detail"+data_code_id).text(data.detail);
+							$(".quantity_return#quantity_return"+data_code_id).prop("disabled", false);
+							$(".quantity_return#quantity_return"+data_code_id).val("");
+							$(".wh_id#wh_id"+data_code_id).prop("disabled", false);
+							$(".wh_id#wh_id"+data_code_id).val("");
+							$(".locate_id#locate_id"+data_code_id).prop("disabled", false);
+							$(".locate_id#locate_id"+data_code_id).val("");
+							
+						}
+						else{
+							$(".parts_code#parts_code"+data_code_id).val("");
+							
+							$(".parts_name#parts_name"+data_code_id).html("");
+							$(".parts_name[name=parts_name"+data_code_id+"]").val("");
+							$(".parts_detail#parts_detail"+data_code_id).html("");
+							
+							$(".quantity_return#quantity_return"+data_code_id).val("");
+							$(".quantity_return#quantity_return"+data_code_id).prop("disabled", true);
+							$(".wh_id#wh_id"+data_code_id).val("");
+							$(".wh_id#wh_id"+data_code_id).prop("disabled", true);
+							$(".locate_id1locate_id"+data_code_id).val("");
+							$(".locate_id1locate_id"+data_code_id).prop("disabled", true);
+							
+						}
+						
+					},
+					'json'
+				);
+				*/
+			},
+			response: function (event, ui) {
+				// console.log("response");
+			}
+	    })
+	    .data("autocomplete")._renderItem = function(ul, item) {
+	    	var _parts = $.ajax({
+				type: "POST",
+				url: "parts_returnstock_requesturl.php",
+				data: {
+					_function: "get_parts_detail",
+					_parts_code: item.parts_code
+				},
+				dataType: "json",
+				async:false
+			});
+			_parts = $.parseJSON(_parts.responseText);
+			
+			// console.log(_parts);
+			
+	    	// item.label = item.parts_code+" # "+_parts.barcode+" # "+_parts.name+" # "+_parts.detail;
+	    	item.label = _parts.label;
+	    	item.value = item.parts_code;
+	    	
+		    return $("<li></li>").data("item.autocomplete", item).append("<a>" + item.label + "</a>").appendTo(ul);
+		};
+		
+		
 	});
 	
 	// ตรวจสอบว่า Quantity Withdrawal เกิน Stock หรือไม่ ถ้าเกิน ก็ไม่ให้เบิก ระบบจะลดจำนวน ให้เท่ากับจำนวนทั้งหมด 
@@ -362,6 +486,23 @@
 			$(".quantity_return#quantity_return"+this_id).val(quantity);
 		}
 	});
+	
+	$("#return_type").change(function(){
+		var return_type = $(this).val();
+		if(return_type == ""){
+			$("#btn_add").prop("disabled", true);
+			$("#btn_del").prop("disabled", true);
+			$("#parts_code1").prop("disabled", true);
+			$("#TextBoxesGroup").html("");
+		}
+		else if(return_type == "1" || return_type == "2"){
+			$("#btn_add").prop("disabled", false);
+			$("#btn_del").prop("disabled", false);
+			$("#parts_code1").prop("disabled", false);
+			$("#TextBoxesGroup").html("");
+		}
+	});
+	
 	
 	$('#btn_add').click(function(){
 	    counter++;
@@ -383,7 +524,7 @@
 		+ '			<input type="hidden" class="parts_type" name="parts_type'+ counter +'" id="parts_type'+ counter +'" data-id="'+ counter +'" value="" />'
 	    + '		</td>'
 	    + ' 	<td width="17%">'
-		+ '			<input type="text" id="parts_code' + counter + '" name="parts_code' + counter + '" class="parts_code" data-code_id="' + counter + '" />'
+		+ '			<input type="text" id="parts_code' + counter + '" name="parts_code' + counter + '" class="parts_code" data-code_id="' + counter + '" data-stock_id="" />'
 		+ '		</td>'
 		+ '		<td width="20%">'
 		+ '			<span id="parts_name' + counter + '" class="parts_name"></span>'
@@ -436,6 +577,10 @@
 	
 	//########## Submit ###########
 	$('#btnSubmit').click(function(){
+		
+		// alert($(".parts_code#parts_code"+data_code_id).data("data-stock_id"));
+		// console.log($(".parts_code#parts_code1").data("stock_id"));
+		
 		var chk = 0;
 		
 		//### Header ###
@@ -468,8 +613,8 @@
 		for( i=1; i<=counter; i++ ){
 			
 			var _parts_type = $(".parts_type#parts_type" + i).val();
-			
 			var _parts_code = $('#parts_code' + i).val();
+			var _stock_id = $(".parts_code#parts_code" + i).data("stock_id");
 			var _quantity_return = $('#quantity_return' + i).val();
 			var _wh_id = $('.wh_id1#wh_id' + i).val();
 			var _locate_id = $(".locate_id#locate_id" + i).val();
@@ -497,6 +642,7 @@
 			arradd[i-1] = { 
 				idno: i, 
 				parts_type: _parts_type,
+				stock_id: _stock_id,
 				parts_code: _parts_code, 
 				quantity_return: _quantity_return, 
 				wh_id : _wh_id,
@@ -537,6 +683,7 @@
 						console.log("data.success = " + data.success);
 						console.log("data.status = " + data.status);
 						console.log("data.message = " + data.message);
+						console.log("data.return_code = " + data.parts_pocode);
 						//location.reload();
 					}else{
 						alert(data.message);

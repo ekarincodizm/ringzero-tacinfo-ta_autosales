@@ -2,6 +2,8 @@
 	include_once("../include/config.php");
 	include_once("../include/function.php");
 	
+	include_once("po_withdrawal_webservice.php");
+	
 	//Load Initial HTTP Post Variables
 	$id_user = $_SESSION["ss_iduser"];
 	
@@ -37,114 +39,22 @@
 	$nowdate = nowDate();
 	$nowDateTime = nowDateTime();
 	
+	$withdrawalParts = new WithdrawalParts();
 	
-	//Query record PartsReceived
-	$withdrawalParts_strQuery = "
-		UPDATE \"WithdrawalParts\"
-		SET
-			user_id='{$withdrawal_user_id}',
-			withdraw_user_id='{$withdrawal_withdraw_user_id}',
-			date='{$withdrawal_date}',
-			usedate='{$withdrawal_usedate}',
-			status=1
-	";
-	
-	if($withdrawal_type == 2){
-		
-		$withdrawalParts_strQuery .= "
-			,
-			project_quantity = {$project_quantity}
-		";
-	}
-			
-	$withdrawalParts_strQuery .= "
-		WHERE 
-			code='{$withdrawal_code}';
-	";
-	
-	if(!$result=@pg_query($withdrawalParts_strQuery)){
-        $txt_error[] = "INSERT withdrawalParts_strQuery ไม่สำเร็จ $withdrawalParts_strQuery";
-        $status++;
-    }
-	
-	// Delete Old Parts
-	$withdrawalPartsDetails_strQuery = "
-		UPDATE 
-			\"WithdrawalPartsDetails\"
-		SET 
-			status = 0
-		WHERE 
-			withdrawal_code = '".$withdrawal_code."' ;
-	";
-	if(!$result=@pg_query($withdrawalPartsDetails_strQuery)){
-        $txt_error[] = "INSERT withdrawalPartsDetails ไม่สำเร็จ $withdrawalPartsDetails_strQuery";
-        $status++;
-    }
-	
-    //Query PurchaseOrderPartsDetails
-    foreach($withdrawal_details_array as $key => $value){
-    	
-		$idno = $value->idno;
-		$parts_code = $value->parts_code;
-		$quantity_withdrawal = $value->quantity_withdrawal;
-		
-		
-		// insert PartsReceivedDetails
-		$withdrawalPartsDetails_strQuery = "
-			INSERT INTO \"WithdrawalPartsDetails\"
-			(
-				withdrawal_code, 
-				idno, 
-				parts_code, 
-				withdrawal_quantity,
-				status
-			)
-			VALUES
-			(
-				'$withdrawal_code',
-				'$idno',
-				'$parts_code',
-				'$quantity_withdrawal',
-				1
-			)
-		";
-		
-		if(!$result=@pg_query($withdrawalPartsDetails_strQuery)){
-	        $txt_error[] = "INSERT withdrawalPartsDetails ไม่สำเร็จ $withdrawalPartsDetails_strQuery";
-	        $status++;
-	    }
-	}
-	// End Query PurchaseOrderPartsDetails
-	
-	
-	//Insert Approve
-	$ApproveParts_forWithdrawal_strQuery = "
-		UPDATE 
-			\"PartsApproved\"
-		SET
-			user_id = '{$id_user}',
-			user_note = '{$withdrawal_note}',
-			user_timestamp = '{$nowDateTime}'
-		WHERE
-			code = '{$withdrawal_code}'
-	";
-	if(!$result=@pg_query($ApproveParts_forWithdrawal_strQuery)){
-        $txt_error[] = "INSERT ApproveParts_forWithdrawal_strQuery ไม่สำเร็จ {$ApproveParts_forWithdrawal_strQuery}";
-        $status++;
-    }
-		
-	
-	// Check Is Query or Not?
-	if($status == 0){
-        // pg_query("ROLLBACK");
-        pg_query("COMMIT");
-        $data['success'] = true;
-        $data['parts_pocode'] = $withdrawal_code;
-    }else{
-        pg_query("ROLLBACK");
-        $data['success'] = false;
-        $data['message'] = "ไม่สามารถบันทึกได้! $txt_error[0]";
-    }
+	// Run Process Create Withdrawal
+	$data = $withdrawalParts->update_withdrawalParts(
+		$id_user,
+		$withdrawal_code,
+		$withdrawal_type,
+		$withdrawal_user_id,
+		$withdrawal_withdraw_user_id,
+		$withdrawal_date,
+		$withdrawal_usedate,
+		$project_id,
+		$project_quantity,
+		$withdrawal_details_array,
+		$withdrawal_note
+	);
 	
 	echo json_encode($data);
 ?>

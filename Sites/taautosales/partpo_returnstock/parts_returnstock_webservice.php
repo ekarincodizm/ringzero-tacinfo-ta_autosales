@@ -1,4 +1,6 @@
-<?php 
+<?php
+include_once("parts_returnstock_webservice_returnstock.php");
+ 
 /**
  * 
  */

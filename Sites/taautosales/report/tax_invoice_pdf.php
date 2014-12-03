@@ -8,7 +8,7 @@ if(!CheckAuth()){
 }
 
 
-$invoice_no = $_REQUEST['invoice_no'];
+$invoice_no = pg_escape_string($_REQUEST['invoice_no']);
 
 $arr_invoice_no = explode(",",$invoice_no);
 if(empty($invoice_no) OR $invoice_no == ""){
@@ -64,13 +64,13 @@ foreach($arr_invoice_no as $v){
                 $cus_name = trim($res['cus_name']);
                 $surname = trim($res['surname']);
                // $fullname = "$pre_name $cus_name $surname";
-                $address = trim($res['address']);
+                $address = trim($res['reg_address']); // ใช้ที่อยู่ผู้จดทะเบียน
                 $telephone = $res['telephone'];
 				$branch_id = $res['branch_id'];
 				$card_id=$res['card_id'];
 				$card_type = $res['card_type'];
 				$reg_post=$res['reg_post'];   // ใช้ชื่อผู้จดทะเบียน
-				$fullname=$res['reg_customer'];
+				$fullname=$res['reg_customer']; // ใช้ชื่อผู้จดทะเบียน
 				$cus_type=$res['cus_type'];
             }
             if($cus_type == '2'){

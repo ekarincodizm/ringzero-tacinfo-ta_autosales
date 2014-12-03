@@ -2,6 +2,8 @@
 	include_once("../include/config.php");
 	include_once("../include/function.php");
 	
+	include_once("parts_returnstock_webservice.php");
+	
 	//Load Initial HTTP Post Variables
 	$id_user = $_SESSION["ss_iduser"];
 	$return_type = pg_escape_string($_POST["return_type"]);
@@ -23,59 +25,22 @@
 	
 	// ###################################################
 	
-	if($return_type == 1){
-		$type_X = "RTST";
-		$kny = 11;
-	}
-	elseif($return_type == 2){
-		$type_X = "RTBK";
-		$kny = 12;
-	}
+	$ReturnStock = new SendPartsSave();
 	
-	pg_query("BEGIN WORK");
-	$status = 0;
-	$txt_error = array();
+	$ReturnStock->InitialVariables(
+		$id_user,
+		$return_type,
+		$return_user_id,
+		$return_return_user_id,
+		$return_date,
+		$return_details_array,
+		$return_note
+	);
+	$data = $ReturnStock->ReturnParts();
 	
-	// - เลขที่ใบเบิก 
-	// - เบิกขายซ่อม : RLPF1-YYMMDDNNN 
-	// - เบิกประกอบชิ้นงาน : RLPJ1-YYMMDDNNN
-	// - เบิกของเสีย : RLPW1-YYMMDDNNN
+	echo json_encode($data);
 	
-	// YY = Year
-	// MM = Month
-	// DD = Day
-	// NNN = Running Number
-	
-	// Find B
-	$office_id = "";
-	$B_StrQuery = "
-		SELECT \"office_id\"
-		FROM \"fuser\"
-		WHERE \"id_user\" = '".$id_user."'
-	";
-	$B_query = @pg_query($B_StrQuery);
-	while($B_result=@pg_fetch_array($B_query)){
-		$office_id = $B_result["office_id"];
-	}
-	
-	$nowdate = nowDate();
-	$nowDateTime = nowDateTime();
-	
-	$generate_id_StrQuery = "
-		select gen_parts_no(
-			'".$return_date."', 
-			'".$type_X."', 
-			'".$office_id."', 
-			'".$kny."'
-		);
-	";
-	$generate_id = @pg_query($generate_id_StrQuery);
-	$gen_parts_no = @pg_fetch_result($generate_id, 0);
-	if(empty($gen_parts_no)){
-		$txt_error[] = "สร้าง gen_rec_no ไม่สำเร็จ $generate_id_StrQuery";
-		$status++;
-	}
-	
+	/*
 	if($return_type == 1){ //คืนของเข้าสต๊อก
 		
 		$returnParts_strQuery = "
@@ -960,6 +925,7 @@
         pg_query("COMMIT");
         $data['success'] = true;
         $data['parts_pocode'] = $gen_parts_no;
+		$data['message'] = "";
     }else{
         pg_query("ROLLBACK");
         $data['success'] = false;
@@ -968,4 +934,6 @@
 	$data['status'] = $status;
 	
 	echo json_encode($data);
+	
+	*/
 ?>

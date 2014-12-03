@@ -7,9 +7,9 @@ if(!CheckAuth()){
     exit();
 }
 
-$res_id = $_REQUEST['res_id'];
-$receipt_no = $_REQUEST['receipt_no'];
-$inv_no_list = $_REQUEST['inv_id'];
+$res_id = pg_escape_string($_REQUEST['res_id']);
+$receipt_no = pg_escape_string($_REQUEST['receipt_no']);
+$inv_no_list = pg_escape_string($_REQUEST['inv_id']);
 
 $explode_inv_no = explode(",",$inv_no_list);
 $str_inv_no = "('" .implode("','",$explode_inv_no)."')";
@@ -118,7 +118,7 @@ $save_data[$m] .='
 	</tr>
 	
 	<tr>';
-		if( $res['cus_type'] == 2 ){$str_address = 'ภ.พ. 20';}else{$str_address = 'บัตรประชาขน';}
+		if( $res['cus_type'] == 2 ){$str_address = 'ภ.พ. 20';}else{$str_address = 'บัตรประชาชน';}
 	$save_data[$m] .='
 		<td>ที่อยู่ตาม<br>'.$str_address.'</td>
 		<td>'.$res['address'].'&nbsp;'.$res['add_post'].'<br>เบอร์โทรศัพท์  &nbsp;&nbsp;'.$res['telephone'].'</td>
@@ -388,8 +388,8 @@ class MYPDF extends TCPDF {
 		$this->MultiCell(55, 0, 'ชื่อผู้พิมพ์ : '.$_SESSION['ss_username'], 0, 'R', 0, 0, '', '', true);
         $this->MultiCell(80, 0, 'ครั้งที่พิมพ์ : '.$_SESSION['ss_print_count'], 0, 'R', 0, 0, '', '', true);
 	
-		$receipt_no = $_REQUEST['receipt_no'];
-		$res_id = $_REQUEST['res_id'];
+		$receipt_no = pg_escape_string($_REQUEST['receipt_no']);
+		$res_id = pg_escape_string($_REQUEST['res_id']);
 		
 		$this->write2DBarcode($idno, 'QRCODE,H', 160, 275, 10, 10, $style, 'N');
 		$this->write2DBarcode($receipt_no, 'QRCODE,H', 175, 275, 10, 10, $style, 'N');

@@ -7,7 +7,7 @@ if(!CheckAuth()){
     exit();
 }
 
-$receipt_no = $_REQUEST['receipt_no'];
+$receipt_no = pg_escape_string($_REQUEST['receipt_no']);
 $arr_receipt_no = explode(",",$receipt_no);
 
 if(empty($receipt_no) OR $receipt_no == ""){
@@ -66,7 +66,7 @@ foreach($arr_receipt_no as $v){
                 $cus_name = trim($res['cus_name']);
                 $surname = trim($res['surname']);
                 //$fullname = "$pre_name $cus_name $surname";
-                $address = trim($res['address']);
+                $address = trim($res['reg_address']);  // ใช้ชี่อยู่ผู้จดทะเบียน
                 $telephone = $res['telephone'];
 				$branch_id = $res['branch_id'];
 				$card_id=$res['card_id'];

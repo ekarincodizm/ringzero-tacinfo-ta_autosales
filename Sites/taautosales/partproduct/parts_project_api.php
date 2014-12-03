@@ -2,6 +2,7 @@
 include_once("../include/config.php");
 include_once("../include/function.php");
 include_once("parts_project_api_service.php");
+include_once("parts_project_api_controllers.php");
 
 $cmd = $_REQUEST['cmd'];
 

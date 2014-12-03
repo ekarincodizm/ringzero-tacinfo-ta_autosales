@@ -1,6 +1,11 @@
 <?php
 // ###################### Function ###########################
 
+include_once ("po_withdrawal_webservice_withdrawal.php");
+include_once ("po_withdrawal_webservice_project.php");
+
+
+
 function get_projectName($project_id){
 	$project_strQuery = "
 		SELECT 
@@ -19,6 +24,376 @@ function get_projectName($project_id){
 }
 
 // #################### End Function #########################
+
+/**
+ * 
+ */
+class PartStock {
+	
+	function __construct($argument = '') {
+		
+	}
+	
+	
+	/*
+	 * ค้าหารหัสสินค้า partsStockBroken
+	 * 
+	 * */
+	public function search_by_stockBroken_code($parts_code = '')
+	{
+		$strQuery = "
+			(
+				SELECT 
+					\"PartsStockBroken\".parts_code AS code,
+					parts.name,
+					parts.details,
+					parts.type,
+					barcode
+				FROM
+					\"parts\"
+				JOIN
+					\"PartsStockBroken\" 
+				ON 
+					\"PartsStockBroken\".parts_code = parts.code
+				WHERE
+					\"PartsStockBroken\".parts_code LIKE '%".$parts_code."%'
+			)
+			UNION
+			(
+				SELECT 
+					\"PartsStockBrokenDetails\".codeid AS code,
+					parts.name,
+					parts.details,
+					'3' AS type,
+					barcode
+				FROM
+					\"parts\"
+				JOIN
+					\"PartsStockBroken\" 
+				ON 
+					\"PartsStockBroken\".parts_code = parts.code
+					
+				LEFT JOIN 
+					\"PartsStockBrokenDetails\"
+				ON 
+					\"PartsStockBrokenDetails\".stock_broken_id::text = \"PartsStockBroken\".stock_broken_id::text
+				WHERE
+					\"PartsStockBrokenDetails\".codeid LIKE '%".$parts_code."%'
+			)
+			ORDER BY code;
+		";
+		
+		$query = pg_query($strQuery);
+		$numrow = pg_num_rows($query);
+		
+		if($numrow > 0){
+			return pg_fetch_all($query);
+		}
+		else{
+			return null;
+		}
+		
+	}
+	
+	
+	/*
+	 * ค้าหารหัสสินค้า parts
+	 * 
+	 * */
+	public function search_by_stock_code($parts_code = '')
+	{
+		$strQuery = "
+			(
+				SELECT 
+					code,
+					name,
+					details,
+					type,
+					barcode
+				FROM
+					\"parts\"
+				WHERE 
+					code LIKE '%".$parts_code."%'
+			)
+			UNION
+			(
+				SELECT 
+					\"PartsStockDetails\".codeid AS code,
+					parts.name,
+					parts.details,
+					'3' AS type,
+					barcode
+				FROM
+					\"parts\"
+				JOIN
+					\"PartsStock\" 
+				ON 
+					\"PartsStock\".parts_code = parts.code
+					
+				LEFT JOIN 
+					\"PartsStockDetails\"
+				ON 
+					\"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
+				WHERE
+					\"PartsStockDetails\".codeid LIKE '%".$parts_code."%'
+			)
+			ORDER BY code;
+		";
+		$query = pg_query($strQuery);
+		$numrow = pg_num_rows($query);
+		
+		if($numrow > 0){
+			return pg_fetch_all($query);
+		}
+		else{
+			return null;
+		}
+		
+	}
+	
+	
+	
+	/*
+	 * Return 
+	 * ชื่อสินค้า
+	 * รายละเอียดสินค้า  
+	 * จำนวนสินค้าคงคลัง
+	 * จำนวนสินค้าสูงสุดที่เบิกได้ 
+	*/
+	
+	public function get_stock_detail_and_aval($part_code)
+	{
+		
+		
+		$result_array = array();
+		$stock = $this->_get_details($part_code);
+		
+		$result_array['name'] = $stock['name'];
+		$result_array['detail'] = $stock['details'];
+		
+		$stock_remain = $this->_get_stock_remain($part_code);
+		$result_array['stock_remain'] = intval($stock_remain["count"]);
+		
+		
+		
+		$sum_withdrawal = $this->_get_sum_withdrawal($part_code);
+		$result_array['sum_withdrawal'] = intval($sum_withdrawal["withdrawal_quantity"]);
+		
+		
+		// echo $result_array['sum_withdrawal'];
+		// pg_query("ROLLBACK");
+		// exit;
+		
+		if($result_array['stock_remain'] == null){
+			$result_array['stock_remain'] = 0;
+		}
+		
+		
+		$result_array["stock_aval"] = intval($result_array['stock_remain']) - intval($result_array['sum_withdrawal']);
+		
+		
+		return $result_array;
+		
+	}
+	
+	// อ่าน Detail ของ Parts และ Parts ที่มีรหัสแยกย่อย
+	private function _get_details($parts_code)
+	{
+		$strQuery = "
+			(
+				SELECT 
+					code,
+					name,
+					details,
+					type
+				FROM
+					\"parts\"
+				WHERE 
+					code = '".$parts_code."'
+			)
+			UNION
+			(
+				SELECT 
+					\"PartsStockDetails\".codeid AS code,
+					parts.name,
+					parts.details,
+					'3' AS type
+				FROM
+					\"parts\"
+				JOIN
+					\"PartsStock\" 
+				ON 
+					\"PartsStock\".parts_code = parts.code
+					
+				LEFT JOIN 
+					\"PartsStockDetails\"
+				ON 
+					\"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
+				WHERE
+					codeid = '".$parts_code."'
+			)
+			ORDER BY code;
+		";
+		$query = pg_query($strQuery);
+		$numrow = pg_num_rows($query);
+		
+		if($numrow == 1){
+			return pg_fetch_array($query);
+		}
+		else{
+			return null;
+		}
+	}
+	
+	
+	//SQL For If parts_code is in the PartsStockDetails or Not
+	private function _has_multiple($part_code){
+		
+		$strQuery = "
+			select count(*) as count from \"PartsStockDetails\" where codeid = '".$part_code."';
+		";
+		$query = pg_query($strQuery);
+		$numrow = pg_num_rows($query);
+	
+		$res =	pg_fetch_array($query);
+		if($res['count']==0){
+			return false;
+		}else{
+			return true;
+		}
+		
+	}
+	
+	
+	// จำนวนสินค้าในคลัง
+	private function _get_stock_remain($part_code)
+	{
+		//SQL For If parts_code is in the PartsStockDetails or Not
+		
+		if($this->_has_multiple($part_code)){
+			
+			$strQuery = "
+				SELECT 
+					codeid,
+					count(*) AS count
+				FROM
+					\"PartsStockDetails\"
+				WHERE 
+					codeid = '".$part_code."'
+					AND
+					status = 1
+				GROUP BY codeid
+			";
+			$query = pg_query($strQuery);
+			$numrow = pg_num_rows($query);
+			
+			return pg_fetch_array($query);
+			
+		}
+		else{
+			
+			$strQuery = "
+				SELECT 
+					parts_code, 
+					sum(stock_remain) AS count
+				FROM \"PartsStock\"
+				where 
+					parts_code = '".$part_code."'
+				group by parts_code
+			  ;
+			";
+			$query = pg_query($strQuery);
+			$numrow = pg_num_rows($query);
+			
+			
+			if($numrow == 1){
+				return pg_fetch_array($query);
+			}
+			else{
+				return null;
+			}
+		}
+	}
+	
+	
+	// //Check รหัส parts code ว่า มีอยู่ใน Withdrawal หรือเปล่า
+	// private function _Is_Exist_partscode_in_withdrawal($part_code){
+// 		
+		// $strQuery = "
+			// SELECT
+				// count(*) AS count
+			// FROM
+				// \"WithdrawalPartsDetails\"
+			// LEFT JOIN
+// 				
+			// WHERE 
+				// parts_code = '".$part_code."'
+		// ";
+		// $query = pg_query($strQuery);
+		// $numrow = pg_num_rows($query);
+// 	
+		// $res =	pg_fetch_array($query);
+		// if($res['count']==0){
+			// return false;
+		// }else{
+			// return true;
+		// }
+// 		
+	// }
+	
+	private function _get_sum_withdrawal ($part_code)
+	{
+		// if($this->_Is_Exist_partscode_in_withdrawal($part_code)){
+			
+			$strQuery = "
+				SELECT 
+					\"WithdrawalPartsDetails\".parts_code,
+					sum(withdrawal_quantity) AS withdrawal_quantity
+				FROM 
+					\"WithdrawalParts\"
+				LEFT JOIN 
+					\"WithdrawalPartsDetails\"
+				ON 
+					\"WithdrawalPartsDetails\".withdrawal_code = \"WithdrawalParts\".code
+				WHERE 
+					\"WithdrawalParts\".status IN (1,2,3)
+					AND 
+						\"WithdrawalPartsDetails\".parts_code = '".$part_code."'
+					AND
+						\"WithdrawalPartsDetails\".status = 1
+				group by 
+					\"WithdrawalPartsDetails\".parts_code
+				;
+			";
+			$query = pg_query($strQuery);
+			$numrow = pg_num_rows($query);
+			
+			// echo $strQuery;
+			// pg_query("ROLLBACK");
+			// exit;
+			
+			if($numrow > 0){
+				return pg_fetch_array($query);
+			}
+			else{
+				return array(
+					"parts_code" => $part_code,
+					"withdrawal_quantity" => 0
+				);
+			}
+			
+			
+		// }
+		// else{
+// 			
+		// }
+		
+	}
+}
+
+
+
+
 
 
 /**
@@ -336,8 +711,8 @@ class Withdrawal_edit_body {
 			(
 				SELECT 
 					code,
-					--name,
-					--details,
+					name,
+					details,
 					type
 				FROM
 					\"parts\"
@@ -348,8 +723,8 @@ class Withdrawal_edit_body {
 			(
 				SELECT 
 					\"PartsStockDetails\".codeid AS code,
-					--parts.name,
-					--parts.details,
+					parts.name,
+					parts.details,
 					'3' AS type
 				FROM
 					\"parts\"
@@ -386,18 +761,6 @@ class Withdrawal_edit_body {
 				$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
 				$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
 			}
-			// elseif($res_parts["type"] == 1){
-				// $v_parts_stock__count_per_parts_code_strQuery = "
-					// SELECT 
-						// stock_status
-					// FROM 
-						// v_parts_stock_detail__count_per_parts_code
-					// WHERE
-						// parts_code = '".$res_parts["code"]."'
-				// ";
-				// $v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-				// $stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-			// }
 			elseif($res_parts["type"] == 3){
 				$stock_remain = 1;
 			}
@@ -409,6 +772,7 @@ class Withdrawal_edit_body {
 			
 			
 			// ## Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
+			/*
 			$v_parts_withdrawal_quantity3_strQuery = "
 				SELECT 
 					sum(withdrawal_quantity) AS sum_withdrawal_quantity
@@ -426,14 +790,43 @@ class Withdrawal_edit_body {
 			";
 			$v_parts_withdrawal_quantity3_query = @pg_query($v_parts_withdrawal_quantity3_strQuery);
 			$sum_withdrawal_quantity = @pg_fetch_result($v_parts_withdrawal_quantity3_query, 0);
+			*/
+			
+			
+			// ## Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
+			///*
+			$sum_withdrawal_quantity_strQuery = "
+				SELECT 
+					sum(withdrawal_quantity) AS withdrawal_quantity
+				FROM 
+					\"WithdrawalParts\"
+				LEFT JOIN 
+					\"WithdrawalPartsDetails\"
+				ON 
+					\"WithdrawalPartsDetails\".withdrawal_code = \"WithdrawalParts\".code
+				WHERE 
+					\"WithdrawalParts\".status IN (1,2,3)
+					AND 
+						\"WithdrawalPartsDetails\".parts_code = '".$parts_code."'
+				group by 
+					\"WithdrawalPartsDetails\".parts_code
+				;
+			";
+			$sum_withdrawal_quantity_query = pg_query($sum_withdrawal_quantity_strQuery);
+			$sum_withdrawal_quantity = @pg_fetch_result($sum_withdrawal_quantity_query, 0);
+			//*/
 			
 			//ถ้า sum_withdrawal_quantity แล้ว ไม่มีค่า ให้ Set เป็นค่า 0 แทนค่า Null
 			if($sum_withdrawal_quantity == ""){
 				$sum_withdrawal_quantity = 0;
 			}
 			
+			
 			$stock_remain_with_withdrawal_value = $stock_remain - $sum_withdrawal_quantity;
 			// ## End Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
+			
+			// echo $sum_withdrawal_quantity;
+			// exit;
 			
 			
 			// ##### return value #####
@@ -462,13 +855,182 @@ class Withdrawal_edit_body {
 				);
 				return json_encode($json);
 			}
+			elseif($return == "edit_body__get_parts_details"){
+				
+				
+				// Calculate How many Quantity left after already withdrawal the Parts
+				// จำนวนที่ได้กดเบิกออกไปจางคลังแล้ว ==> เอาค่านี้ ไปรวมกับ จำนวนที่เบิกได้ ถึงจะสามารถ นับได้ว่า เราเบิกได้สูงสุด หลังจากที่นับ จากของที่เบิกไปแล้ว
+				$max_send_quantity = 0;
+				$view_withdrawal_quantity_strQuery = "
+					SELECT
+						parts_code,
+						SUM(send_quantity) as send_quantity
+					FROM 
+						v_parts_withdrawal_quantity
+					WHERE
+						parts_code = '".$parts_code."' 
+					group by parts_code
+					;
+				";
+				$view_withdrawal_quantity_query = pg_query($view_withdrawal_quantity_strQuery);
+				while ($view_withdrawal_quantity_result = pg_fetch_array($view_withdrawal_quantity_query)) {
+					
+					$total_send_quantity = $view_withdrawal_quantity_result["send_quantity"];
+					
+				}
+				
+				// $total_send_quantity = 0;
+				
+				$stock_remain_with_withdrawal_value = $stock_remain - $sum_withdrawal_quantity + $total_send_quantity;
+				
+				
+				
+				
+				$return = array(
+					"name" => $res_parts['name'],
+					"details" => $res_parts['details'],
+					"stock_remain" => $stock_remain,
+					"sum_withdrawal_quantity" => $sum_withdrawal_quantity,
+					"total_send_quantity" => $total_send_quantity,
+					"stock_remain_with_withdrawal_value" => $stock_remain_with_withdrawal_value
+				);
+				
+				return json_encode($return);
+			}
 			// ##### End return value #####
 		}
 	}
 	
+	function get_parts_autocomplete(
+		$parts_code = ''
+	){
+			
+			$strQuery_parts = "
+				(
+					SELECT 
+						code,
+						name,
+						details,
+						type,
+						barcode
+					FROM
+						\"parts\"
+					WHERE 
+						code LIKE '%".$parts_code."%'
+					ORDER BY code
+					LIMIT 100
+				)
+				UNION
+				(
+					SELECT 
+						\"PartsStockDetails\".codeid AS code,
+						parts.name,
+						parts.details,
+						'3' AS type,
+						\"PartsStockDetails\".codeid AS barcode
+					FROM
+						\"parts\"
+					JOIN
+						\"PartsStock\" 
+					ON 
+						\"PartsStock\".parts_code = parts.code
+						
+					LEFT JOIN 
+						\"PartsStockDetails\"
+					ON 
+						 \"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
+					WHERE
+						codeid LIKE '%".$parts_code."%'
+					ORDER BY codeid
+					LIMIT 100
+				)
+				ORDER BY code;
+			";
+			$qry_parts=@pg_query($strQuery_parts);
+			$numrows_parts = pg_num_rows($qry_parts);
+			// $parts_data = array();
+			while($res_parts=@pg_fetch_array($qry_parts)){
+				// $parts_data[] = $res_parts;
+				$dt['value'] = $res_parts['code'];
+				$dt['label'] = $res_parts["code"]." # ".$res_parts["barcode"]." # ".$res_parts["name"]." # ".$res_parts["details"];
+				$dt['type'] = $res_parts["type"];
+				
+				$dt['code'] = $res_parts['code'];
+				$dt['name'] = $res_parts["name"];
+				$dt['details'] = $res_parts["details"];
+				
+				
+				$stock_remain = "";
+				
+				// ## Check Stock_remain ##
+				if($res_parts["type"] == 0 || $res_parts["type"] == 1){
+					$v_parts_stock__count_per_parts_code_strQuery = "
+						SELECT 
+							stock_remain
+						FROM 
+							v_parts_stock__count_per_parts_code
+						WHERE
+							parts_code = '".$parts_code."'
+					";
+					$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
+					$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
+				}
+				elseif($res_parts["type"] == 3){
+					$stock_remain = 1;
+				}
+				if($stock_remain == "" || $stock_remain == NULL){
+					$stock_remain = 0;
+				}
+				// ## End Check Stock_remain ##
+				
+				
+				// ## Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
+				$v_parts_withdrawal_quantity3_strQuery = "
+					SELECT 
+						sum(withdrawal_quantity) AS sum_withdrawal_quantity
+					FROM 
+						v_parts_withdrawal_quantity3
+					WHERE 
+						withdrawal_status IN (1,2,3)
+						AND 
+						withdrawal_detail_status = 1
+						AND
+						parts_code = '".$res_parts["code"]."'
+						AND
+						code <> '".$this->withdrawal_code."'
+					GROUP BY parts_code ;
+				";
+				$v_parts_withdrawal_quantity3_query = @pg_query($v_parts_withdrawal_quantity3_strQuery);
+				$sum_withdrawal_quantity = @pg_fetch_result($v_parts_withdrawal_quantity3_query, 0);
+				
+				//ถ้า sum_withdrawal_quantity แล้ว ไม่มีค่า ให้ Set เป็นค่า 0 แทนค่า Null
+				if($sum_withdrawal_quantity == ""){
+					$sum_withdrawal_quantity = 0;
+				}
+				
+				$stock_remain_with_withdrawal_value = $stock_remain - $sum_withdrawal_quantity;
+				// ## End Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
+				
+				$dt['stock_remain'] = $stock_remain;
+				$dt['withdrawal_quantity'] = $stock_remain_with_withdrawal_value;
+				
+				
+				$data_parts[] = $dt;
+			}
+			if($numrows_parts == 0){
+		        $data_parts[] = "ไม่พบข้อมูล";
+		    }
+			
+			
+			
+			return json_encode($data_parts);
+	}
+	
+	function get_Parts_Details($parts_code){
+		
+	}
+	
 }
-
-
 
 /**
  *	file = po_withdrawal_send_save.php

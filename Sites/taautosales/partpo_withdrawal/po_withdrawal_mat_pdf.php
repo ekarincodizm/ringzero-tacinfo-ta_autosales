@@ -1,6 +1,7 @@
 <?php
 include_once("../include/config.php");
 include_once("../include/function.php");
+include_once("po_withdrawal_webservice.php");
 
 if(!CheckAuth()){
     header("Refresh: 0; url=../index.php");
@@ -16,6 +17,9 @@ if(empty($po_id) OR $po_id == ""){
     echo "invalid param.";
     exit;
 }
+
+
+$partStock = new PartStock();
 
 
 // ########### Load SendParts ###########
@@ -135,116 +139,6 @@ if($res = pg_fetch_array($partsApproved_qry)){
 }
 */
 
-
-function call_parts($parts_code, $return){
-	// $parts_strQuery = "
-		// SELECT 
-			// parts_code,
-			// codeid,
-			// name,
-			// details,
-			// stock_remain
-		// FROM
-			// \"v_parts_stock_detail__type_union\"
-		// WHERE
-			// parts_code = '{$parts_code}';
-	// ";
-	// $parts_query=@pg_query($parts_strQuery);
-	// while($parts_return = @pg_fetch_array($parts_query)){
-		// echo $parts_return[$return];
-	// }
-	$strQuery_parts = "
-		(
-			SELECT 
-				code,
-				name,
-				details,
-				type
-			FROM
-				\"parts\"
-		)
-		UNION
-		(
-			SELECT 
-				\"PartsStockDetails\".codeid AS code,
-				parts.name,
-				parts.details,
-				'3' AS type
-			FROM
-				\"parts\"
-			JOIN
-				\"PartsStock\" 
-			ON 
-				\"PartsStock\".parts_code = parts.code
-				
-			LEFT JOIN 
-				\"PartsStockDetails\"
-			ON 
-				\"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
-		)
-		ORDER BY code;
-	";
-	$qry_parts=@pg_query($strQuery_parts);
-	$numrows_parts = pg_num_rows($qry_parts);
-	// $parts_data = array();
-	while($res_parts=@pg_fetch_array($qry_parts)){
-		// $parts_data[] = $res_parts;
-		$dt['value'] = $res_parts['code'];
-		$dt['label'] = $res_parts["code"]." # ".$res_parts["name"]." # ".$res_parts["details"];
-		$parts_matches[] = $dt;
-		
-		$stock_remain = "";
-		
-		if($res_parts["type"] == 0){
-			$v_parts_stock__count_per_parts_code_strQuery = "
-				SELECT 
-					stock_remain
-				FROM 
-					v_parts_stock__count_per_parts_code
-				WHERE
-					parts_code = '".$res_parts["code"]."'
-			";
-			$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-			$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-		}
-		elseif($res_parts["type"] == 1){
-			$v_parts_stock__count_per_parts_code_strQuery = "
-				SELECT 
-					stock_status
-				FROM 
-					v_parts_stock_detail__count_per_parts_code
-				WHERE
-					parts_code = '".$res_parts["code"]."'
-			";
-			$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-			$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-		}
-		elseif($res_parts["type"] == 3){
-			$stock_remain = 1;
-		}
-		
-		if($stock_remain == "" || $stock_remain == NULL){
-			$stock_remain = 0;
-		}
-		
-		// ##### return value #####
-		if($return == "code"){
-			return $res_parts['code'];
-		}
-		
-		elseif($return == "name"){
-			return $res_parts['name'];
-		}
-		elseif($return == "details"){
-			return $res_parts['details'];
-		}
-		elseif($return == "stock_remain"){
-			return $stock_remain;
-		}
-		// ##### End return value #####
-	}
-}
-
 for($m=0;$m<=1;$m++){
 
 	if($m == 0){
@@ -304,7 +198,6 @@ if($type != 2){
 	$purchaseOrderPartsDetails_qry = pg_query("
 	
 		SELECT 
-			--send_details_id, send_code, 
 			idno, parts_code, send_quantity
 		FROM 
 			\"SendPartsDetails\"
@@ -318,12 +211,14 @@ if($type != 2){
 		$parts_code = $res['parts_code'];
 		$send_quantity = $res['send_quantity'];
 		
+		$get_StocksDetail = $partStock->get_stock_detail_and_aval($parts_code);
+		
 	    $save_data[$m] .= '
 	    <tr>
 	        <td>'.$idno.'</td>
 	        <td>'.$parts_code.'</td>
-	        <td>'.call_parts($parts_code, "name").'</td>
-	        <td>'.call_parts($parts_code, "details").'</td>
+	        <td>'.$get_StocksDetail["name"].'</td>
+	        <td>'.$get_StocksDetail["detail"].'</td>
 			<td>'.$send_quantity.'</td>
 	    </tr>';
 	}
@@ -388,12 +283,12 @@ $save_data[$m] .= '
 </table>';
 }
 
-
 // echo $save_data[0];
 
 //START PDF
 include_once('../tcpdf/config/lang/eng.php');
 include_once('../tcpdf/tcpdf.php');
+
 
 //CUSTOM HEADER and FOOTER
 class MYPDF extends TCPDF {

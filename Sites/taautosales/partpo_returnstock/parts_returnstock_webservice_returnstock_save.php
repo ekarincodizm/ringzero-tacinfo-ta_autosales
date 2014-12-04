@@ -540,6 +540,7 @@ class SendPartsSave {
 					$idno,
 					$parts_type,
 					$parts_code,
+					$stock_id,
 					$quantity_return,
 					$wh_id,
 					$locate_id
@@ -565,6 +566,7 @@ class SendPartsSave {
 		$idno,
 		$parts_type,
 		$parts_code,
+		$stock_id,
 		$quantity_return,
 		$wh_id,
 		$locate_id
@@ -583,6 +585,7 @@ class SendPartsSave {
 			$idno,
 			$parts_type,
 			$parts_code,
+			$stock_id,
 			$quantity_return,
 			$wh_id,
 			$locate_id
@@ -1463,6 +1466,7 @@ class SendPartsSave {
 		$idno,
 		$parts_type,
 		$parts_code,
+		$stock_id,
 		$quantity_return,
 		$wh_id,
 		$locate_id
@@ -1491,11 +1495,13 @@ class SendPartsSave {
 		$temp_quantity_return = $quantity_return;
 		
 		$get_SendPartsDetails_strQuery = "
-			SELECT stock_broken_id, parts_code, stock_lot, parts_rcvcode, rcv_date, rcv_quantity, costperunit, stock_remain, wh_id, locate_id, stock_status
+			SELECT stock_id, parts_code, stock_lot, parts_rcvcode, rcv_date, rcv_quantity, costperunit, stock_remain, wh_id, locate_id, stock_status
 			FROM
-				\"PartsStockBroken\"
+				\"PartsStock\"
 			WHERE
 				parts_code = '".$parts_code."'
+				AND
+				stock_id = '".$stock_id."'
 			ORDER BY 
 				send_code
 			;
@@ -1508,13 +1514,13 @@ class SendPartsSave {
 			if($temp_quantity_return >= $quantity_sent){
 				$set_SendPartsDetails_strQuery = "
 					UPDATE 
-						\"PartsStockBroken\"
+						\"PartsStock\"
 					SET 
 						stock_remain = rcv_quantity
 						AND
 						stock_status = 0
 					WHERE 
-						stock_broken_id = '".$get_SendPartsDetails_result["stock_broken_id"]."'
+						stock_id = '".$get_SendPartsDetails_result["stock_id"]."'
 					;
 				";
 				$temp_quantity_return = $temp_quantity_return - $get_SendPartsDetails_result["send_quantity"];
@@ -1526,11 +1532,11 @@ class SendPartsSave {
 			else{
 				$set_SendPartsDetails_strQuery = "
 					UPDATE 
-						\"PartsStockBroken\"
+						\"PartsStock\"
 					SET 
 						stock_remain = ".($get_SendPartsDetails_result["stock_remain"] + $temp_quantity_return)."
 					WHERE 
-						stock_broken_id = '".$get_SendPartsDetails_result["stock_broken_id"]."'
+						stock_id = '".$get_SendPartsDetails_result["stock_id"]."'
 					;
 				";
 				if(!$result=@pg_query($set_SendPartsDetails_strQuery)){
@@ -1764,13 +1770,13 @@ class SendPartsSave {
 		
 		$reduce_old_PartsStockBrokenDetails_strQuery = "
 			UPDATE
-				\"PartsStockBrokenDetails\"
+				\"PartsStockDetails\"
 			SET
-				status = 1
+				status = 0
 			WHERE
 				codeid = '".$parts_code_detail."'
 				AND
-				stock_broken_id = '".$stock_id."'
+				stock_id = '".$stock_id."'
 			;
 		";
 		// $reduce_old_PartsStockBrokenDetails_query = pg_query($reduce_old_PartsStockBrokenDetails_strQuery);
@@ -1839,13 +1845,13 @@ class SendPartsSave {
 			SELECT
 				COUNT(codeid) AS count
 			FROM
-				\"PartsStockBrokenDetails\"
+				\"PartsStockDetails\"
 			WHERE 
 				status = 2
 				AND
-				stock_broken_id = '".$stock_id."'
+				stock_id = '".$stock_id."'
 			GROUP BY 
-				stock_broken_id;
+				stock_id;
 		";
 		$partsStockBrokenDetails_query = pg_query($partsStockBrokenDetails_strQuery);
 		$partsStockBrokenDetails_result = pg_fetch_result($partsStockBrokenDetails_query, 0);
@@ -1857,11 +1863,11 @@ class SendPartsSave {
 		if($partsStockBrokenDetails_result == 0 || $partsStockBrokenDetails_result == null){
 			$delete_partsStockBroken_strQuery = "
 				UPDATE 
-					\"PartsStockBroken\"
+					\"PartsStock\"
 				SET 
 					stock_status = 0
 				WHERE
-					stock_broken_id = '".$stock_id."'
+					stock_id = '".$stock_id."'
 				;
 			";
 			if(!$delete_partsStockBroken_query = pg_query($delete_partsStockBroken_strQuery)){

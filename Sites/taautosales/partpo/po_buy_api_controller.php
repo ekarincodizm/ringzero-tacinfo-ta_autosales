@@ -9,7 +9,7 @@ include_once("po_buy_api_controller.php");
 class Controller_po_buy {
 	
 	
-	function __construct($argument) {
+	function __construct($argument = '') {
 		
 	}
 	

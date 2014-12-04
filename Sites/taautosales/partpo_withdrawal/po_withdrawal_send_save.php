@@ -158,7 +158,6 @@
 			$quantity = $value->quantity;
 			$send_quantity = $value->send_quantity; //จำนวน ที่ส่งออก
 			
-			
 			// insert PartsReceivedDetails
 			$sendPartsDetails_strQuery = "
 				INSERT INTO \"SendPartsDetails\"
@@ -181,118 +180,240 @@
 		        $txt_error[] = "INSERT sendPartsDetails_strQuery ไม่สำเร็จ $sendPartsDetails_strQuery";
 		        $status++;
 		    }
-			
-			
-			// ไป ลบ จำนวน Parts ใน Stocks 
-			// Select ค่า PartsStock กับ PartsStockDetails
-			// แล้วไป if else ว่า จะไป ลบจำนวน PartsStock หรือ PartsStockDetails
-			
-			// ถ้า parts_code อยู่ใน PartsStock
-			$temp_sent_quantity = $send_quantity;
-			$partsStock_strQuery = "
-				SELECT 
-					stock_id, parts_code, stock_remain
-				FROM 
-					\"PartsStock\"
-				WHERE 
-					parts_code = '".$parts_code."' 
-					AND
-					stock_status = 1 
-					AND 
-					stock_remain > 0
-				ORDER BY rcv_date ;
-			";
-			
-			$partsStock_query = @pg_query($partsStock_strQuery);
-			while ($partsStock_result = @pg_fetch_array($partsStock_query)) {
 				
-				$temp_partsStock = $partsStock_result["stock_remain"];
 				
-				if($temp_sent_quantity <= $partsStock_result["stock_remain"]){
-					$parts_strQuery = "
-						UPDATE 
-							\"PartsStock\"
-						SET 
-							stock_remain = stock_remain - ".$temp_sent_quantity."
-						WHERE 
-							parts_code = '".$parts_code."' 
-							AND
-							stock_id = '".$partsStock_result["stock_id"]."' ;
-					";
-					$temp_sent_quantity = $temp_sent_quantity - $temp_sent_quantity;
-					
-				}
-				else{
-					$parts_strQuery = "
-						UPDATE 
-							\"PartsStock\"
-						SET 
-							stock_remain = stock_remain - stock_remain
-						WHERE 
-							parts_code = '".$parts_code."' 
-							AND
-							stock_id = '".$partsStock_result["stock_id"]."' ;
-					";
-					$temp_sent_quantity = $temp_sent_quantity - $temp_partsStock;
-					// $txt_error[] = "send_quantity > partsStock_result[\"stock_remain\"] ; ".$send_quantity." > ".$partsStock_result["stock_remain"];
-			        // $status++;
-			        
-				}
+			// ########## สำหรับ เบิกของทั่วไป ###########
+			if($send_type == 1 || $send_type == 2){
 				
-				if(!$result=@pg_query($parts_strQuery)){
-			        $txt_error[] = "UPDATE parts_strQuery ไม่สำเร็จ $parts_strQuery";
-			        $status++;
-			    }
+				// ไป ลบ จำนวน Parts ใน Stocks 
+				// Select ค่า PartsStock กับ PartsStockDetails
+				// แล้วไป if else ว่า จะไป ลบจำนวน PartsStock หรือ PartsStockDetails
 				
-				if($temp_sent_quantity <= 0){
-					break;
-				}
-				
-				/*
-				$partsStock2_strQuery = "
+				// ถ้า parts_code อยู่ใน PartsStock
+				$temp_sent_quantity = $send_quantity;
+				$partsStock_strQuery = "
 					SELECT 
-						parts_code, stock_remain
+						stock_id, parts_code, stock_remain
 					FROM 
 						\"PartsStock\"
 					WHERE 
-						stock_id = '".$partsStock_result["stock_id"]."'
+						parts_code = '".$parts_code."' 
+						AND
+						stock_status = 1 
+						AND 
+						stock_remain > 0
 					ORDER BY rcv_date ;
 				";
-				$partsStock2_query = @pg_query($partsStock2_strQuery);
-				while ($partsStock2_result = @pg_fetch_array($partsStock2_query)) {
+				
+				$partsStock_query = @pg_query($partsStock_strQuery);
+				while ($partsStock_result = @pg_fetch_array($partsStock_query)) {
 					
-					echo "stock_remain = ".$partsStock2_result["stock_remain"];
-					pg_query("ROLLBACK");
-					exit;
+					$temp_partsStock = $partsStock_result["stock_remain"];
+					
+					if($temp_sent_quantity <= $partsStock_result["stock_remain"]){
+						$parts_strQuery = "
+							UPDATE 
+								\"PartsStock\"
+							SET 
+								stock_remain = stock_remain - ".$temp_sent_quantity."
+							WHERE 
+								parts_code = '".$parts_code."' 
+								AND
+								stock_id = '".$partsStock_result["stock_id"]."' ;
+						";
+						$temp_sent_quantity = $temp_sent_quantity - $temp_sent_quantity;
+						
+					}
+					else{
+						$parts_strQuery = "
+							UPDATE 
+								\"PartsStock\"
+							SET 
+								stock_remain = stock_remain - stock_remain
+							WHERE 
+								parts_code = '".$parts_code."' 
+								AND
+								stock_id = '".$partsStock_result["stock_id"]."' ;
+						";
+						$temp_sent_quantity = $temp_sent_quantity - $temp_partsStock;
+						// $txt_error[] = "send_quantity > partsStock_result[\"stock_remain\"] ; ".$send_quantity." > ".$partsStock_result["stock_remain"];
+				        // $status++;
+				        
+					}
+					
+					if(!$result=@pg_query($parts_strQuery)){
+				        $txt_error[] = "UPDATE parts_strQuery ไม่สำเร็จ $parts_strQuery";
+				        $status++;
+				    }
+					
+					if($temp_sent_quantity <= 0){
+						break;
+					}
+					
+					/*
+					$partsStock2_strQuery = "
+						SELECT 
+							parts_code, stock_remain
+						FROM 
+							\"PartsStock\"
+						WHERE 
+							stock_id = '".$partsStock_result["stock_id"]."'
+						ORDER BY rcv_date ;
+					";
+					$partsStock2_query = @pg_query($partsStock2_strQuery);
+					while ($partsStock2_result = @pg_fetch_array($partsStock2_query)) {
+						
+						echo "stock_remain = ".$partsStock2_result["stock_remain"];
+						pg_query("ROLLBACK");
+						exit;
+					}
+					*/
 				}
-				*/
+				
+				// ถ้า parts_code อยู่ใน PartsStockDetails
+				$partsStockDetails_strQuery = "
+					SELECT 
+						codeid, stock_id, status, wh_id, locate_id, note
+					FROM 
+						\"PartsStockDetails\"
+					WHERE 
+						codeid = '".$parts_code."' 
+						AND
+						status = 1 ;
+				";
+				$partsStockDetails_query = @pg_query($partsStockDetails_strQuery);
+				while ($partsStockDetails_result = @pg_fetch_array($partsStockDetails_query)) {
+					
+					//ถ้า parts_code อยู่ใน PartsStockDetails
+					$partsStockDetails_update_strQuery = "
+						UPDATE \"PartsStockDetails\"
+							SET status = 2
+						WHERE 
+							codeid = '".$parts_code."' ;
+					";
+					if(!$result=@pg_query($partsStockDetails_update_strQuery)){
+				        $txt_error[] = "UPDATE partsStockDetails_update_strQuery 123 ไม่สำเร็จ $partsStockDetails_update_strQuery";
+				        $status++;
+				    }
+					
+				}
 			}
 			
-			// ถ้า parts_code อยู่ใน PartsStockDetails
-			$partsStockDetails_strQuery = "
-				SELECT 
-					codeid, stock_id, status, wh_id, locate_id, note
-				FROM 
-					\"PartsStockDetails\"
-				WHERE 
-					codeid = '".$parts_code."' 
-					AND
-					status = 1 ;
-			";
-			$partsStockDetails_query = @pg_query($partsStockDetails_strQuery);
-			while ($partsStockDetails_result = @pg_fetch_array($partsStockDetails_query)) {
+			// ########## สำหรับ เบิกของ เสีย ###########
+			elseif ($send_type == 3) {
 				
-				//ถ้า parts_code อยู่ใน PartsStockDetails
-				$partsStockDetails_update_strQuery = "
-					UPDATE \"PartsStockDetails\"
-						SET status = 2
+				// ไป ลบ จำนวน Parts ใน Stocks 
+				// Select ค่า PartsStock กับ PartsStockDetails
+				// แล้วไป if else ว่า จะไป ลบจำนวน PartsStock หรือ PartsStockDetails
+				
+				// ถ้า parts_code อยู่ใน PartsStock
+				$temp_sent_quantity = $send_quantity;
+				$partsStock_strQuery = "
+					SELECT 
+						stock_broken_id, parts_code, stock_remain
+					FROM 
+						\"PartsStockBroken\"
 					WHERE 
-						codeid = '".$parts_code."' ;
+						parts_code = '".$parts_code."' 
+						AND
+						stock_status = 1 
+						AND 
+						stock_remain > 0
+					ORDER BY rcv_date ;
 				";
-				if(!$result=@pg_query($partsStockDetails_update_strQuery)){
-			        $txt_error[] = "UPDATE partsStockDetails_update_strQuery 123 ไม่สำเร็จ $partsStockDetails_update_strQuery";
-			        $status++;
-			    }
+				
+				$partsStock_query = @pg_query($partsStock_strQuery);
+				while ($partsStock_result = @pg_fetch_array($partsStock_query)) {
+					
+					$temp_partsStock = $partsStock_result["stock_remain"];
+					
+					if($temp_sent_quantity <= $partsStock_result["stock_remain"]){
+						$parts_strQuery = "
+							UPDATE 
+								\"PartsStockBroken\"
+							SET 
+								stock_remain = stock_remain - ".$temp_sent_quantity."
+							WHERE 
+								parts_code = '".$parts_code."' 
+								AND
+								stock_broken_id = '".$partsStock_result["stock_id"]."' ;
+						";
+						$temp_sent_quantity = $temp_sent_quantity - $temp_sent_quantity;
+						
+					}
+					else{
+						$parts_strQuery = "
+							UPDATE 
+								\"PartsStockBroken\"
+							SET 
+								stock_remain = stock_remain - stock_remain
+							WHERE 
+								parts_code = '".$parts_code."' 
+								AND
+								stock_broken_id = '".$partsStock_result["stock_id"]."' ;
+						";
+						$temp_sent_quantity = $temp_sent_quantity - $temp_partsStock;
+						// $txt_error[] = "send_quantity > partsStock_result[\"stock_remain\"] ; ".$send_quantity." > ".$partsStock_result["stock_remain"];
+				        // $status++;
+				        
+					}
+					
+					if(!$result=@pg_query($parts_strQuery)){
+				        $txt_error[] = "UPDATE parts_strQuery ไม่สำเร็จ $parts_strQuery";
+				        $status++;
+				    }
+					
+					if($temp_sent_quantity <= 0){
+						break;
+					}
+					
+					/*
+					$partsStock2_strQuery = "
+						SELECT 
+							parts_code, stock_remain
+						FROM 
+							\"PartsStock\"
+						WHERE 
+							stock_id = '".$partsStock_result["stock_id"]."'
+						ORDER BY rcv_date ;
+					";
+					$partsStock2_query = @pg_query($partsStock2_strQuery);
+					while ($partsStock2_result = @pg_fetch_array($partsStock2_query)) {
+						
+						echo "stock_remain = ".$partsStock2_result["stock_remain"];
+						pg_query("ROLLBACK");
+						exit;
+					}
+					*/
+				}
+				
+				// ถ้า parts_code อยู่ใน PartsStockDetails
+				$partsStockDetails_strQuery = "
+					SELECT 
+						codeid, stock_broken_id, status, wh_id, locate_id, note
+					FROM 
+						\"PartsStockBrokenDetails\"
+					WHERE 
+						codeid = '".$parts_code."' 
+						AND
+						status = 1 ;
+				";
+				$partsStockDetails_query = @pg_query($partsStockDetails_strQuery);
+				while ($partsStockDetails_result = @pg_fetch_array($partsStockDetails_query)) {
+					
+					//ถ้า parts_code อยู่ใน PartsStockDetails
+					$partsStockDetails_update_strQuery = "
+						UPDATE \"PartsStockBrokenDetails\"
+							SET status = 2
+						WHERE 
+							codeid = '".$parts_code."' ;
+					";
+					if(!$result=@pg_query($partsStockDetails_update_strQuery)){
+				        $txt_error[] = "UPDATE partsStockBrokenDetails_update_strQuery 123 ไม่สำเร็จ $partsStockDetails_update_strQuery";
+				        $status++;
+				    }
+					
+				}
 				
 			}
 			

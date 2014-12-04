@@ -1112,7 +1112,7 @@ class Withdrawal_edit_body {
  */ 
 class Withdrawal_send_save{
 	
-	function __construct($argument) {
+	function __construct($argument = '') {
 		
 	}
 	

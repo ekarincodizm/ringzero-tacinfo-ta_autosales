@@ -642,13 +642,14 @@
 	
 	
 	$(".parts_code").live("blur", function(){
-		console.log("parts_code = " + $(this).val());
+		// console.log("parts_code = " + $(this).val());
 		var this_id = $(this).data("code_id");
 		// console.log("this_id = " + this_id);
 		
 		console.log(parts);
 		
 		var i = 0;
+		var parts_code_value = "";
 		var parts_name_value = "";
 		var parts_unitid_value = "";
 		var parts_unitname_value = "";
@@ -658,6 +659,7 @@
 		for(i=0; i<parts.length; i++){
 			// console.log($.inArray( $(".parts_code").val() , parts[i])); //log this parts_name_value
 			if($.inArray($(this).val() , parts[i]) == 0){
+				parts_code_value = parts[i][0];
 				parts_name_value = parts[i][1];
 				parts_unitid_value = parts[i][2];
 				parts_detail_value = parts[i][3];
@@ -665,25 +667,30 @@
 				break;
 			}
 			if($.inArray($(this).val() , parts[i]) == 4){
+				parts_code_value = parts[i][0];
 				parts_name_value = parts[i][1];
 				parts_unitid_value = parts[i][2];
 				parts_detail_value = parts[i][3];
 				parts_barcode_value = parts[i][4];
-				
-				$(this).val(parts[i][0]);
-				 
 				break;
 			}
 		}
+		
+		$(this).val(parts_code_value);
+		// console.log($(this).val());
+		
 		console.log("parts_name = " + parts_name_value);
 		$(".parts_name#parts_name"+this_id).html(parts_name_value);
 		$(".parts_name[name=parts_name"+this_id+"]").val(parts_name_value);
 		$(".parts_detail#parts_detail"+this_id).html(parts_detail_value);
 		
 		
+		// if(
+			// (parts_name_value != "") ||
+			// ($(this).val() == parts_barcode_value)
+		// ){
 		if(
-			(parts_name_value != "") ||
-			($(this).val() == parts_barcode_value)
+			(parts_code_value != "")
 		){
 			$(".quantity#quantity"+this_id).prop("disabled", false);
 			$(".costperunit#costperunit"+this_id).prop("disabled", false);

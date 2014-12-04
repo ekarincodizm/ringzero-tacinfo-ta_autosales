@@ -8,7 +8,7 @@ $a = "a";
  */
 class Model_po_buy {
 	
-	function __construct($argument) {
+	function __construct($argument = '') {
 		
 	}
 	

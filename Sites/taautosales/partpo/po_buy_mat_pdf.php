@@ -198,8 +198,8 @@ while($res = pg_fetch_array($purchaseOrderPartsDetails_qry)){
     <tr>
         <td>'.$j.'</td>
         <td>'.$parts_code.'</td>
-        <td>'.$parts_name.'</td>
-        <td>'.$parts_detail.'</td>
+        <td align="left">'.$parts_name.'</td>
+        <td align="left">'.$parts_detail.'</td>
 		<td>'.$quantity.'</td>
 		<td>'.$unit_name.'</td>
 		<td>'.number_format($costperunit, 2).'</td>

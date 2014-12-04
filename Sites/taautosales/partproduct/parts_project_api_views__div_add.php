@@ -5,7 +5,7 @@
  */
 class Views {
 	
-	function __construct($argument) {
+	function __construct($argument = '') {
 		
 	}
 	

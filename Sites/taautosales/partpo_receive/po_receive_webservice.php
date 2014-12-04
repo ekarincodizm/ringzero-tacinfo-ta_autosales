@@ -4,7 +4,7 @@
  */
 class Model_po_receive {
 	
-	function __construct($argument) {
+	function __construct($argument = '') {
 		
 	}
 

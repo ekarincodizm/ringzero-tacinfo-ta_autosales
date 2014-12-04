@@ -611,7 +611,7 @@
 	$parts_matches = $data->get_parts();
 	foreach ($parts_matches["result"] as $value) {
 ?>
-		parts.push(["<?php echo $value['code']; ?>", "<?php echo $value['name']; ?>", "<?php echo $value['unitid']; ?>", "<?php echo $value['details']; ?>"]);
+		parts.push(["<?php echo $value['code']; ?>", "<?php echo $value['name']; ?>", "<?php echo $value['unitid']; ?>", "<?php echo $value['details']; ?>", "<?php echo $value['barcode']; ?>"]);
 <?php
 	}
 	$parts_matches["result"] = array_slice($parts_matches["result"], 0, 100);
@@ -646,11 +646,14 @@
 		var this_id = $(this).data("code_id");
 		// console.log("this_id = " + this_id);
 		
+		console.log(parts);
+		
 		var i = 0;
 		var parts_name_value = "";
 		var parts_unitid_value = "";
 		var parts_unitname_value = "";
 		var parts_detail_value = "";
+		var parts_barcode_value = "";
 		
 		for(i=0; i<parts.length; i++){
 			// console.log($.inArray( $(".parts_code").val() , parts[i])); //log this parts_name_value
@@ -658,6 +661,17 @@
 				parts_name_value = parts[i][1];
 				parts_unitid_value = parts[i][2];
 				parts_detail_value = parts[i][3];
+				parts_barcode_value = parts[i][4];
+				break;
+			}
+			if($.inArray($(this).val() , parts[i]) == 4){
+				parts_name_value = parts[i][1];
+				parts_unitid_value = parts[i][2];
+				parts_detail_value = parts[i][3];
+				parts_barcode_value = parts[i][4];
+				
+				$(this).val(parts[i][0]);
+				 
 				break;
 			}
 		}
@@ -667,15 +681,20 @@
 		$(".parts_detail#parts_detail"+this_id).html(parts_detail_value);
 		
 		
-		if(parts_name_value == ""){
+		if(
+			(parts_name_value != "") ||
+			($(this).val() == parts_barcode_value)
+		){
+			$(".quantity#quantity"+this_id).prop("disabled", false);
+			$(".costperunit#costperunit"+this_id).prop("disabled", false);
+			console.log("parts correct");
+		}
+		else{
 			$(this).val("");
 			// alert("ไม่มีรหัสนี้อยู่ในระบบ")
 			$(".quantity#quantity"+this_id).prop("disabled", "disabled");
 			$(".costperunit#costperunit"+this_id).prop("disabled", "disabled");
-		}
-		else{
-			$(".quantity#quantity"+this_id).prop("disabled", false);
-			$(".costperunit#costperunit"+this_id).prop("disabled", false);
+			console.log("parts incorrect");
 		}
 		
 		for(i=0; i<parts_unit.length; i++){

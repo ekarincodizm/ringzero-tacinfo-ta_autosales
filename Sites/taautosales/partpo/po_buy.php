@@ -35,6 +35,9 @@ $page_title = "สั่งซื้ออะไหล่/อุปกรณ์"
 include_once("../include/header_popup.php");
 include_once("po_buy_api_all.php");
 ?>
+      </div>
+   <div class="roundedcornr_bottom"><div></div></div>
+</div>
 
 </body>
 </html>

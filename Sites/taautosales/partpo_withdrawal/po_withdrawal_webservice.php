@@ -114,6 +114,8 @@ class PartStock {
 					\"parts\"
 				WHERE 
 					code LIKE '%".$parts_code."%'
+					OR
+					barcode LIKE '%".$parts_code."%'
 			)
 			UNION
 			(
@@ -163,22 +165,18 @@ class PartStock {
 	
 	public function get_stock_detail_and_aval($part_code)
 	{
-		
-		
 		$result_array = array();
 		$stock = $this->_get_details($part_code);
 		
+		$result_array['code'] = $stock['code'];
 		$result_array['name'] = $stock['name'];
 		$result_array['detail'] = $stock['details'];
 		
 		$stock_remain = $this->_get_stock_remain($part_code);
 		$result_array['stock_remain'] = intval($stock_remain["count"]);
 		
-		
-		
 		$sum_withdrawal = $this->_get_sum_withdrawal($part_code);
 		$result_array['sum_withdrawal'] = intval($sum_withdrawal["withdrawal_quantity"]);
-		
 		
 		// echo $result_array['sum_withdrawal'];
 		// pg_query("ROLLBACK");
@@ -188,12 +186,36 @@ class PartStock {
 			$result_array['stock_remain'] = 0;
 		}
 		
+		$result_array["stock_aval"] = intval($result_array['stock_remain']) - intval($result_array['sum_withdrawal']);
+		
+		return $result_array;
+	}
+	
+	public function get_stock_broken_detail_and_aval($part_code){
+		$result_array = array();
+		$stock = $this->_get_details($part_code);
+		
+		$result_array['code'] = $stock['code'];
+		$result_array['name'] = $stock['name'];
+		$result_array['detail'] = $stock['details'];
+		
+		$stock_remain = $this->_get_stock_broken_remain($part_code);
+		$result_array['stock_remain'] = intval($stock_remain["count"]);
+		
+		$sum_withdrawal = $this->_get_sum_withdrawal($part_code);
+		$result_array['sum_withdrawal'] = intval($sum_withdrawal["withdrawal_quantity"]);
+		
+		// echo $result_array['sum_withdrawal'];
+		// pg_query("ROLLBACK");
+		// exit;
+		
+		if($result_array['stock_remain'] == null){
+			$result_array['stock_remain'] = 0;
+		}
 		
 		$result_array["stock_aval"] = intval($result_array['stock_remain']) - intval($result_array['sum_withdrawal']);
 		
-		
 		return $result_array;
-		
 	}
 	
 	// อ่าน Detail ของ Parts และ Parts ที่มีรหัสแยกย่อย
@@ -210,6 +232,8 @@ class PartStock {
 					\"parts\"
 				WHERE 
 					code = '".$parts_code."'
+					OR
+					barcode = '".$parts_code."'
 			)
 			UNION
 			(
@@ -315,6 +339,56 @@ class PartStock {
 		}
 	}
 	
+	// จำนวนสินค้าในคลัง
+	private function _get_stock_broken_remain($part_code)
+	{
+		//SQL For If parts_code is in the PartsStockDetails or Not
+		
+		if($this->_has_multiple($part_code)){
+			
+			$strQuery = "
+				SELECT 
+					codeid,
+					count(*) AS count
+				FROM
+					\"PartsStockBrokenDetails\"
+				WHERE 
+					codeid = '".$part_code."'
+					AND
+					status = 1
+				GROUP BY codeid
+			";
+			$query = pg_query($strQuery);
+			$numrow = pg_num_rows($query);
+			
+			return pg_fetch_array($query);
+			
+		}
+		else{
+			
+			$strQuery = "
+				SELECT 
+					parts_code, 
+					sum(stock_remain) AS count
+				FROM \"PartsStockBroken\"
+				where 
+					parts_code = '".$part_code."'
+				group by parts_code
+			  ;
+			";
+			$query = pg_query($strQuery);
+			$numrow = pg_num_rows($query);
+			
+			
+			if($numrow == 1){
+				return pg_fetch_array($query);
+			}
+			else{
+				return null;
+			}
+		}
+	}
+	
 	
 	// //Check รหัส parts code ว่า มีอยู่ใน Withdrawal หรือเปล่า
 	// private function _Is_Exist_partscode_in_withdrawal($part_code){
@@ -389,6 +463,7 @@ class PartStock {
 		// }
 		
 	}
+	
 }
 
 

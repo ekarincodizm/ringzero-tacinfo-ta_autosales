@@ -739,13 +739,12 @@ foreach ($get_withdrawalParts as $withdrawalParts_result) {
 		
 		var this_id = $(this).data("code_id");
 		var url_request = "";
+		var withdrawal_type_data = $("#withdrawal_type").val(); 
 		
-		if($("#withdrawal_type").val() == 1 || $("#withdrawal_type").val() == 2){
-			
+		if(withdrawal_type_data == 1 || withdrawal_type_data == 2){
 			url_request = "po_withdrawal_requesturl.php?_function=search_by_stock_code";
 		}
-		else if($("#withdrawal_type").val() == 3){
-			
+		else if(withdrawal_type_data == 3){
 			url_request = "po_withdrawal_requesturl.php?_function=search_by_stockBroken_code";
 		}
 		
@@ -754,22 +753,40 @@ foreach ($get_withdrawalParts as $withdrawalParts_result) {
 	        delay: 700,
 	        minLength:1,
 	        select: function(event, ui) {
-	        	
-				$.post(
-					"po_withdrawal_requesturl.php",
-					{
-						_function : "get_stock_detail_by_code",
-						_parts_code : ui.item.code
-					},
-					function(data){
-						console.log(data);
-						$("#parts_name"+this_id).text(data.name);
-						$(".parts_name[name=parts_name"+this_id+"]").val(data.name);
-						$("#parts_detail"+this_id).text(data.detail);
-						$(".quantity#quantity"+this_id).text(data.stock_aval+" ("+data.stock_remain+")");
-					},
-					'json'
-				);
+	        	if(withdrawal_type_data == 1 || withdrawal_type_data == 2){
+					$.post(
+						"po_withdrawal_requesturl.php",
+						{
+							_function : "get_stock_detail_by_code",
+							_parts_code : ui.item.code
+						},
+						function(data){
+							console.log(data);
+							$("#parts_name"+data_code_id).text(data.name);
+							$(".parts_name[name=parts_name"+data_code_id+"]").val(data.name);
+							$("#parts_detail"+data_code_id).text(data.detail);
+							$(".quantity#quantity"+data_code_id).text(data.stock_aval+" ("+data.stock_remain+")");
+						},
+						'json'
+					);
+				}
+				else if(withdrawal_type_data == 3){
+					$.post(
+						"po_withdrawal_requesturl.php",
+						{
+							_function : "get_stock_broken_detail_by_code",
+							_parts_code : ui.item.code
+						},
+						function(data){
+							console.log(data);
+							$("#parts_name"+data_code_id).text(data.name);
+							$(".parts_name[name=parts_name"+data_code_id+"]").val(data.name);
+							$("#parts_detail"+data_code_id).text(data.detail);
+							$(".quantity#quantity"+data_code_id).text(data.stock_aval+" ("+data.stock_remain+")");
+						},
+						'json'
+					);
+				}
 			},
 			response: function (event, ui) {
 				

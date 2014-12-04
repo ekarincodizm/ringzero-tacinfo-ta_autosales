@@ -555,11 +555,12 @@ $withdrawalParts = new WithdrawalParts();
 	$(".parts_code").live("focus", function() {
 		var data_code_id = $(this).data("code_id");
 		var url_request = "";
+		var withdrawal_type_data = $("#withdrawal_type").val(); 
 		
-		if($("#withdrawal_type").val() == 1 || $("#withdrawal_type").val() == 2){
+		if(withdrawal_type_data == 1 || withdrawal_type_data == 2){
 			url_request = "po_withdrawal_requesturl.php?_function=search_by_stock_code";
 		}
-		else if($("#withdrawal_type").val() == 3){
+		else if(withdrawal_type_data == 3){
 			url_request = "po_withdrawal_requesturl.php?_function=search_by_stockBroken_code";
 		}
 		
@@ -568,21 +569,40 @@ $withdrawalParts = new WithdrawalParts();
 			delay: 500,
 			minLength:1,
 			select: function(event, ui) {
-				$.post(
-					"po_withdrawal_requesturl.php",
-					{
-						_function : "get_stock_detail_by_code",
-						_parts_code : ui.item.code
-					},
-					function(data){
-						console.log(data);
-						$("#parts_name"+data_code_id).text(data.name);
-						$(".parts_name[name=parts_name"+data_code_id+"]").val(data.name);
-						$("#parts_detail"+data_code_id).text(data.detail);
-						$(".quantity#quantity"+data_code_id).text(data.stock_aval+" ("+data.stock_remain+")");
-					},
-					'json'
-				);
+				if(withdrawal_type_data == 1 || withdrawal_type_data == 2){
+					$.post(
+						"po_withdrawal_requesturl.php",
+						{
+							_function : "get_stock_detail_by_code",
+							_parts_code : ui.item.code
+						},
+						function(data){
+							console.log(data);
+							$("#parts_name"+data_code_id).text(data.name);
+							$(".parts_name[name=parts_name"+data_code_id+"]").val(data.name);
+							$("#parts_detail"+data_code_id).text(data.detail);
+							$(".quantity#quantity"+data_code_id).text(data.stock_aval+" ("+data.stock_remain+")");
+						},
+						'json'
+					);
+				}
+				else if(withdrawal_type_data == 3){
+					$.post(
+						"po_withdrawal_requesturl.php",
+						{
+							_function : "get_stock_broken_detail_by_code",
+							_parts_code : ui.item.code
+						},
+						function(data){
+							console.log(data);
+							$("#parts_name"+data_code_id).text(data.name);
+							$(".parts_name[name=parts_name"+data_code_id+"]").val(data.name);
+							$("#parts_detail"+data_code_id).text(data.detail);
+							$(".quantity#quantity"+data_code_id).text(data.stock_aval+" ("+data.stock_remain+")");
+						},
+						'json'
+					);
+				}
 			},
 			response: function (event, ui) {
 				
@@ -599,6 +619,61 @@ $withdrawalParts = new WithdrawalParts();
 			    return $("<li></li>").data("item.autocomplete", item).append("<a>" + item.label + "</a>").appendTo(ul);
 			}
 		};
+	});
+	
+	
+	//On Key (Parts_code) Enter For close Autocomplete, and Key on this Quantity
+	$(".parts_code").live("keydown", function(event) {
+		var code_id = $(this).data("code_id");
+		if(event.keyCode == 13){
+			
+			var withdrawal_type_data = $("#withdrawal_type").val();
+			
+			if(withdrawal_type_data == 1 || withdrawal_type_data == 2){
+				var _parts = $.ajax({
+					type: "POST",
+					url: "po_withdrawal_requesturl.php",
+					data: {
+						_function: "get_stock_detail_by_code",
+						_parts_code: $(this).val()
+					},
+					dataType: "json",
+					async:false
+				});
+			}
+			else if(withdrawal_type_data == 3){
+				var _parts = $.ajax({
+					type: "POST",
+					url: "po_withdrawal_requesturl.php",
+					data: {
+						_function: "get_stock_broken_detail_by_code",
+						_parts_code: $(this).val()
+					},
+					dataType: "json",
+					async:false
+				});
+			}
+			
+			data = $.parseJSON(_parts.responseText);
+			$(this).val(data.code);
+			$("#parts_name"+code_id).text(data.name);
+			$(".parts_name[name=parts_name"+code_id+"]").val(data.name);
+			$("#parts_detail"+code_id).text(data.detail);
+			$(".quantity#quantity"+code_id).text(data.stock_aval+" ("+data.stock_remain+")");
+			
+			$(this).autocomplete( "close" );
+			$(".quantity_withdrawal#quantity_withdrawal"+code_id).prop("disabled", false);
+			$(".quantity_withdrawal#quantity_withdrawal"+code_id).focus();
+	    }
+	});
+	
+	
+	//On Key (quantity) Enter For close Autocomplete, and Key on this costperunit
+	$(".quantity_withdrawal").live("keydown", function(event) {
+		var code_id = $(this).data("quantity_withdrawal");
+		if(event.keyCode == 13){
+			$(".parts_code#parts_code"+(code_id+1)).focus();
+	    }
 	});
 	
 	

@@ -75,6 +75,15 @@ elseif($function == "get_stock_detail_by_code"){
 	$return = $partStock->get_stock_detail_and_aval($parts_code);
 	echo json_encode($return);
 }
+elseif($function == "get_stock_broken_detail_by_code"){
+	
+	$parts_code = pg_escape_string($_POST["_parts_code"]);
+	
+	$partStock = new PartStock();
+	
+	$return = $partStock->get_stock_broken_detail_and_aval($parts_code);
+	echo json_encode($return);
+}
 elseif($function == "get_project_detail"){
 	
 	$project_id = pg_escape_string($_POST["_project_id"]);

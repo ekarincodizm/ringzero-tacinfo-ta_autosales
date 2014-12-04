@@ -264,7 +264,7 @@ class Model_po_receive_detail{
 	
 	private $parts_pocode = '';
 	
-	function __construct($parts_pocode) {
+	function __construct($parts_pocode = '') {
 		$this->parts_pocode = $parts_pocode;
 	}
 	

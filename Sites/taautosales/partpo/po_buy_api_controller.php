@@ -64,6 +64,7 @@ class Controller_po_buy {
 			$dt['name'] = $res_parts['name'];
 			$dt['unitid'] = $res_parts['unitid'];
 			$dt['details'] = $res_parts['details'];
+			$dt['barcode'] = $res_parts['barcode'];
 			$dt['value'] = $dt['code'];
 			$dt['label'] = $dt["code"]." # ".$res_parts["barcode"]." # ".$dt['name']." # ".$dt["details"];
 			$parts_matches[] = $dt;

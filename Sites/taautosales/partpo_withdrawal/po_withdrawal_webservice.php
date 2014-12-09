@@ -172,10 +172,10 @@ class PartStock {
 		$result_array['name'] = $stock['name'];
 		$result_array['detail'] = $stock['details'];
 		
-		$stock_remain = $this->_get_stock_remain($part_code);
+		$stock_remain = $this->_get_stock_remain($stock['code']);
 		$result_array['stock_remain'] = intval($stock_remain["count"]);
 		
-		$sum_withdrawal = $this->_get_sum_withdrawal($part_code);
+		$sum_withdrawal = $this->_get_sum_withdrawal($stock['code']);
 		$result_array['sum_withdrawal'] = intval($sum_withdrawal["withdrawal_quantity"]);
 		
 		// echo $result_array['sum_withdrawal'];
@@ -199,10 +199,10 @@ class PartStock {
 		$result_array['name'] = $stock['name'];
 		$result_array['detail'] = $stock['details'];
 		
-		$stock_remain = $this->_get_stock_broken_remain($part_code);
+		$stock_remain = $this->_get_stock_broken_remain($stock['code']);
 		$result_array['stock_remain'] = intval($stock_remain["count"]);
 		
-		$sum_withdrawal = $this->_get_sum_withdrawal($part_code);
+		$sum_withdrawal = $this->_get_sum_withdrawal($stock['code']);
 		$result_array['sum_withdrawal'] = intval($sum_withdrawal["withdrawal_quantity"]);
 		
 		// echo $result_array['sum_withdrawal'];

@@ -260,7 +260,9 @@ class WithdrawalParts {
 			
 			
 			// ############## Check Is_Exist_partscode_in_partsStock ? ################
-			if($this->_Is_Exist_partscode_in_partsStock($parts_code, $withdrawal_type) == TRUE){
+			if($this->_Is_Exist_partscode_in_partsStock($parts_code, $withdrawal_type, $quantity_withdrawal) == TRUE){
+				
+				
 				
 				// insert PartsReceivedDetails
 				$withdrawalPartsDetails_strQuery = "
@@ -310,8 +312,9 @@ class WithdrawalParts {
 
 	private function _Is_Exist_partscode_in_partsStock(
 		$parts_code = '',
-		$withdrawal_type = ''
-	) 
+		$withdrawal_type = '',
+		$quantity_withdrawal = ''
+	)
 	{
 		$partStock = new PartStock();
 		
@@ -322,7 +325,7 @@ class WithdrawalParts {
 			$return = $partStock->get_stock_broken_detail_and_aval($parts_code);
 		}
 		
-		if(intval($return["stock_aval"]) > 0){
+		if(intval($return["stock_aval"]) > 0 && intval($return["stock_aval"]) >= intval($quantity_withdrawal)){
 			return TRUE;
 		}
 		else{
@@ -644,7 +647,7 @@ class WithdrawalParts {
 			
 			
 			// ############## Check Is_Exist_partscode_in_partsStock ? ################
-			if($this->_Is_Exist_partscode_in_partsStock($parts_code, $withdrawal_type) == TRUE){
+			if($this->_Is_Exist_partscode_in_partsStock($parts_code, $withdrawal_type, $quantity_withdrawal) == TRUE){
 				
 				// insert PartsReceivedDetails
 				$withdrawalPartsDetails_strQuery = "

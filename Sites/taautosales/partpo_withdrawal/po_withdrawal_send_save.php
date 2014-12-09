@@ -202,7 +202,7 @@
 						stock_status = 1 
 						AND 
 						stock_remain > 0
-					ORDER BY rcv_date ;
+					ORDER BY stock_lot ;
 				";
 				
 				$partsStock_query = @pg_query($partsStock_strQuery);

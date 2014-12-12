@@ -534,9 +534,11 @@ $withdrawalParts = new WithdrawalParts();
 	    }
 	});
 	
-
-	// ตรวจสอบว่า Quantity Withdrawal เกิน Stock หรือไม่ ถ้าเกิน ก็ไม่ให้เบิก ระบบจะลดจำนวน ให้เท่ากับจำนวนทั้งหมด 
+	
+	// ตรวจสอบว่า Quantity Withdrawal เกิน Stock หรือไม่ ถ้าเกิน ก็ไม่ให้เบิก ระบบจะลดจำนวน ให้เท่ากับจำนวนทั้งหมด
+	/*
 	$(".quantity_withdrawal").live("change", function(){
+		
 		var quantity_withdrawal_value = $(this).val();
 		var this_id = $(this).data("quantity_withdrawal");
 		var quantity = $(".quantity[name=quantity" + this_id + "]").val();
@@ -550,6 +552,7 @@ $withdrawalParts = new WithdrawalParts();
 			$(".quantity_withdrawal#quantity_withdrawal"+this_id).val(quantity);
 		}
 	});
+	*/
 	
 	
 	$(".parts_code").live("focus", function() {

@@ -807,6 +807,7 @@ foreach ($get_withdrawalParts as $withdrawalParts_result) {
 	});
 	
 	// ตรวจสอบว่า Quantity Withdrawal เกิน Stock หรือไม่ ถ้าเกิน ก็ไม่ให้เบิก ระบบจะลดจำนวน ให้เท่ากับจำนวนทั้งหมด 
+	/*
 	$(".quantity_withdrawal").live("change", function(){
 		var quantity_withdrawal_value = $(this).val();
 		var this_id = $(this).data("quantity_withdrawal");
@@ -821,6 +822,7 @@ foreach ($get_withdrawalParts as $withdrawalParts_result) {
 			$(".quantity_withdrawal#quantity_withdrawal"+this_id).val(quantity);
 		}
 	});
+	*/
 	
 	
 	//counter = Count how many rows

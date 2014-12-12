@@ -68,6 +68,8 @@ class Model_barcode {
 					\"PartsStockDetails\"
 				ON 
 					 \"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
+				WHERE
+					\"PartsStockDetails\".codeid <> ''
 			)
 			ORDER BY code;
 		";

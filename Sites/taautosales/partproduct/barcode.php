@@ -177,6 +177,7 @@ $class = new Model_barcode();
 		$dt['type'] = $res_parts["type"];
 		$parts_matches[] = $dt;
 		
+		/*
 		$stock_remain = "";
 		
 		// ## Check Stock_remain ##
@@ -202,14 +203,13 @@ $class = new Model_barcode();
 		if($sum_withdrawal_quantity == ""){
 			$sum_withdrawal_quantity = 0;
 		}
+		*/
 		// ## End Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
 ?>
 			parts.push([
 				"<?php echo $res_parts['code']; ?>", 
 				"<?php echo $res_parts['name']; ?>", 
 				"<?php echo $res_parts['details']; ?>",
-				"<?php echo $stock_remain; ?>",
-				"<?php echo $sum_withdrawal_quantity; ?>",
 			]);
 <?php
 	}
@@ -259,30 +259,30 @@ $class = new Model_barcode();
 				if($.inArray( item.value , parts[i]) == 0){
 					parts_name_value = parts[i][1];
 					parts_detail_value = parts[i][2];
-					stock_remain_value = parts[i][3];
-					sum_withdrawal_quantity_value = parts[i][4];
+					// stock_remain_value = parts[i][3];
+					// sum_withdrawal_quantity_value = parts[i][4];
 					break;
 				}
 			}
 			
 			// Calculate How many Quantity left after already withdrawal the Parts
 			// จำนวนที่ได้กดเบิกออกไปจางคลังแล้ว ==> เอาค่านี้ ไปรวมกับ จำนวนที่เบิกได้ ถึงจะสามารถ นับได้ว่า เราเบิกได้สูงสุด หลังจากที่นับ จากของที่เบิกไปแล้ว
-			var total_send_quantity = 0;
+			// var total_send_quantity = 0;
 			
-			for(i=0; i<total_send_quantity_array.length; i++){
-				// ### คำสั่ง $.inArray(ค่าที่จะหา, array นั้น) --> มันจะได้ Index ของ ค่าที่จะหา ถ้าไม่มี จะได้ค่า -1 (index เริ่มนับจาก 0 เป็นตัวแรก) ###
-				if($.inArray( item.value , total_send_quantity_array[i]) == 0){
-					total_send_quantity = total_send_quantity_array[i][1];
-					break;
-				}
-			}
+			// for(i=0; i<total_send_quantity_array.length; i++){
+				// // ### คำสั่ง $.inArray(ค่าที่จะหา, array นั้น) --> มันจะได้ Index ของ ค่าที่จะหา ถ้าไม่มี จะได้ค่า -1 (index เริ่มนับจาก 0 เป็นตัวแรก) ###
+				// if($.inArray( item.value , total_send_quantity_array[i]) == 0){
+					// total_send_quantity = total_send_quantity_array[i][1];
+					// break;
+				// }
+			// }
 			
-			var stock_remain_with_withdrawal_value = parseInt(stock_remain_value) - parseInt(sum_withdrawal_quantity_value) + parseInt(total_send_quantity);
-			var String__stock_remain = stock_remain_with_withdrawal_value+" ("+stock_remain_value+")";
+			// var stock_remain_with_withdrawal_value = parseInt(stock_remain_value) - parseInt(sum_withdrawal_quantity_value) + parseInt(total_send_quantity);
+			// var String__stock_remain = stock_remain_with_withdrawal_value+" ("+stock_remain_value+")";
 	    	// #### End สำหรับ นับจำนวน สินค้าคงเหลือในคลัง ####
 	    	
 			if(item.type=='1'){
-			    return $('<li class="ui-menu-item disabled" style="margin-top:5px; margin-bottom: 5px; margin-left: 5px; color: #999; "></li>').data("item.autocomplete", item).append('<span>'+item.label+' # '+String__stock_remain+'</span>').appendTo(ul);
+			    return $('<li class="ui-menu-item disabled" style="margin-top:5px; margin-bottom: 5px; margin-left: 5px; color: #999; "></li>').data("item.autocomplete", item).append('<span>'+item.label+'</span>').appendTo(ul);
 			}
 			else{
 			    return $("<li></li>").data("item.autocomplete", item).append("<a>" + item.label + "</a>").appendTo(ul);

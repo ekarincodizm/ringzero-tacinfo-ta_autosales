@@ -5,6 +5,7 @@ $host = "172.16.2.251";
 $port = 5432;
 //$db = "devtaautosales";
 $db = "devtaauto012";
+// $db = "devtaauto016";
 //$db = "dbtaauto001";  //ใช้งานจริง
 $user = "dev";
 $pass = "nextstep";

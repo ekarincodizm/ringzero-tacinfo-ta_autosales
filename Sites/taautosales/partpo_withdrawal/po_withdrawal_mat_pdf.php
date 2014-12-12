@@ -163,7 +163,7 @@ $save_data[$m] .= '
 	</tr>
 </table>
 <span style="text-align: right; margin-top:-20px; font-size: 40px;">'.$pageName.'</span><br />
-<span style="font-weight:bold; font-size:larger; text-align:center"><b>ใบเบิกสินค้า </b></span>
+<span style="font-weight:bold; font-size:larger; text-align:center"><b>ใบจ่ายสินค้า </b></span>
 <br>
 <table cellpadding="3" cellspacing="0" border="0" width="100%" style="font-size: larger; ">
 	<tr>
@@ -272,10 +272,28 @@ $save_data[$m] .= '
 					<td width="270" colspan="2">ลงชื่อ ___________________________________ ผู้อนุมัติ</td>
 				</tr>
 				<tr align="center">
-					<td width="270" colspan="2">(___________________________________)</td>
+					<td width="270" colspan="2">(_________________________________)</td>
 				</tr>
 				<tr align="center">
 					<td width="270" colspan="2">วันที่__________________________________</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+	</tr>
+	<tr>
+		<td>
+			<table cellpadding="2" cellspacing="0" border="0" width="100%">
+				<tr align="center">
+					<td width="270" colspan="2">ลงชื่อ ___________________________________ ผู้จัดทำ</td>
+				</tr>
+				<tr align="center">
+					<td width="270" colspan="2">(_________________________________)</td>
+				</tr>
+				<tr align="center">
+					<td width="270" colspan="2">วันที่____________________________________</td>
 				</tr>
 			</table>
 		</td>

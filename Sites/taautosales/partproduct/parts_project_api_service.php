@@ -5,7 +5,7 @@ include_once("../include/function.php");
 function get_Parts(){
 	$parts_strQuery = "
 		SELECT 
-			code, name, details
+			code, name, details, barcode
 		FROM 
 			parts
 		WHERE
@@ -21,7 +21,7 @@ function get_Parts(){
 function get_Parts_type_0(){
 	$parts_strQuery = "
 		SELECT 
-			code, name, details
+			code, name, details, barcode
 		FROM 
 			parts
 		WHERE

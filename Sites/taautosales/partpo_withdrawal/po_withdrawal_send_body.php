@@ -4,6 +4,11 @@
 include_once("po_withdrawal_webservice.php");
 // #################### End Function #########################
 
+$class = new Withdrawal_edit_body($withdrawalParts_code);
+
+$partStock = new PartStock();
+
+
 $withdrawalParts_code = pg_escape_string($_GET["code"]);
 
 $appr_strQuery = "
@@ -192,132 +197,7 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 					<td width="10%">จำนวนที่เบิก</td>
 					<td width="20%">จำนวนที่จ่าย&sol;จำนวนที่เบิกได้สูงสุด</td>
 				</tr>
-<?php
-				function call_parts($parts_code, $return){
-					$withdrawalParts_code = pg_escape_string($_GET["code"]);
-					$strQuery_parts = "
-						(
-							SELECT 
-								code,
-								name,
-								details,
-								type
-							FROM
-								\"parts\"
-							WHERE 
-								code = '".$parts_code."'
-						)
-						UNION
-						(
-							SELECT 
-								\"PartsStockDetails\".codeid AS code,
-								parts.name,
-								parts.details,
-								'3' AS type
-							FROM
-								\"parts\"
-							JOIN
-								\"PartsStock\" 
-							ON 
-								\"PartsStock\".parts_code = parts.code
-								
-							LEFT JOIN 
-								\"PartsStockDetails\"
-							ON 
-								\"PartsStockDetails\".stock_id::text = \"PartsStock\".stock_id::text
-							WHERE
-								codeid = '".$parts_code."'
-						)
-						ORDER BY code;
-					";
-					$qry_parts=@pg_query($strQuery_parts);
-					$numrows_parts = pg_num_rows($qry_parts);
-					// $parts_data = array();
-					while($res_parts=@pg_fetch_array($qry_parts)){
-						// $parts_data[] = $res_parts;
-						$dt['value'] = $res_parts['code'];
-						$dt['label'] = $res_parts["code"]." # ".$res_parts["name"]." # ".$res_parts["details"];
-						$parts_matches[] = $dt;
-						
-						$stock_remain = "";
-						
-						// ## Check Stock_remain ##
-						if($res_parts["type"] == 0 || $res_parts["type"] == 1){
-							$v_parts_stock__count_per_parts_code_strQuery = "
-								SELECT 
-									stock_remain
-								FROM 
-									v_parts_stock__count_per_parts_code
-								WHERE
-									parts_code = '".$res_parts["code"]."'
-							";
-							$v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-							$stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-						}
-						// elseif($res_parts["type"] == 1){
-							// $v_parts_stock__count_per_parts_code_strQuery = "
-								// SELECT 
-									// stock_status
-								// FROM 
-									// v_parts_stock_detail__count_per_parts_code
-								// WHERE
-									// parts_code = '".$res_parts["code"]."'
-							// ";
-							// $v_parts_stock__count_per_parts_code_query = @pg_query($v_parts_stock__count_per_parts_code_strQuery);
-							// $stock_remain = @pg_fetch_result($v_parts_stock__count_per_parts_code_query, 0);
-						// }
-						elseif($res_parts["type"] == 3){
-							$stock_remain = 1;
-						}
-						if($stock_remain == "" || $stock_remain == NULL){
-							$stock_remain = 0;
-						}
-						// ## End Check Stock_remain ##
-						
-						
-						// ## Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
-						$v_parts_withdrawal_quantity3_strQuery = "
-							SELECT 
-								sum(withdrawal_quantity) AS sum_withdrawal_quantity
-							FROM 
-								v_parts_withdrawal_quantity3
-							WHERE 
-								withdrawal_status IN (1,2,3)
-								AND 
-								withdrawal_detail_status = 1
-								AND
-								parts_code = '".$res_parts["code"]."'
-								AND
-								code <> '".$withdrawalParts_code."'
-							GROUP BY parts_code ;
-						";
-						$v_parts_withdrawal_quantity3_query = @pg_query($v_parts_withdrawal_quantity3_strQuery);
-						$sum_withdrawal_quantity = @pg_fetch_result($v_parts_withdrawal_quantity3_query, 0);
-						$stock_remain_with_withdrawal_value = $stock_remain - $sum_withdrawal_quantity;
-						// ## End Check Quantity ที่ ได้กดเบิกไป แล้วค้างอยู่ใน Queue ##
-						
-						
-						// ##### return value #####
-						if($return == "code"){
-							return $res_parts['code'];
-						}
-						
-						elseif($return == "name"){
-							return $res_parts['name'];
-						}
-						elseif($return == "details"){
-							return $res_parts['details'];
-						}
-						elseif($return == "stock_remain"){
-							return $stock_remain;
-						}
-						elseif($return == "withdrawal_quantity"){
-							return $stock_remain_with_withdrawal_value;
-						}
-						// ##### End return value #####
-					}
-				}
-?>
+				
 				<script>
 					var parts = new Array();
 <?php
@@ -474,10 +354,15 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 					$max_send_quantity = $withdrawalPartsDetails_result["withdrawal_quantity"] - $max_send_quantity;
 					
 					
-					if($withdrawalPartsDetails_result["idno"] == 1){
+					// อันนี้คือ Stock_remain ที่รวมกับของ withdrawal_quantity เก่าที่ได้รวมไป
+					// $stock_remain_with_withdrawal = call_parts($withdrawalPartsDetails_result["parts_code"], "withdrawal_quantity");
+					
+					$getStockDetails = $partStock->get_stock_detail_and_aval($withdrawalPartsDetails_result["parts_code"]);
+					
+					$stock_remain_with_withdrawal = intval($class->call_parts($withdrawalPartsDetails_result["parts_code"], "withdrawal_quantity")) +  intval($max_send_quantity);
+					
 						
-						// อันนี้คือ Stock_remain ที่รวมกับของ withdrawal_quantity เก่าที่ได้รวมไป
-						$stock_remain_with_withdrawal = call_parts($withdrawalPartsDetails_result["parts_code"], "withdrawal_quantity");
+					if($withdrawalPartsDetails_result["idno"] == 1){
 ?>
 						<tr bgcolor="#FFFFFF">
 							<td>
@@ -489,14 +374,17 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 							</td>
 							
 							<td>
-								<span id="parts_name1" class="parts_name"><?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?></span>
-								<input type="hidden" name="parts_name1" class="parts_name" value="<?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?>" />
+								<span id="parts_name1" class="parts_name"><?php echo $class->call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?></span>
+								<input type="hidden" name="parts_name1" class="parts_name" value="<?php echo $class->call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?>" />
 							</td>
 							<td>
-								<span id="parts_detail1" class="parts_detail"><?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "details"); ?></span>
+								<span id="parts_detail1" class="parts_detail"><?php echo $class->call_parts($withdrawalPartsDetails_result["parts_code"], "details"); ?></span>
 							</td>
 							<td align="center">
-								<span id="quantity1" class="quantity" data-quantity_id="1"><?php echo $stock_remain_with_withdrawal." (".(call_parts($withdrawalPartsDetails_result["parts_code"], "stock_remain")).")"; ?></span>
+								<span id="quantity1" class="quantity" data-quantity_id="1"><?php 
+									// echo $stock_remain_with_withdrawal." (".($class->call_parts($withdrawalPartsDetails_result["parts_code"], "stock_remain")).")";
+									echo $getStockDetails["stock_aval"]." (".$getStockDetails["stock_remain"].")"; 
+								?></span>
 								<input type="hidden" name="quantity1" class="quantity" data-quantity_id="1" value="<?php echo $stock_remain_with_withdrawal; ?>" />
 							</td>
 							<td>
@@ -536,14 +424,17 @@ while ($withdrawalParts_result = pg_fetch_array($withdrawalParts_query)) {
 											<input type="hidden" id="parts_code<?php echo $withdrawalPartsDetails_result["idno"]; ?>" name="parts_code<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_code" data-code_id="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $withdrawalPartsDetails_result["parts_code"]; ?>" />
 										</td>
 										<td width="15%">
-											<span id="parts_name<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_name"><?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?></span>
-											<input type="hidden" name="parts_name<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_name" value="<?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?>" />
+											<span id="parts_name<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_name"><?php echo $class->call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?></span>
+											<input type="hidden" name="parts_name<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_name" value="<?php echo $class->call_parts($withdrawalPartsDetails_result["parts_code"], "name"); ?>" />
 										</td>
 										<td  width="20%">
-											<span id="parts_detail<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_detail"><?php echo call_parts($withdrawalPartsDetails_result["parts_code"], "details"); ?></span>
+											<span id="parts_detail<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="parts_detail"><?php echo $class->call_parts($withdrawalPartsDetails_result["parts_code"], "details"); ?></span>
 										</td>
 										<td width="15%" align="center">
-								    	 	<span id="quantity<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="quantity" data-quantity_id="<?php echo $withdrawalPartsDetails_result["idno"]; ?>"><?php echo $stock_remain_with_withdrawal." (".(call_parts($withdrawalPartsDetails_result["parts_code"], "stock_remain")).")"; ?></span>
+								    	 	<span id="quantity<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="quantity" data-quantity_id="<?php echo $withdrawalPartsDetails_result["idno"]; ?>"><?php 
+								    	 		// echo $stock_remain_with_withdrawal." (".($class->call_parts($withdrawalPartsDetails_result["parts_code"], "stock_remain")).")";
+												echo $getStockDetails["stock_aval"]." (".$getStockDetails["stock_remain"].")";  
+								    	 	?></span>
 								    		<input type="hidden" name="quantity<?php echo $withdrawalPartsDetails_result["idno"]; ?>" class="quantity" data-quantity_id="<?php echo $withdrawalPartsDetails_result["idno"]; ?>" value="<?php echo $stock_remain_with_withdrawal; ?>" />
 								    	</td>
 										<td width="10%">

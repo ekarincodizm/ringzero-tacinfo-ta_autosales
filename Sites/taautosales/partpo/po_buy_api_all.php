@@ -1147,12 +1147,13 @@
 				chk++;
 				return false;
 			}
-			if(_quantity == "" || _quantity == 0){
+			if(_quantity == "" || _quantity == 0 || !isFinite(_quantity) ){
+				console.log ("isFinite(_quantity) = " + isFinite(_quantity) );
 				alert('กรุณากรอกจำนวน (รายการที่ '+i+')');
 				chk++;
 				return false;
 			}
-			if(_costperunit == "" || _costperunit == 0){
+			if(_costperunit == "" || _costperunit == 0 || !isFinite(_costperunit) ){
 				alert('กรุณากรอก ราคา/หน่วย (รายการที่ '+i+')');
 				chk++;
 				return false;
@@ -1176,17 +1177,17 @@
 		var _pcvat = $('#pcvat').val();
 		var _PartsApproved_appr_note = $('#PartsApproved_appr_note').val();
 		
-		if(_pcdiscount == ""){
+		if(_pcdiscount == "" || _pcdiscount < 0 || !isFinite(_pcdiscount) ){
 			alert('กรุณากรอก %ส่วนลด');
 			chk++;
 			return false;
 		}
-		if(_discount == ""){
+		if(_discount == "" || !isFinite(_discount) ){
 			alert('กรุณากรอก จำนวนเงินส่วนลด');
 			chk++;
 			return false;
 		}
-		if(_pcvat == ""){
+		if(_pcvat == "" || !isFinite(_pcvat) ){
 			alert('กรุณากรอก %ภาษีมูลค่าเพิ่ม');
 			chk++;
 			return false;

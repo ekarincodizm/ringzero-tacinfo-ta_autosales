@@ -288,7 +288,7 @@ class WithdrawalParts {
 		   	 	}
 			}
 			else{
-				$txt_error .= "INSERT withdrawalPartsDetails ไม่สำเร็จ : ไม่มี Parts ชิ้นนี้หลงเหลือแล้ว \n";
+				$txt_error .= "INSERT withdrawalPartsDetails ไม่สำเร็จ : กรุณาตรวจสอบจำนวนสินค้า\n";
 				$status++;
 			}
 		}
@@ -675,7 +675,7 @@ class WithdrawalParts {
 		   	 	}
 			}
 			else{
-				$txt_error .= "INSERT withdrawalPartsDetails ไม่สำเร็จ : ไม่มี Parts ชิ้นนี้หลงเหลือแล้ว \n";
+				$txt_error .= "INSERT withdrawalPartsDetails ไม่สำเร็จ : กรุณาตรวจสอบจำนวนสินค้า \n";
 				$status++;
 			}
 			
